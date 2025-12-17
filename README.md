@@ -38,9 +38,10 @@ Par conséquent :
 - L’owner du projet fournira aux contributeurs un **fichier d’environnement à coller** dans leur projet local (par ex. contenu de `.env` pour l’API et `.env` / `.env.local` pour le frontend).
 - Un fichier `.env.example` peut être utilisé pour **documenter les variables obligatoires** sans les valeurs sensibles.
 
-En résumé :  
-1. Récupérez le contenu de `.env` (fourni par l’owner).  
-2. Créez un fichier `.env` correspondant dans `joyatwork-api` et/ou `joyatwork-hub`.  
+En résumé :
+
+1. Récupérez le contenu de `.env` (fourni par l’owner).
+2. Créez un fichier `.env` correspondant dans `joyatwork-api` et/ou `joyatwork-hub`.
 3. Ne les poussez jamais vers Git.
 
 ---
@@ -60,7 +61,6 @@ En résumé :
    ```
 
 3. Créer et remplir le fichier `.env` :
-
    - Créez un fichier `.env` à la racine de `joyatwork-api`.
    - Collez le contenu fourni par l’owner du projet.
    - Si aucune clé d’application n’est définie (`APP_KEY` vide), générez-la :
@@ -120,7 +120,6 @@ En résumé :
    ```
 
 3. Créer et remplir le fichier d’environnement frontend :
-
    - Créez un fichier `.env` ou `.env.local` dans `joyatwork-hub`.
    - Collez le contenu fourni par l’owner.
    - Vérifiez que la variable qui pointe vers l’API (par ex. `VITE_API_BASE_URL`) est correcte, par exemple :
@@ -170,7 +169,33 @@ En résumé :
 ### 6. Stratégie de branches Git
 
 La branche de travail principale est **`dev`**.  
-Les contributions doivent suivre les règles suivantes :
+Toutes les contributions doivent partir de cette branche.
+
+#### 6.1 Cloner le dépôt et récupérer `dev`
+
+1. Cloner le dépôt (en lecture seule ou avec accès écriture) :
+
+   ```bash
+   git clone https://github.com/<ORGANISATION>/parcoursAdminJoyAtWork.git
+   cd parcoursAdminJoyAtWork
+   ```
+
+2. Récupérer toutes les branches distantes et se placer sur `dev` :
+
+   ```bash
+   git fetch origin
+   git checkout dev
+   ```
+
+3. S’assurer que `dev` est bien à jour avant de commencer à travailler :
+
+   ```bash
+   git pull origin dev
+   ```
+
+> À partir de là, considérez **`dev` comme votre branche locale de base**. Toutes vos branches de feature doivent être créées à partir de `dev`.
+
+#### 6.2 Créer des branches de travail depuis `dev`
 
 - **Branches de travail**
   - Créez toujours vos branches depuis `dev` :
@@ -239,12 +264,10 @@ Pour garantir une base de données cohérente entre tous les environnements, sui
    - Mettez à jour si besoin les seeders et/ou les données de test.
 
 5. **Règle importante : ne pas modifier une migration déjà appliquée en production**
-
    - Si une migration a déjà été exécutée sur un environnement partagé (staging / prod), **ne la modifiez pas**.
    - Créez **une nouvelle migration** pour corriger ou étendre la structure.
 
 6. **Commits et Pull Request**
-
    - Commitez la migration, le modèle, les contrôleurs, tests, etc. sur votre branche `feature/...`.
    - Poussez la branche et ouvrez une **Pull Request vers `dev`**.
    - Décrivez clairement :
@@ -252,7 +275,6 @@ Pour garantir une base de données cohérente entre tous les environnements, sui
      - Les impacts sur l’API et le frontend.
 
 7. **Déploiement (staging / production)**
-
    - Après merge de la branche dans `dev`, puis dans la branche de déploiement :
      - Déployer le code.
      - Exécuter les migrations sur le serveur :
@@ -277,5 +299,3 @@ Pour garantir une base de données cohérente entre tous les environnements, sui
   - Ajouter si possible :
     - Exemples de requêtes / réponses API.
     - Captures d’écran pour les changements frontend.
-
-
