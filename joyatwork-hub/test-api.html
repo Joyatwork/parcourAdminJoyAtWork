@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Practitioners</title>
+</head>
+<body>
+    <h1>Test API Practitioners</h1>
+    <button onclick="testAPI()">Tester API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                console.log('Testing API...');
+                const response = await fetch('http://127.0.0.1:8001/api/practitioners');
+                console.log('Response status:', response.status);
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                document.getElementById('result').innerHTML = 
+                    '<h2>Résultat:</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                    
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 
+                    '<h2>Erreur:</h2><pre>' + error.message + '</pre>';
+            }
+        }
+
+        // Test automatique au chargement
+        window.onload = () => {
+            testAPI();
+        };
+    </script>
+</body>
+</html>

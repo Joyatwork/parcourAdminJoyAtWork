@@ -1,0 +1,20 @@
+# Ignorer tous les fichiers Markdown par défaut
+*.md
+
+# Mais garder le README principal à la racine
+!README.md
+
+# Frontend joyatwork-hub
+joyatwork-hub/node_modules/
+joyatwork-hub/dist/
+
+# Backend joyatwork-api
+joyatwork-api/vendor/
+joyatwork-api/storage/
+joyatwork-api/bootstrap/cache/
+
+# Fichiers d'environnement (ne jamais les committer)
+*.env
+*.env.*
+
+
