@@ -403,5 +403,3 @@ INSERT INTO contrats (
 );
 
 
-
-
