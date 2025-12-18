@@ -21,7 +21,7 @@ Route::get('/contracts-stats', [ContractController::class, 'stats']);
 
 // Routes pour les praticiens
 Route::apiResource('practitioners', PractitionerController::class);
-Route::post('practitioners/{practitioner}/suspend', [PractitionerController::class, 'suspend']);
+Route::post('practitioners/{practitioner}/suspendre', [PractitionerController::class, 'suspend']);
 Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
 Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
 
