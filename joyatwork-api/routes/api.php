@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\PractitionerController;
@@ -22,3 +24,7 @@ Route::apiResource('practitioners', PractitionerController::class);
 Route::post('practitioners/{practitioner}/suspend', [PractitionerController::class, 'suspend']);
 Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
 Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
+
+// Routes pour les rendez-vous
+Route::apiResource('appointments', AppointmentController::class);
+Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
