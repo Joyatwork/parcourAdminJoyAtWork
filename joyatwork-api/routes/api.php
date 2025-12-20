@@ -28,3 +28,7 @@ Route::post('practitioners/{practitioner}/verify', [PractitionerController::clas
 // Routes pour les rendez-vous
 Route::apiResource('appointments', AppointmentController::class);
 Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+Route::get(
+    'practitioners/{practitioner}/appointments',
+    [AppointmentController::class, 'getAppointmentsByPractitioner']
+);

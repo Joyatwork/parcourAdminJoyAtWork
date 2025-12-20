@@ -35,6 +35,19 @@ class Appointment extends Model
     {
         return $this->belongsTo(Practitioner::class, 'practitioner_id');
     }
+    
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function getClienNameAttribute(){
+        if ($this->employee && $this->employee->user) {
+            return $this->employee->user->name;
+        }
+        
+        return 'Client inconnu';
+    }
 
     public function getPriceEurosAttribute()
     {
