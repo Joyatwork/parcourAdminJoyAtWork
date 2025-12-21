@@ -24,6 +24,9 @@ Route::apiResource('practitioners', PractitionerController::class);
 Route::post('practitioners/{practitioner}/suspendre', [PractitionerController::class, 'suspend']);
 Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
 Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
+// Routes pour les certificats des praticiens
+Route::post('practitioners/{practitioner}/verify-certif-iprp', [PractitionerController::class, 'verifyCertifIprp']);
+Route::post('practitioners/{practitioner}/verify-master-psy', [PractitionerController::class, 'verifyMasterPsyTravail']);
 
 // Routes pour les rendez-vous
 Route::apiResource('appointments', AppointmentController::class);

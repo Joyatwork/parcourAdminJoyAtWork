@@ -170,4 +170,33 @@ class PractitionerController extends Controller
             'data' => $practitioner
         ]);
     }
+
+    public function verifyCertifIprp(Practitioner $practitioner): JsonResponse
+    {
+        $practitioner->update([
+            'certif_iprp_verified' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Certificat IPRP vérifié avec succès',
+            'data' => $practitioner
+        ]);
+    }
+
+    /**
+     * Verify the Master Psy Travail certificate of a practitioner.
+     */
+    public function verifyMasterPsyTravail(Practitioner $practitioner): JsonResponse
+    {
+        $practitioner->update([
+            'master_psy_travail_verified' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Master Psy Travail vérifié avec succès',
+            'data' => $practitioner
+        ]);
+    }
 }

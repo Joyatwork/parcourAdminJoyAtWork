@@ -42,7 +42,15 @@ interface Practitioner {
   languages: string;
   certif_iprp_path: string;
 
-
+  // Nouvelles colonnes de la base
+  certif_iprp_verified: number;
+  master_psy_travail_path: string;
+  master_psy_travail_verified: number;
+  accepts_new_patients: number;
+  emergency_consultations: number;
+  location: string;
+  postal_code: string;
+  specializations: string;
 
   created_at: string;
   updated_at: string;
@@ -570,6 +578,68 @@ const filteredAppointments = appointments.filter(appointment => {
 
   return matchesSearch && matchesStatus && matchesMode && matchesPeriod;
 });
+
+// Fonction pour vérifier le certificat IPRP
+const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
+  if (!practitioner) return;
+  
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/verify-certif-iprp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Mettre à jour le praticien dans la liste
+      setPractitioners(prev => prev.map(p => p.id === practitioner.id ? data.data : p));
+      // Mettre à jour le praticien dans detailsPractitioner s'il est ouvert
+      if (detailsPractitioner?.id === practitioner.id) {
+        setDetailsPractitioner(data.data);
+      }
+    } else {
+      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la vérification:', error);
+    alert('Erreur de connexion lors de la vérification');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+// Fonction pour vérifier le master psy travail
+const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
+  if (!practitioner) return;
+  
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/verify-master-psy`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Mettre à jour le praticien dans la liste
+      setPractitioners(prev => prev.map(p => p.id === practitioner.id ? data.data : p));
+      // Mettre à jour le praticien dans detailsPractitioner s'il est ouvert
+      if (detailsPractitioner?.id === practitioner.id) {
+        setDetailsPractitioner(data.data);
+      }
+    } else {
+      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la vérification:', error);
+    alert('Erreur de connexion lors de la vérification');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (loading) {
     return (
@@ -1580,9 +1650,21 @@ const filteredAppointments = appointments.filter(appointment => {
                       <p>{detailsPractitioner.city}</p>
                     </div>
                   )}
+                  {detailsPractitioner.postal_code && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Code postal</p>
+                      <p>{detailsPractitioner.postal_code}</p>
+                    </div>
+                  )}
+                  {detailsPractitioner.location && (
+                    <div className="md:col-span-3">
+                      <p className="text-sm font-medium text-gray-500">Localisation</p>
+                      <p>{detailsPractitioner.location}</p>
+                    </div>
+                  )}
                   {detailsPractitioner.address && (
-                    <div className="md:col-span-2">
-                      <p className="text-sm font-medium text-gray-500">Adresse</p>
+                    <div className="md:col-span-3">
+                      <p className="text-sm font-medium text-gray-500">Adresse complète</p>
                       <p>{detailsPractitioner.address}</p>
                     </div>
                   )}
@@ -1621,6 +1703,8 @@ const filteredAppointments = appointments.filter(appointment => {
                 <h4 className="font-semibold text-lg flex items-center gap-2">
                   <span>📄</span> Informations administratives
                 </h4>
+                
+                {/* Numéros administratifs */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {detailsPractitioner.rpps_number && (
                     <div>
@@ -1634,12 +1718,117 @@ const filteredAppointments = appointments.filter(appointment => {
                       <p className="font-mono">{detailsPractitioner.siret_number}</p>
                     </div>
                   )}
-                  {detailsPractitioner.certif_iprp_path && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Certificat IPRP</p>
-                      <p className="text-blue-600 underline">{detailsPractitioner.certif_iprp_path}</p>
+                </div>
+
+                {/* Section des certificats */}
+                <div className="mt-6 space-y-4">
+                  <h5 className="font-semibold text-md flex items-center gap-2">
+                    <span>📋</span> Certificats et vérifications
+                  </h5>
+                  
+                  {/* Certificat IPRP */}
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Certificat IPRP</span>
+                        {detailsPractitioner.certif_iprp_verified ? (
+                          <Badge variant="default" className="bg-green-100 text-green-800">
+                            ✔ Vérifié
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                            ⚠ Non vérifié
+                          </Badge>
+                        )}
+                      </div>
+                      {!detailsPractitioner.certif_iprp_verified && detailsPractitioner.certif_iprp_path && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleVerifyCertifIprp(detailsPractitioner)}
+                          disabled={isSubmitting}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Vérifier
+                        </Button>
+                      )}
                     </div>
-                  )}
+                    {detailsPractitioner.certif_iprp_path ? (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-500">Fichier :</p>
+                        <a 
+                          href={`http://localhost:8000/${detailsPractitioner.certif_iprp_path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          {detailsPractitioner.certif_iprp_path}
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 mt-2">Aucun fichier uploadé</p>
+                    )}
+                  </div>
+
+                  {/* Master Psy Travail */}
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Master Psy Travail</span>
+                        {detailsPractitioner.master_psy_travail_verified ? (
+                          <Badge variant="default" className="bg-green-100 text-green-800">
+                            ✔ Vérifié
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                            ⚠ Non vérifié
+                          </Badge>
+                        )}
+                      </div>
+                      {!detailsPractitioner.master_psy_travail_verified && detailsPractitioner.master_psy_travail_path && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleVerifyMasterPsy(detailsPractitioner)}
+                          disabled={isSubmitting}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Vérifier
+                        </Button>
+                      )}
+                    </div>
+                    {detailsPractitioner.master_psy_travail_path ? (
+                      <div className="mt-2">
+                        <p className="text-sm font-medium text-gray-500">Fichier :</p>
+                        <a 
+                          href={`http://localhost:8000/${detailsPractitioner.master_psy_travail_path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          {detailsPractitioner.master_psy_travail_path}
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 mt-2">Aucun fichier uploadé</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Informations complémentaires */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Accepte de nouveaux patients</p>
+                    <Badge variant={detailsPractitioner.accepts_new_patients ? "default" : "outline"}>
+                      {detailsPractitioner.accepts_new_patients ? "✅ Oui" : "❌ Non"}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Consultations d'urgence</p>
+                    <Badge variant={detailsPractitioner.emergency_consultations ? "default" : "outline"}>
+                      {detailsPractitioner.emergency_consultations ? "✅ Disponible" : "❌ Non disponible"}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
@@ -1675,6 +1864,18 @@ const filteredAppointments = appointments.filter(appointment => {
                   </h4>
                   <p className="p-4 bg-gray-50 rounded-md border">
                     {detailsPractitioner.certifications}
+                  </p>
+                </div>
+              )}
+
+              {/* Spécialisations */}
+              {detailsPractitioner.specializations && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-lg flex items-center gap-2">
+                    <span>🎯</span> Spécialisations
+                  </h4>
+                  <p className="p-4 bg-purple-50 rounded-md border">
+                    {detailsPractitioner.specializations}
                   </p>
                 </div>
               )}
@@ -1760,7 +1961,7 @@ const filteredAppointments = appointments.filter(appointment => {
               {/* Informations système */}
               <div className="space-y-3 pt-6 border-t">
                 <h4 className="font-semibold text-lg">📊 Informations système</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
                   <div>
                     <p className="font-medium">Date de création</p>
                     <p>
@@ -1785,18 +1986,9 @@ const filteredAppointments = appointments.filter(appointment => {
                       })}
                     </p>
                   </div>
-                  <div>
-                    <p className="font-medium">Statut de vérification</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {detailsPractitioner.is_verified ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800">
-                          ✔ Vérifié
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">Non vérifié</Badge>
-                      )}
-                    </div>
-                  </div>
+                  
+                 
+                  
                 </div>
               </div>
 
@@ -1822,6 +2014,17 @@ const filteredAppointments = appointments.filter(appointment => {
                     <Edit className="w-4 h-4" />
                     Modifier
                   </Button>
+                  {!detailsPractitioner.is_verified && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleVerifyPractitioner(detailsPractitioner)}
+                      className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                      disabled={isSubmitting}
+                    >
+                      <span className="text-green-600">✓</span>
+                      Vérifier le praticien
+                    </Button>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setDetailsPractitioner(null)}>
