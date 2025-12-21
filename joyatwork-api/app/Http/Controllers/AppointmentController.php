@@ -81,7 +81,7 @@ class AppointmentController extends Controller
         LEFT JOIN employees e ON e.id = a.employee_id
         LEFT JOIN users u ON u.id = e.user_id
         WHERE a.practitioner_id = ?
-        ORDER BY a.scheduled_at ASC
+        ORDER BY a.scheduled_at desc
     ", [$id]);
 
     return response()->json([

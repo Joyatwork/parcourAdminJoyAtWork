@@ -124,7 +124,6 @@ export default function PractitionersDashboard() {
   const [agendaAppointments, setAgendaAppointments] = useState<AgendaAppointment[]>([]);
   const [agendaLoading, setAgendaLoading] = useState(false);
 
-  
   const [newPractitioner, setNewPractitioner] = useState<NewPractitioner>({
     first_name: '',
     last_name: '',
@@ -137,6 +136,25 @@ export default function PractitionersDashboard() {
     availability: '',
     bio: ''
   });
+
+  // États pour les filtres des rendez-vous
+const [appointmentSearchTerm, setAppointmentSearchTerm] = useState('');
+const [appointmentStatusFilter, setAppointmentStatusFilter] = useState('all');
+const [appointmentModeFilter, setAppointmentModeFilter] = useState('all');
+const [appointmentPeriodFilter, setAppointmentPeriodFilter] = useState('all');
+const [appointmentDurationFilter, setAppointmentDurationFilter] = useState('all');
+const [customStartDate, setCustomStartDate] = useState('');
+const [customEndDate, setCustomEndDate] = useState('');
+// Fonction pour réinitialiser tous les filtres des rendez-vous
+const resetAppointmentFilters = () => {
+  setAppointmentSearchTerm('');
+  setAppointmentStatusFilter('all');
+  setAppointmentModeFilter('all');
+  setAppointmentPeriodFilter('all');
+  setAppointmentDurationFilter('all');
+  setCustomStartDate('');
+  setCustomEndDate('');
+};
 
   // Fonction pour supprimer un praticien
   const handleDeletePractitioner = async (practitionerId: number, practitionerName: string) => {
@@ -483,9 +501,9 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
 
 
   const filteredPractitioners = practitioners.filter(practitioner => {
-    const fullName = `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.name || '';
+    const fullName = `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.first_name || '';
     // Gestion des deux variantes : specialty et speciality
-    const speciality = practitioner.speciality || practitioner.specialty || '';
+    const speciality = practitioner.specialty || practitioner.specialty || '';
     const email = practitioner.email || '';
     const certifications = practitioner.certifications || '';
     
@@ -495,12 +513,63 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
                          certifications.toLowerCase().includes(searchTerm.toLowerCase());
                          
     // Gestion des deux variantes pour le filtre de spécialité
-    const practitionerSpecialty = practitioner.speciality || practitioner.specialty || '';
+    const practitionerSpecialty = practitioner.specialty || practitioner.specialty || '';
     const matchesSpecialty = selectedSpecialty === 'all' || practitionerSpecialty === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
 
-  const uniqueSpecialties = [...new Set(practitioners.map(p => p.speciality || p.specialty || 'Non spécifié').filter(s => s))];
+  const uniqueSpecialties = [...new Set(practitioners.map(p => p.specialty || p.specialty || 'Non spécifié').filter(s => s))];
+
+  // Filtrage des rendez-vous
+const filteredAppointments = appointments.filter(appointment => {
+  // Filtre par recherche
+  const matchesSearch = appointmentSearchTerm === '' || 
+    (appointment.practitioner_name && appointment.practitioner_name.toLowerCase().includes(appointmentSearchTerm.toLowerCase())) ||
+    (appointment.client_name && appointment.client_name.toLowerCase().includes(appointmentSearchTerm.toLowerCase())) ||
+    (appointment.practitioner_email && appointment.practitioner_email.toLowerCase().includes(appointmentSearchTerm.toLowerCase())) ||
+    (appointment.client_email && appointment.client_email.toLowerCase().includes(appointmentSearchTerm.toLowerCase()));
+
+  // Filtre par statut
+  const matchesStatus = appointmentStatusFilter === 'all' || appointment.status === appointmentStatusFilter;
+
+  // Filtre par mode
+  const matchesMode = appointmentModeFilter === 'all' || 
+    (appointmentModeFilter === 'teleconsultation' && appointment.mode === 'teleconsultation') ||
+    (appointmentModeFilter === 'presentiel' && appointment.mode === 'presentiel');
+
+  // Filtre par période
+  let matchesPeriod = true;
+  if (appointmentPeriodFilter !== 'all') {
+    const appointmentDate = new Date(appointment.scheduled_at);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (appointmentPeriodFilter === 'today') {
+      const appointmentDay = new Date(appointmentDate);
+      appointmentDay.setHours(0, 0, 0, 0);
+      matchesPeriod = appointmentDay.getTime() === today.getTime();
+    } 
+    else if (appointmentPeriodFilter === 'this_week') {
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Lundi de cette semaine
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Dimanche de cette semaine
+      matchesPeriod = appointmentDate >= startOfWeek && appointmentDate <= endOfWeek;
+    }
+    else if (appointmentPeriodFilter === 'this_month') {
+      matchesPeriod = appointmentDate.getMonth() === today.getMonth() && 
+                     appointmentDate.getFullYear() === today.getFullYear();
+    }
+    else if (appointmentPeriodFilter === 'custom' && customStartDate && customEndDate) {
+      const start = new Date(customStartDate);
+      const end = new Date(customEndDate);
+      end.setHours(23, 59, 59, 999);
+      matchesPeriod = appointmentDate >= start && appointmentDate <= end;
+    }
+  }
+
+  return matchesSearch && matchesStatus && matchesMode && matchesPeriod;
+});
 
   if (loading) {
     return (
@@ -574,6 +643,7 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
             </TabsTrigger>
           </TabsList>
 
+          {/* Praticiens ALL*/}
           <TabsContent value="practitioners" className="space-y-4">
             <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-4 flex-1">
@@ -892,10 +962,89 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
 
           {/* Rendez_vous ALL*/}
           <TabsContent value="appointments" className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-gray-900">Gestion des Rendez-vous</h2>
               <div className="text-sm text-gray-600">
-                {appointments.length} rendez-vous
+                {filteredAppointments.length} rendez-vous sur {appointments.length} total
+              </div>
+            </div>
+
+            {/* Barre de filtres */}
+            <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+              <div className="flex flex-wrap gap-3 items-center">
+                {/* Recherche */}
+                <Input
+                  placeholder="Rechercher par nom..."
+                  value={appointmentSearchTerm}
+                  onChange={(e) => setAppointmentSearchTerm(e.target.value)}
+                  className="w-48"
+                />
+                
+                {/* Filtre par statut */}
+                <Select value={appointmentStatusFilter} onValueChange={setAppointmentStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="confirmed">Confirmé</SelectItem>
+                    <SelectItem value="cancelled">Annulé</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Filtre par mode */}
+                <Select value={appointmentModeFilter} onValueChange={setAppointmentModeFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les modes</SelectItem>
+                    <SelectItem value="teleconsultation">Téléconsultation</SelectItem>
+                    <SelectItem value="presentiel">Présentiel</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Filtre par période */}
+                <Select value={appointmentPeriodFilter} onValueChange={setAppointmentPeriodFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Période" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes périodes</SelectItem>
+                    <SelectItem value="today">Aujourd'hui</SelectItem>
+                    <SelectItem value="this_week">Cette semaine</SelectItem>
+                    <SelectItem value="this_month">Ce mois</SelectItem>
+                    <SelectItem value="custom">Personnalisée</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Champs de dates pour période personnalisée */}
+                {appointmentPeriodFilter === 'custom' && (
+                  <>
+                    <Input
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="w-40"
+                    />
+                    <Input
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="w-40"
+                    />
+                  </>
+                )}
+                
+                {/* Bouton de réinitialisation */}
+                <Button 
+                  variant="outline" 
+                  onClick={resetAppointmentFilters}
+                  className="ml-auto"
+                >
+                  Réinitialiser
+                </Button>
               </div>
             </div>
 
@@ -917,17 +1066,20 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="text-gray-600 mt-2">Chargement des rendez-vous...</p>
                   </div>
-                ) : appointments.length === 0 ? (
+                ) : filteredAppointments.length === 0 ? (
                   <div className="text-center py-12">
                     <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun rendez-vous</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun rendez-vous trouvé</h3>
                     <p className="text-gray-600">
-                      Aucun rendez-vous programmé pour le moment
+                      {appointments.length === 0 ? 
+                        "Aucun rendez-vous programmé pour le moment" : 
+                        "Aucun rendez-vous ne correspond à vos critères de recherche"
+                      }
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {appointments.map((appointment) => {
+                    {filteredAppointments.map((appointment) => {
                       const statusBadge = getStatusBadge(appointment.status);
                       
                       return (
@@ -943,9 +1095,7 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
                                     {statusBadge.label}
                                   </Badge>
                                   <Badge variant="outline">
-                                    {appointment.mode === 'video' ? '📹 Vidéo' :
-                                    appointment.mode === 'phone' ? '📞 Téléphone' :
-                                    '🏢 Présentiel'}
+                                    {appointment.mode === 'teleconsultation' ? '📞 Téleconsultation' : '🏢 Présentiel'}
                                   </Badge>
                                   {appointment.type && (
                                     <Badge variant="secondary">
@@ -1683,8 +1833,6 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
           )}
         </DialogContent>
       </Dialog>
-
-
 
     </div>
   );
