@@ -76,7 +76,7 @@ const RendezVousDashboard = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch('http://localhost:8001/appointments.php');
+        const response = await fetch('http://localhost:8000/api/appointments');
         if (!response.ok) {
           throw new Error('Erreur lors du chargement des rendez-vous');
         }
