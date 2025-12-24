@@ -50,4 +50,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(Employee::class);
     }
+
+    public function challenges(): BelongsToMany
+    {
+    return $this->belongsToMany(Challenge::class, 'user_challenges')
+                ->withPivot('score', 'rate', 'completed_at')
+                ->withTimestamps();
+    }
 }

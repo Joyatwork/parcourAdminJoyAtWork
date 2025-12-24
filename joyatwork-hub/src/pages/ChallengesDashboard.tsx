@@ -118,7 +118,7 @@ const ChallengesDashboard = () => {
         setIsCreateDialogOpen(false);
         
         // Recharger la liste des challenges
-        const refreshResponse = await fetch('http://localhost:8080/challenges.php');
+        const refreshResponse = await fetch('http://localhost:8000/challenges.php');
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setChallenges(refreshData.data);
@@ -234,7 +234,7 @@ const ChallengesDashboard = () => {
   // Données de démonstration des challenges (maintenant remplacées par les vraies données)
   const demoFallbackChallenges: Challenge[] = [
     {
-      id: '1',
+      id: 1,
       title: 'Méditation matinale',
       description: '5 minutes de méditation guidée pour bien commencer la journée',
       category: 'Émotion',

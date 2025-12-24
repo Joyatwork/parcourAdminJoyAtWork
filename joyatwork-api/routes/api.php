@@ -4,6 +4,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\PractitionerController;
+use App\Http\Controllers\ChallengeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,3 +36,9 @@ Route::get(
     'practitioners/{practitioner}/appointments',
     [AppointmentController::class, 'getAppointmentsByPractitioner']
 );
+
+
+// Routes pour les challenges
+Route::get('/challenges/trashed', [ChallengeController::class, 'trashed']);
+Route::post('/challenges/{id}/restore', [ChallengeController::class, 'restore']);
+Route::apiResource('challenges', ChallengeController::class);

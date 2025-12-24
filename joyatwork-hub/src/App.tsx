@@ -9,10 +9,11 @@ import NotFound from "./pages/NotFound";
 import PractitionersDashboardFixed from "./pages/PractitionersDashboardFixed";
 import Companies from "./pages/Companies";
 import ContractsDashboard from "./pages/ContractsDashboard";
-import ChallengesDashboard from "./pages/ChallengesDashboard";
+import ChallengesDashboardNew from "./pages/ChallengesDashboardNew";
 import SanteDiagnosticDashboard from "./pages/SanteDiagnosticDashboard";
 import RendezVousDashboard from "./pages/RendezVousDashboard";
 import TestNavigation from "./pages/TestNavigation";
+import { Heading1 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,8 @@ const App = () => (
             />
             <Route path="/companies" element={<Companies />} />
             <Route path="/contracts" element={<ContractsDashboard />} />
-            <Route path="/challenges" element={<ChallengesDashboard />} />
+            <Route path="/challenges" element={<ChallengesDashboardNew />} />
+
             <Route
               path="/sante-diagnostic"
               element={<SanteDiagnosticDashboard />}

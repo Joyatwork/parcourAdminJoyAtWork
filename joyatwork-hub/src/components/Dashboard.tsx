@@ -21,7 +21,7 @@ import { AbsenteeismCostBreakdown } from "@/components/Dashboard/AbsenteeismCost
 import { StrategicQVCTHeader } from "@/components/Dashboard/StrategicQVCTHeader";
 import PractitionersDashboard from "@/pages/PractitionersDashboard";
 import Companies from "@/pages/Companies";
-import ChallengesDashboard from "@/pages/ChallengesDashboard";
+import ChallengesDashboardNew from "@/pages/ChallengesDashboardNew";
 import SanteDiagnosticDashboard from "@/pages/SanteDiagnosticDashboard";
 import RendezVousDashboard from "@/pages/RendezVousDashboard";
 import { 
@@ -88,7 +88,7 @@ export function Dashboard() {
           ) : activeSection === "companies" ? (
             <Companies />
           ) : activeSection === "challenges" ? (
-            <ChallengesDashboard />
+            <ChallengesDashboardNew />
           ) : activeSection === "health" ? (
             <SanteDiagnosticDashboard />
           ) : activeSection === "appointments" ? (
