@@ -9,92 +9,105 @@ class ChallengeController extends Controller
 {
     public function index()
     {
-        return response()->json(Challenge::all());
+        $actives = Challenge::where('is_active', true)
+            ->selectRaw('challenges.*, 
+                        (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
+            ->get();
+        
+        return response()->json($actives);
     }
 
-    public function store(Request $request)
+     public function trashed()
     {
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'category' => 'nullable|string|max:255',
-                'challenge_type' => 'nullable|string|max:50',
-                'points' => 'nullable|integer',
-                'duration' => 'nullable|string|max:100',
-                'intensity' => 'nullable|string|max:50',
-                'objective' => 'nullable|string|max:255'
-            ]);
-
-            // Merge default values
-            $data = array_merge([
-                'participants' => 0,
-                'completion_rate' => 0.00,
-                'is_active' => true,
-            ], $validated);
-
-            $challenge = Challenge::create($data);
-
-            return response()->json($challenge, 201);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+        $archived = Challenge::where('is_active', false)
+            ->selectRaw('challenges.*, 
+                        (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
+            ->get();
+        
+        return response()->json($archived);
     }
 
-    public function update(Request $request, $id)
-    {
-        try {
-            $validated = $request->validate([
-                'title' => 'sometimes|string|max:255',
-                'description' => 'sometimes|string',
-                'category' => 'sometimes|string',
-                'challenge_type' => 'sometimes|string',
-                'points' => 'sometimes|integer',
-                'duration' => 'sometimes|string',
-                'intensity' => 'sometimes|string',
-                'is_active' => 'sometimes|boolean'
-            ]);
-
-            $challenge = Challenge::findOrFail($id);
-            $challenge->update($validated);
-
-            return response()->json($challenge);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
+    // 3. ARCHIVER (Mettre is_active à 0)
     public function destroy($id)
     {
-        try {
-            $challenge = Challenge::findOrFail($id);
-            $challenge->delete(); // This handles soft delete automatically due to SoftDeletes trait in model
-
-            return response()->json(['message' => 'Défi archivé']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+        $challenge = Challenge::findOrFail($id);
+        $challenge->update(['is_active' => false]);
+        
+        return response()->json(['message' => 'Défi archivé avec succès']);
     }
 
-    public function trashed()
-    {
-        try {
-            $trashed = Challenge::onlyTrashed()->get();
-            return response()->json($trashed);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
+    // 4. RESTAURER (Mettre is_active à 1)
     public function restore($id)
     {
-        try {
-            $challenge = Challenge::withTrashed()->findOrFail($id);
-            $challenge->restore();
+        $challenge = Challenge::findOrFail($id);
+        $challenge->update(['is_active' => true]);
 
-            return response()->json(['message' => 'Défi restauré', 'challenge' => $challenge]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
+        return response()->json([
+            'message' => 'Défi restauré', 
+            'challenge' => $challenge
+        ]);
     }
+
+    // 5. CRÉER
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category' => 'nullable|string',
+            'challenge_type' => 'nullable|string',
+            'points' => 'nullable|integer',
+
+            'duration' => 'nullable|string',
+            'intensity' => 'nullable|string',
+            'objective' => 'nullable|string',
+            'pack_thematique' => 'nullable|string',
+            'image_path' => 'nullable|string',
+            'video_path' => 'nullable|string',
+        ]);
+
+        $challenge = Challenge::create(array_merge($validated, [
+            'is_active' => true,
+            'participants' => 0
+        ]));
+
+        return response()->json($challenge, 201);
+    }
+    // 6. MODIFIER
+    public function update(Request $request, $id)
+    {
+        $challenge = Challenge::findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category' => 'nullable|string',
+            'challenge_type' => 'nullable|string',
+            'points' => 'nullable|integer',
+            'duration' => 'nullable|string',
+            'intensity' => 'nullable|string',
+            'objective' => 'nullable|string',
+            'pack_thematique' => 'nullable|string',
+            'image_path' => 'nullable|string',
+            'video_path' => 'nullable|string',
+        ]);
+
+        $challenge->update($validated);
+
+        return response()->json([
+            'message' => 'Défi mis à jour avec succès',
+            'challenge' => $challenge
+        ]);
+    }
+
+    public function participantsParDefi($id)
+{   
+    $sql = "select u.id, u.name, u.email, cu.score, cu.rate
+            from users u
+            join challenge_user cu on u.id = cu.user_id
+            where cu.challenge_id = ?";
+    $participants = \DB::select($sql, [$id]);
+    return response()->json($participants);
+}
+    
 }

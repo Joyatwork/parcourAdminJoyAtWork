@@ -20,21 +20,23 @@ class Challenge extends Model
         'objective',
         'is_active',
         'participants',
-        'completion_rate'
-        // Retirez 'contents' et 'statistics' si vous ne les utilisez pas
+        'completion_rate',
+        'pack_thematique',
+        'image_path',
+        'video_path',
+        
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'points' => 'integer',
-        'participants' => 'integer',
-        'completion_rate' => 'float'
-        // Retirez 'contents' => 'array', et 'statistics' => 'array', si problématique
+    'is_active' => 'boolean',
+    'points' => 'integer',
+    'participants' => 'integer',
+    'completion_rate' => 'float',
+    
+    // Move your dates here!
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    'deleted_at' => 'datetime',
     ];
 
-    protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at'
-    ];
 }

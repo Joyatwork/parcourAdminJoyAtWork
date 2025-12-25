@@ -42,3 +42,7 @@ Route::get(
 Route::get('/challenges/trashed', [ChallengeController::class, 'trashed']);
 Route::post('/challenges/{id}/restore', [ChallengeController::class, 'restore']);
 Route::apiResource('challenges', ChallengeController::class);
+Route::get('/challenges/{id}/participants', [ChallengeController::class, 'participantsParDefi']);
+
+// Routes pour les user_challenges
+Route::get('/user-challenges/length-participants/{id}', [UserChallengeController::class, 'lenghParticipantsParDefi']);
