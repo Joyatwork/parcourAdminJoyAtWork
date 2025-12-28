@@ -27,7 +27,8 @@ import {
   Users, 
   Star,
   Upload,
-  X
+  X,
+  ZoomIn
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -118,6 +119,17 @@ const AdminContentPanel = () => {
   const [participantsData, setParticipantsData] = useState<participantsParDefi[]>([]);
   const [isDialogParticipantOpen, setIsDialogParticipantOpen] = useState(false);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>('');
+
+  // Fonction pour ouvrir la visualisation d'image
+  const openImageDialog = (imageUrl: string, challengeTitle?: string) => {
+    setSelectedImage(imageUrl);
+    setSelectedChallenge(challengeTitle ? defis.find(d => d.title === challengeTitle) || null : null);
+    setIsImageDialogOpen(true);
+  };
+
 
   // Fetch categories, types, and intensities
   const fetchDropdownData = async () => {
@@ -396,81 +408,102 @@ const AdminContentPanel = () => {
   };
 
   // Soumettre le formulaire
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess('');
+ const handleSubmit = async () => {
+  setLoading(true);
+  setError('');
+  setSuccess('');
 
-    try {
-      let url = `${API_BASE_URL}/challenges`;
-      let method = 'POST';
+  try {
+    let url = `${API_BASE_URL}/challenges`;
+    let method = 'POST';
 
-      if (dialogMode === 'edit' && selectedChallenge) {
-        url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
-        method = 'PUT';
-      } else if (dialogMode === 'delete' && selectedChallenge) {
-        url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
-        method = 'DELETE';
-      }
+    if (dialogMode === 'edit' && selectedChallenge) {
+      url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
+      method = 'PUT';
+    } else if (dialogMode === 'delete' && selectedChallenge) {
+      url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
+      method = 'DELETE';
+    }
 
-      // Créer FormData pour envoyer le fichier
-      const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('category_id', formData.category_id.toString());
-      formDataToSend.append('type_id', formData.type_id.toString());
-      formDataToSend.append('points', formData.points.toString());
-      formDataToSend.append('duration', formData.duration);
-      formDataToSend.append('intensity_id', formData.intensity_id.toString());
-      formDataToSend.append('objective', formData.objective);
-      formDataToSend.append('pack_thematique', formData.pack_thematique);
-      formDataToSend.append('video_path', formData.video_path);
+    // Pour CREATE et UPDATE (sans image)
+    const payload = dialogMode !== 'delete' ? {
+      title: formData.title,
+      description: formData.description,
+      category_id: formData.category_id,
+      type_id: formData.type_id,
+      points: formData.points,
+      duration: formData.duration,
+      intensity_id: formData.intensity_id,
+      objective: formData.objective,
+      pack_thematique: formData.pack_thematique,
+      video_path: formData.video_path,
+      // Note: image_path n'est pas envoyé ici
+    } : {};
 
-      // Ajouter l'image si elle existe
-      if (imageFile) {
-        formDataToSend.append('image', imageFile);
-      }
+    console.log('Sending request:', { url, method, payload });
 
-      console.log('Sending request with FormData');
+    // 1. D'abord créer/mettre à jour le défi
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: dialogMode !== 'delete' ? JSON.stringify(payload) : undefined
+    });
 
-      const response = await fetch(url, {
-        method,
-        body: formDataToSend,
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    // 2. Ensuite uploader l'image si elle existe
+    if (imageFile && dialogMode !== 'delete') {
+      const challengeId = dialogMode === 'create' ? result.id : selectedChallenge?.id;
+      
+      const imageFormData = new FormData();
+      imageFormData.append('image', imageFile);
+      
+      const imageResponse = await fetch(`${API_BASE_URL}/challenges/${challengeId}/upload-image`, {
+        method: 'POST',
+        body: imageFormData,
         headers: {
           'Accept': 'application/json',
         }
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      
+      if (!imageResponse.ok) {
+        throw new Error('Erreur lors de l\'upload de l\'image');
       }
-
-      if (dialogMode === 'create') {
-        setSuccess('Défi créé avec succès !');
-      } else if (dialogMode === 'edit') {
-        setSuccess('Défi mis à jour avec succès !');
-      } else if (dialogMode === 'delete') {
-        setSuccess('Défi archivé avec succès !');
-      }
-
-      // Recharger les données
-      setTimeout(() => {
-        fetchChallenges();
-        fetchArchivedChallenges();
-        setIsDialogOpen(false);
-        setImageFile(null);
-        setImagePreview(null);
-      }, 1500);
-
-    } catch (err) {
-      console.error('Submit error:', err);
-      // @ts-ignore
-      setError(`Erreur: ${err.message}`);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    if (dialogMode === 'create') {
+      setSuccess('Défi créé avec succès !');
+    } else if (dialogMode === 'edit') {
+      setSuccess('Défi mis à jour avec succès !');
+    } else if (dialogMode === 'delete') {
+      setSuccess('Défi archivé avec succès !');
+    }
+
+    // Recharger les données
+    setTimeout(() => {
+      fetchChallenges();
+      fetchArchivedChallenges();
+      setIsDialogOpen(false);
+      setImageFile(null);
+      setImagePreview(null);
+    }, 1500);
+
+  } catch (err) {
+    console.error('Submit error:', err);
+    // @ts-ignore
+    setError(`Erreur: ${err.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fonctions d'aide
   const getStatusBadge = (challenge: Challenge) => {
@@ -776,10 +809,21 @@ const AdminContentPanel = () => {
                         {/* Indicateurs de médias présents */}
                         <div className="flex gap-2 ml-auto md:ml-0">
                           {defi.image_path && (
-                            <div className="flex items-center text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                            <div 
+                              className="flex items-center text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors"
+                              onClick={() => {
+                                const imageUrl = defi.image_path.startsWith('http') 
+                                  ? defi.image_path 
+                                  : `${API_BASE_URL.replace('/api', '')}/storage/${defi.image_path}`;
+                                openImageDialog(imageUrl, defi.title);
+                              }}
+                            >
                               <FileText className="w-3 h-3 mr-1" /> 
                               {defi.image_path.startsWith('http') ? (
-                                <span>Image URL</span>
+                                <>
+                                  <span>Image URL</span>
+                                  <ZoomIn className="w-3 h-3 ml-1" />
+                                </>
                               ) : (
                                 <>
                                   <img 
@@ -788,6 +832,7 @@ const AdminContentPanel = () => {
                                     className="w-5 h-5 ml-1 rounded object-cover"
                                   />
                                   <span className="ml-1">Image</span>
+                                  <ZoomIn className="w-3 h-3 ml-1" />
                                 </>
                               )}
                             </div>
@@ -1229,6 +1274,49 @@ const AdminContentPanel = () => {
                 variant="outline" 
                 onClick={() => setIsDialogParticipantOpen(false)}
                 disabled={loadingParticipants}
+              >
+                Fermer
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+          <DialogContent className="sm:max-w-4xl p-0 max-h-[90vh] overflow-hidden">
+            <DialogHeader className="p-6 pb-2 border-b">
+              <DialogTitle className="text-xl font-bold">
+                {selectedChallenge?.title || 'Image du défi'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="p-6">
+              <div className="relative">
+                <img 
+                  src={selectedImage} 
+                  alt={selectedChallenge?.title || 'Image du défi'}
+                  className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+                />
+              </div>
+              
+              
+            </div>
+            
+            <div className="p-6 border-t flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                {selectedImage && (
+                  <a 
+                    href={selectedImage} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-800 hover:underline"
+                  >
+                    Ouvrir l'image dans un nouvel onglet
+                  </a>
+                )}
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsImageDialogOpen(false)}
               >
                 Fermer
               </Button>

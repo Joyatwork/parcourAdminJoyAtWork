@@ -51,9 +51,10 @@ class ChallengeController extends Controller
         ]);
     }
 
-    // CRÉER
+    // CRÉER - Accepte FormData
     public function store(Request $request)
     {
+        // Valider les données du FormData
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -65,14 +66,13 @@ class ChallengeController extends Controller
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
             'video_path' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048', // Validation pour l'upload
         ]);
 
         // Gestion de l'upload d'image
         if ($request->hasFile('image')) {
             $imageName = time() . '_' . $request->image->getClientOriginalName();
             $imagePath = $request->image->storeAs('challenges', $imageName, 'public');
-            $validated['image_path'] = $imagePath; // Stocker le chemin dans image_path
+            $validated['image_path'] = $imagePath; // Stocker le chemin
         }
 
         $challenge = Challenge::create(array_merge($validated, [
@@ -82,11 +82,12 @@ class ChallengeController extends Controller
         return response()->json($challenge, 201);
     }
 
-    // MODIFIER
+    // MODIFIER - Accepte FormData
     public function update(Request $request, $id)
     {
         $challenge = Challenge::findOrFail($id);
 
+        // Valider les données du FormData
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -98,7 +99,7 @@ class ChallengeController extends Controller
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
             'video_path' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048', // Validation pour l'upload
+            // Note: 'image' n'est pas dans la validation car c'est un fichier
         ]);
 
         // Gestion de l'upload d'image
@@ -110,7 +111,7 @@ class ChallengeController extends Controller
             
             $imageName = time() . '_' . $request->image->getClientOriginalName();
             $imagePath = $request->image->storeAs('challenges', $imageName, 'public');
-            $validated['image_path'] = $imagePath; // Stocker le chemin dans image_path
+            $validated['image_path'] = $imagePath; // Stocker le chemin
         }
 
         $challenge->update($validated);
@@ -129,5 +130,28 @@ class ChallengeController extends Controller
                 where cu.challenge_id = ?";
         $participants = \DB::select($sql, [$id]);
         return response()->json($participants);
+    }
+    public function uploadImage(Request $request, $id)
+    {
+        $challenge = Challenge::findOrFail($id);
+        
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        ]);
+        
+        // Supprimer l'ancienne image si elle existe
+        if ($challenge->image_path && Storage::disk('public')->exists($challenge->image_path)) {
+            Storage::disk('public')->delete($challenge->image_path);
+        }
+        
+        $imageName = time() . '_' . $request->image->getClientOriginalName();
+        $imagePath = $request->image->storeAs('challenges', $imageName, 'public');
+        
+        $challenge->update(['image_path' => $imagePath]);
+        
+        return response()->json([
+            'message' => 'Image uploadée avec succès',
+            'image_path' => $imagePath
+        ]);
     }
 }

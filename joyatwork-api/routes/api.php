@@ -58,3 +58,6 @@ Route::get('/challenge-types', function() {
 Route::get('/challenge-intensities', function() {
     return \App\Models\ChallengeIntensity::all();
 });
+
+
+Route::post('/challenges/{id}/upload-image', [ChallengeController::class, 'uploadImage']);
