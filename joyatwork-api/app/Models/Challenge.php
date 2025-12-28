@@ -12,11 +12,11 @@ class Challenge extends Model
     protected $fillable = [
         'title',
         'description',
-        'category',
-        'challenge_type',
+        'category_id',
+        'type_id',
+        'intensity_id',
         'points',
         'duration',
-        'intensity',
         'objective',
         'is_active',
         'participants',
@@ -24,19 +24,27 @@ class Challenge extends Model
         'pack_thematique',
         'image_path',
         'video_path',
-        
     ];
 
     protected $casts = [
-    'is_active' => 'boolean',
-    'points' => 'integer',
-    'participants' => 'integer',
-    'completion_rate' => 'float',
-    
-    // Move your dates here!
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-    'deleted_at' => 'datetime',
+        'is_active' => 'boolean',
+        'points' => 'integer',
+        'participants' => 'integer',
+        'completion_rate' => 'float',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
+    public function category() {
+        return $this->belongsTo(ChallengeCategory::class, 'category_id');
+    }
+
+    public function type() {
+        return $this->belongsTo(ChallengeType::class, 'type_id');
+    }
+
+    public function intensity() {
+        return $this->belongsTo(ChallengeIntensity::class, 'intensity_id');
+    }
 }

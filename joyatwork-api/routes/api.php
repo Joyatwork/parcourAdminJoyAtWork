@@ -46,3 +46,15 @@ Route::get('/challenges/{id}/participants', [ChallengeController::class, 'partic
 
 // Routes pour les user_challenges
 Route::get('/user-challenges/length-participants/{id}', [UserChallengeController::class, 'lenghParticipantsParDefi']);
+// Routes for dropdown data
+Route::get('/challenge-categories', function() {
+    return \App\Models\ChallengeCategory::all();
+});
+
+Route::get('/challenge-types', function() {
+    return \App\Models\ChallengeType::all();
+});
+
+Route::get('/challenge-intensities', function() {
+    return \App\Models\ChallengeIntensity::all();
+});

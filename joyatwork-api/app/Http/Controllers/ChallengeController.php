@@ -4,30 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Challenge;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ChallengeController extends Controller
 {
     public function index()
     {
-        $actives = Challenge::where('is_active', true)
+        $actives = Challenge::with(['category', 'type', 'intensity'])
+            ->where('is_active', true)
             ->selectRaw('challenges.*, 
                         (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
             ->get();
-        
+
         return response()->json($actives);
     }
 
-     public function trashed()
+    public function trashed()
     {
-        $archived = Challenge::where('is_active', false)
+        $archived = Challenge::with(['category', 'type', 'intensity'])
+            ->where('is_active', false)
             ->selectRaw('challenges.*, 
                         (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
             ->get();
-        
+
         return response()->json($archived);
     }
 
-    // 3. ARCHIVER (Mettre is_active à 0)
+    // ARCHIVER
     public function destroy($id)
     {
         $challenge = Challenge::findOrFail($id);
@@ -36,7 +39,7 @@ class ChallengeController extends Controller
         return response()->json(['message' => 'Défi archivé avec succès']);
     }
 
-    // 4. RESTAURER (Mettre is_active à 1)
+    // RESTAURER
     public function restore($id)
     {
         $challenge = Challenge::findOrFail($id);
@@ -48,32 +51,38 @@ class ChallengeController extends Controller
         ]);
     }
 
-    // 5. CRÉER
+    // CRÉER
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'nullable|string',
-            'challenge_type' => 'nullable|string',
+            'category_id' => 'required|exists:challenge_category,id',
+            'type_id' => 'required|exists:challenge_type,id',
             'points' => 'nullable|integer',
-
             'duration' => 'nullable|string',
-            'intensity' => 'nullable|string',
+            'intensity_id' => 'required|exists:challenge_intensity,id',
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
-            'image_path' => 'nullable|string',
             'video_path' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048', // Validation pour l'upload
         ]);
+
+        // Gestion de l'upload d'image
+        if ($request->hasFile('image')) {
+            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $imagePath = $request->image->storeAs('challenges', $imageName, 'public');
+            $validated['image_path'] = $imagePath; // Stocker le chemin dans image_path
+        }
 
         $challenge = Challenge::create(array_merge($validated, [
             'is_active' => true,
-            'participants' => 0
         ]));
 
         return response()->json($challenge, 201);
     }
-    // 6. MODIFIER
+
+    // MODIFIER
     public function update(Request $request, $id)
     {
         $challenge = Challenge::findOrFail($id);
@@ -81,16 +90,28 @@ class ChallengeController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'nullable|string',
-            'challenge_type' => 'nullable|string',
+            'category_id' => 'required|exists:challenge_category,id',
+            'type_id' => 'required|exists:challenge_type,id',
             'points' => 'nullable|integer',
             'duration' => 'nullable|string',
-            'intensity' => 'nullable|string',
+            'intensity_id' => 'required|exists:challenge_intensity,id',
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
-            'image_path' => 'nullable|string',
             'video_path' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048', // Validation pour l'upload
         ]);
+
+        // Gestion de l'upload d'image
+        if ($request->hasFile('image')) {
+            // Supprimer l'ancienne image si elle existe et est stockée localement
+            if ($challenge->image_path && Storage::disk('public')->exists($challenge->image_path)) {
+                Storage::disk('public')->delete($challenge->image_path);
+            }
+            
+            $imageName = time() . '_' . $request->image->getClientOriginalName();
+            $imagePath = $request->image->storeAs('challenges', $imageName, 'public');
+            $validated['image_path'] = $imagePath; // Stocker le chemin dans image_path
+        }
 
         $challenge->update($validated);
 
@@ -101,13 +122,12 @@ class ChallengeController extends Controller
     }
 
     public function participantsParDefi($id)
-{   
-    $sql = "select u.id, u.name, u.email, cu.score, cu.rate
-            from users u
-            join challenge_user cu on u.id = cu.user_id
-            where cu.challenge_id = ?";
-    $participants = \DB::select($sql, [$id]);
-    return response()->json($participants);
-}
-    
+    {   
+        $sql = "select u.id, u.name, u.email, cu.score, cu.rate
+                from users u
+                join challenge_user cu on u.id = cu.user_id
+                where cu.challenge_id = ?";
+        $participants = \DB::select($sql, [$id]);
+        return response()->json($participants);
+    }
 }
