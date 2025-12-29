@@ -62,6 +62,7 @@ interface Challenge {
   duration: string;
   objective: string;
   pack_thematique: string;
+  pack_id: number;
   image_path: string;
   video_path: string;
   is_active: boolean;
@@ -95,8 +96,10 @@ const AdminContentPanel = () => {
   const [activeTab, setActiveTab] = useState('defis');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('tous');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'delete'>('create');
+  const [isChallengeDialogOpen, setIsChallengeDialogOpen] = useState(false);
+  const [isPackDialogOpen, setIsPackDialogOpen] = useState(false);
+  const [challengeDialogMode, setChallengeDialogMode] = useState<'create' | 'edit' | 'delete'>('create');
+  const [packDialogMode, setPackDialogMode] = useState<'create' | 'edit' | 'delete'>('create');
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [selectedPack, setSelectedPack] = useState<ChallengePack | null>(null);
   const [loading, setLoading] = useState(false);
@@ -127,6 +130,7 @@ const AdminContentPanel = () => {
     intensity_id: 1,
     objective: '',
     pack_thematique: '',
+    pack_id: null,
     video_path: '',
   });
 
@@ -187,7 +191,7 @@ const AdminContentPanel = () => {
     }
   }, [searchPackTerm, packs]);
 
-  // Fetch categories, types, and intensities
+  // Fetch categories, types and intensities
   const fetchDropdownData = async () => {
     try {
       // Fetch categories
@@ -229,6 +233,7 @@ const AdminContentPanel = () => {
       console.error('Error fetching dropdown data:', err);
     }
   };
+
 
   // Fonction pour charger les défis
   const fetchChallenges = async () => {
@@ -389,9 +394,10 @@ const AdminContentPanel = () => {
   }, [searchTerm, archivedDefis]);
 
   // Ouvrir le dialogue pour défis
-  const openDialog = (mode: 'create' | 'edit' | 'delete', challenge: Challenge | null = null) => {
-    setDialogMode(mode);
+  const openChallengeDialog = (mode: 'create' | 'edit' | 'delete', challenge: Challenge | null = null) => {
+    setChallengeDialogMode(mode);
     setSelectedChallenge(challenge);
+    setSelectedPack(null); // Réinitialiser le pack
     setError('');
     setSuccess('');
     setImageFile(null);
@@ -408,6 +414,7 @@ const AdminContentPanel = () => {
         intensity_id: challenge.intensity_id || 1,
         objective: challenge.objective || '',
         pack_thematique: challenge.pack_thematique || '',
+        pack_id: challenge.pack_id || null,
         video_path: challenge.video_path || ''
       });
       
@@ -428,16 +435,18 @@ const AdminContentPanel = () => {
         intensity_id: 1,
         objective: '',
         pack_thematique: '',
+        pack_id: null,
         video_path: ''
       });
     }
-    setIsDialogOpen(true);
+    setIsChallengeDialogOpen(true);
   };
 
   // Ouvrir le dialogue pour packs
   const openPackDialog = (mode: 'create' | 'edit' | 'delete', pack: ChallengePack | null = null) => {
-    setDialogMode(mode);
+    setPackDialogMode(mode);
     setSelectedPack(pack);
+    setSelectedChallenge(null); // Réinitialiser le défi
     setError('');
     setSuccess('');
 
@@ -452,7 +461,31 @@ const AdminContentPanel = () => {
         description: ''
       });
     }
-    setIsDialogOpen(true);
+    setIsPackDialogOpen(true);
+  };
+
+  // Fonction pour fermer le dialogue des défis
+  const closeChallengeDialog = () => {
+    setIsChallengeDialogOpen(false);
+    // Réinitialiser les états après un court délai
+    setTimeout(() => {
+      setSelectedChallenge(null);
+      setError('');
+      setSuccess('');
+      setImageFile(null);
+      setImagePreview(null);
+    }, 300);
+  };
+
+  // Fonction pour fermer le dialogue des packs
+  const closePackDialog = () => {
+    setIsPackDialogOpen(false);
+    // Réinitialiser les états après un court délai
+    setTimeout(() => {
+      setSelectedPack(null);
+      setError('');
+      setSuccess('');
+    }, 300);
   };
 
   // Gérer les changements du formulaire défis
@@ -495,7 +528,7 @@ const AdminContentPanel = () => {
   };
 
   // Soumettre le formulaire défis
-  const handleSubmit = async () => {
+  const handleChallengeSubmit = async () => {
     setLoading(true);
     setError('');
     setSuccess('');
@@ -504,16 +537,16 @@ const AdminContentPanel = () => {
       let url = `${API_BASE_URL}/challenges`;
       let method = 'POST';
 
-      if (dialogMode === 'edit' && selectedChallenge) {
+      if (challengeDialogMode === 'edit' && selectedChallenge) {
         url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
         method = 'PUT';
-      } else if (dialogMode === 'delete' && selectedChallenge) {
+      } else if (challengeDialogMode === 'delete' && selectedChallenge) {
         url = `${API_BASE_URL}/challenges/${selectedChallenge.id}`;
         method = 'DELETE';
       }
 
       // Pour CREATE et UPDATE (sans image)
-      const payload = dialogMode !== 'delete' ? {
+      const payload = challengeDialogMode !== 'delete' ? {
         title: formData.title,
         description: formData.description,
         category_id: formData.category_id,
@@ -523,6 +556,7 @@ const AdminContentPanel = () => {
         intensity_id: formData.intensity_id,
         objective: formData.objective,
         pack_thematique: formData.pack_thematique,
+        pack_id: formData.pack_id,
         video_path: formData.video_path,
       } : {};
 
@@ -535,7 +569,7 @@ const AdminContentPanel = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: dialogMode !== 'delete' ? JSON.stringify(payload) : undefined
+        body: challengeDialogMode !== 'delete' ? JSON.stringify(payload) : undefined
       });
 
       if (!response.ok) {
@@ -546,8 +580,8 @@ const AdminContentPanel = () => {
       const result = await response.json();
       
       // 2. Ensuite uploader l'image si elle existe
-      if (imageFile && dialogMode !== 'delete') {
-        const challengeId = dialogMode === 'create' ? result.id : selectedChallenge?.id;
+      if (imageFile && challengeDialogMode !== 'delete') {
+        const challengeId = challengeDialogMode === 'create' ? result.id : selectedChallenge?.id;
         
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
@@ -565,11 +599,11 @@ const AdminContentPanel = () => {
         }
       }
 
-      if (dialogMode === 'create') {
+      if (challengeDialogMode === 'create') {
         setSuccess('Défi créé avec succès !');
-      } else if (dialogMode === 'edit') {
+      } else if (challengeDialogMode === 'edit') {
         setSuccess('Défi mis à jour avec succès !');
-      } else if (dialogMode === 'delete') {
+      } else if (challengeDialogMode === 'delete') {
         setSuccess('Défi archivé avec succès !');
       }
 
@@ -577,7 +611,7 @@ const AdminContentPanel = () => {
       setTimeout(() => {
         fetchChallenges();
         fetchArchivedChallenges();
-        setIsDialogOpen(false);
+        closeChallengeDialog();
         setImageFile(null);
         setImagePreview(null);
       }, 1500);
@@ -601,15 +635,15 @@ const AdminContentPanel = () => {
       let url = `${API_BASE_URL}/challenge-packs`;
       let method = 'POST';
 
-      if (dialogMode === 'edit' && selectedPack) {
+      if (packDialogMode === 'edit' && selectedPack) {
         url = `${API_BASE_URL}/challenge-packs/${selectedPack.id}`;
         method = 'PUT';
-      } else if (dialogMode === 'delete' && selectedPack) {
+      } else if (packDialogMode === 'delete' && selectedPack) {
         url = `${API_BASE_URL}/challenge-packs/${selectedPack.id}`;
         method = 'DELETE';
       }
 
-      const payload = dialogMode !== 'delete' ? {
+      const payload = packDialogMode !== 'delete' ? {
         name: packFormData.name,
         description: packFormData.description
       } : {};
@@ -622,7 +656,7 @@ const AdminContentPanel = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: dialogMode !== 'delete' ? JSON.stringify(payload) : undefined
+        body: packDialogMode !== 'delete' ? JSON.stringify(payload) : undefined
       });
 
       if (!response.ok) {
@@ -630,18 +664,18 @@ const AdminContentPanel = () => {
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      if (dialogMode === 'create') {
+      if (packDialogMode === 'create') {
         setSuccess('Pack créé avec succès !');
-      } else if (dialogMode === 'edit') {
+      } else if (packDialogMode === 'edit') {
         setSuccess('Pack mis à jour avec succès !');
-      } else if (dialogMode === 'delete') {
+      } else if (packDialogMode === 'delete') {
         setSuccess('Pack supprimé avec succès !');
       }
 
       // Recharger les données
       setTimeout(() => {
         fetchPacks();
-        setIsDialogOpen(false);
+        closePackDialog();
       }, 1500);
 
     } catch (err) {
@@ -808,7 +842,7 @@ const AdminContentPanel = () => {
                   </div>
                   <Button
                     className="bg-purple-600 hover:bg-purple-700 w-full md:w-auto shadow-md"
-                    onClick={() => openDialog('create')}
+                    onClick={() => openChallengeDialog('create')}
                     disabled={loading}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -904,7 +938,7 @@ const AdminContentPanel = () => {
               </Alert>
             )}
 
-            {loading && !isDialogOpen && (
+            {loading && !isChallengeDialogOpen && !isPackDialogOpen && (
               <div className="flex justify-center py-8">
                 <RefreshCw className="w-8 h-8 animate-spin text-purple-600" />
               </div>
@@ -940,7 +974,7 @@ const AdminContentPanel = () => {
                       </p>
 
                       {/* Ligne 3: Objectif et Pack Thématique */}
-                      {(defi.objective || defi.pack_thematique) && (
+                      {(defi.objective || defi.pack_id) && (
                         <div className="flex flex-wrap gap-4 py-2 border-y border-gray-50">
                           {defi.objective && (
                             <div className="flex items-center text-sm text-blue-700 bg-blue-50 px-2 py-1 rounded">
@@ -948,10 +982,10 @@ const AdminContentPanel = () => {
                               <span className="font-medium">Objectif:</span>&nbsp;{defi.objective}
                             </div>
                           )}
-                          {defi.pack_thematique && (
+                          {defi.pack_id && (
                             <div className="flex items-center text-sm text-amber-700 bg-amber-50 px-2 py-1 rounded">
                               <Package className="w-3.5 h-3.5 mr-1.5" />
-                              <span className="font-medium">Pack:</span>&nbsp;{defi.pack_thematique}
+                              <span className="font-medium">Pack:</span>&nbsp;{packs.find(p => p.id === defi.pack_id)?.name || '—'}
                             </div>
                           )}
                         </div>
@@ -1023,7 +1057,7 @@ const AdminContentPanel = () => {
                         size="sm"
                         variant="outline"
                         className="text-blue-600 hover:bg-blue-50 border-blue-200"
-                        onClick={() => openDialog('edit', defi)}
+                        onClick={() => openChallengeDialog('edit', defi)}
                         disabled={loading}
                       >
                         <Edit className="w-4 h-4 mr-2 md:mr-0" />
@@ -1033,7 +1067,7 @@ const AdminContentPanel = () => {
                         size="sm"
                         variant="outline"
                         className="text-orange-600 hover:bg-orange-50 border-orange-200"
-                        onClick={() => openDialog('delete', defi)}
+                        onClick={() => openChallengeDialog('delete', defi)}
                         disabled={loading}
                       >
                         <Archive className="w-4 h-4 mr-2 md:mr-0" />
@@ -1081,7 +1115,7 @@ const AdminContentPanel = () => {
               </Alert>
             )}
 
-            {loading && !isDialogOpen && (
+            {loading && !isChallengeDialogOpen && !isPackDialogOpen && (
               <div className="flex justify-center py-8">
                 <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
               </div>
@@ -1217,25 +1251,21 @@ const AdminContentPanel = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Dialogue CRUD pour Défis et Packs */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {/* DIALOGUE POUR LES DÉFIS */}
+        <Dialog open={isChallengeDialogOpen} onOpenChange={closeChallengeDialog}>
           <DialogContent className="sm:max-w-lg p-0 flex flex-col max-h-[90vh] overflow-hidden">
             
             {/* HEADER FIXE */}
             <DialogHeader className="p-6 pb-2 border-b">
               <DialogTitle className="text-xl font-bold">
-                {selectedChallenge && dialogMode === 'create' && 'Créer un nouveau défi'}
-                {selectedChallenge && dialogMode === 'edit' && 'Modifier le défi'}
-                {selectedChallenge && dialogMode === 'delete' && 'Archiver le défi'}
-                {selectedPack && dialogMode === 'create' && 'Créer un nouveau pack'}
-                {selectedPack && dialogMode === 'edit' && 'Modifier le pack'}
-                {selectedPack && dialogMode === 'delete' && 'Supprimer le pack'}
+                {challengeDialogMode === 'create' && 'Créer un nouveau défi'}
+                {challengeDialogMode === 'edit' && 'Modifier le défi'}
+                {challengeDialogMode === 'delete' && 'Archiver le défi'}
               </DialogTitle>
               <DialogDescription>
-                {dialogMode === 'delete' && selectedChallenge && 'Le défi archivé ne sera plus visible par les utilisateurs.'}
-                {dialogMode === 'delete' && selectedPack && 'Le pack sera définitivement supprimé.'}
-                {dialogMode !== 'delete' && selectedChallenge && 'Remplissez les informations détaillées du défi ci-dessous.'}
-                {dialogMode !== 'delete' && selectedPack && 'Remplissez les informations du pack thématique ci-dessous.'}
+                {challengeDialogMode === 'delete' 
+                  ? 'Le défi archivé ne sera plus visible par les utilisateurs.'
+                  : 'Remplissez les informations détaillées du défi ci-dessous.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -1257,281 +1287,249 @@ const AdminContentPanel = () => {
                 </Alert>
               )}
 
-              {/* Afficher le formulaire défis OU packs selon le contexte */}
-              {dialogMode !== 'delete' ? (
-                selectedChallenge !== null ? (
-                  /* FORMULAIRE DÉFIS */
-                  <div className="space-y-4">
-                    {/* Section: Informations de base */}
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="title">Titre *</Label>
-                        <Input 
-                          id="title" 
-                          name="title" 
-                          value={formData.title} 
-                          onChange={handleInputChange} 
-                          placeholder="Ex: Méditation matinale" 
-                          required 
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="description">Description *</Label>
-                        <Textarea 
-                          id="description" 
-                          name="description" 
-                          className="min-h-[100px]" 
-                          value={formData.description} 
-                          onChange={handleInputChange} 
-                          placeholder="Décrivez le défi..." 
-                          required 
-                        />
-                      </div>
-                    </div>
-
-                    <hr className="my-4" />
-
-                    {/* Section: Paramètres techniques */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Type</Label>
-                        <Select 
-                          value={formData.type_id.toString()} 
-                          onValueChange={(v) => setFormData({...formData, type_id: Number(v)})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez un type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {types.map(type => (
-                              <SelectItem key={type.id} value={type.id.toString()}>
-                                {type.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Catégorie</Label>
-                        <Select 
-                          value={formData.category_id.toString()} 
-                          onValueChange={(v) => setFormData({...formData, category_id: Number(v)})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une catégorie" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map(cat => (
-                              <SelectItem key={cat.id} value={cat.id.toString()}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="points">Points</Label>
-                        <Input 
-                          id="points" 
-                          name="points" 
-                          type="number" 
-                          value={formData.points} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="duration">Durée</Label>
-                        <Input 
-                          id="duration" 
-                          name="duration" 
-                          value={formData.duration} 
-                          onChange={handleInputChange} 
-                          placeholder="Ex: 5 min" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Intensité</Label>
-                        <Select 
-                          value={formData.intensity_id.toString()} 
-                          onValueChange={(v) => setFormData({...formData, intensity_id: Number(v)})}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une intensité" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {intensities.map(intensity => (
-                              <SelectItem key={intensity.id} value={intensity.id.toString()}>
-                                {intensity.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Section: Médias et Objectifs */}
-                    <div className="space-y-4 pt-2">
-                      <div>
-                        <Label htmlFor="objective">Objectif du défi</Label>
-                        <Input 
-                          id="objective" 
-                          name="objective" 
-                          value={formData.objective} 
-                          onChange={handleInputChange} 
-                          placeholder="Ex: Réduire le stress" 
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="pack_thematique">Pack Thématique</Label>
-                        <Input 
-                          id="pack_thematique" 
-                          name="pack_thematique" 
-                          value={formData.pack_thematique} 
-                          onChange={handleInputChange} 
-                        />
-                      </div>
-                      
-                      {/* Champ pour uploader une image */}
-                      <div>
-                        <Label htmlFor="image">Image du défi</Label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-500 transition-colors">
-                          <input
-                            id="image"
-                            name="image"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                          />
-                          <label htmlFor="image" className="cursor-pointer flex flex-col items-center">
-                            <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-600">Cliquez pour uploader une image</p>
-                            <p className="text-xs text-gray-500 mt-1">JPEG, PNG, JPG, GIF, SVG (max 2MB)</p>
-                          </label>
-                        </div>
-                        
-                        {/* Aperçu de l'image ou image existante */}
-                        {imagePreview && (
-                          <div className="mt-4 relative">
-                            <div className="flex justify-between items-center mb-2">
-                              <p className="text-sm font-medium">Aperçu de l'image:</p>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleRemoveImage}
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                <X className="w-4 h-4" />
-                                Supprimer
-                              </Button>
-                            </div>
-                            <img 
-                              src={imagePreview} 
-                              alt="Aperçu" 
-                              className="h-48 w-full object-cover rounded-lg border"
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Afficher l'image existante si on est en mode édition et qu'aucune nouvelle image n'est sélectionnée */}
-                        {!imagePreview && selectedChallenge?.image_path && (
-                          <div className="mt-4">
-                            <p className="text-sm font-medium mb-2">Image actuelle:</p>
-                            <img 
-                              src={
-                                selectedChallenge.image_path.startsWith('http') 
-                                  ? selectedChallenge.image_path 
-                                  : `${API_BASE_URL.replace('/api', '')}/storage/${selectedChallenge.image_path}`
-                              } 
-                              alt={selectedChallenge.title} 
-                              className="h-48 w-full object-cover rounded-lg border"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="video_path">URL de la vidéo</Label>
-                        <Input 
-                          id="video_path" 
-                          name="video_path" 
-                          value={formData.video_path} 
-                          onChange={handleInputChange} 
-                          placeholder="/videos/example.mp4" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* FORMULAIRE PACKS */
+              {challengeDialogMode !== 'delete' ? (
+                /* FORMULAIRE DÉFIS */
+                <div className="space-y-4">
+                  {/* Section: Informations de base */}
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="pack_name">Nom du pack *</Label>
+                      <Label htmlFor="title">Titre *</Label>
                       <Input 
-                        id="pack_name" 
-                        name="name" 
-                        value={packFormData.name} 
-                        onChange={handlePackInputChange} 
-                        placeholder="Ex: Pack Anti-stress" 
+                        id="title" 
+                        name="title" 
+                        value={formData.title} 
+                        onChange={handleInputChange} 
+                        placeholder="Ex: Méditation matinale" 
                         required 
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="pack_description">Description</Label>
+                      <Label htmlFor="description">Description *</Label>
                       <Textarea 
-                        id="pack_description" 
+                        id="description" 
                         name="description" 
                         className="min-h-[100px]" 
-                        value={packFormData.description} 
-                        onChange={handlePackInputChange} 
-                        placeholder="Décrivez le pack thématique..." 
+                        value={formData.description} 
+                        onChange={handleInputChange} 
+                        placeholder="Décrivez le défi..." 
+                        required 
                       />
                     </div>
+                  </div>
 
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
-                        <Info className="w-4 h-4" />
-                        Information
-                      </p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        Les packs thématiques permettent de regrouper plusieurs défis autour d'une même thématique.
-                        Vous pourrez ensuite associer des défis à ce pack depuis leur fiche individuelle.
-                      </p>
+                  <hr className="my-4" />
+
+                  {/* Section: Paramètres techniques */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Type</Label>
+                      <Select 
+                        value={formData.type_id.toString()} 
+                        onValueChange={(v) => setFormData({...formData, type_id: Number(v)})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez un type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {types.map(type => (
+                            <SelectItem key={type.id} value={type.id.toString()}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Catégorie</Label>
+                      <Select 
+                        value={formData.category_id.toString()} 
+                        onValueChange={(v) => setFormData({...formData, category_id: Number(v)})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez une catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id.toString()}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                )
-              ) : (
-                /* Mode SUPPRESSION/ARCHIVAGE */
-                <div className="py-4">
-                  <div className={`flex items-center gap-3 p-4 rounded-lg ${
-                    selectedChallenge 
-                      ? 'bg-orange-50 border border-orange-200' 
-                      : 'bg-red-50 border border-red-200'
-                  }`}>
-                    <AlertTriangle className={`w-6 h-6 ${selectedChallenge ? 'text-orange-600' : 'text-red-600'}`} />
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className={`font-medium ${selectedChallenge ? 'text-orange-800' : 'text-red-800'}`}>
-                        {selectedChallenge ? 'Confirmation d\'archivage' : 'Confirmation de suppression'}
-                      </p>
-                      <p className={`text-sm mt-1 ${selectedChallenge ? 'text-orange-600' : 'text-red-600'}`}>
-                        {selectedChallenge 
-                          ? `Voulez-vous vraiment archiver "${selectedChallenge.title}" ?`
-                          : `Voulez-vous vraiment supprimer définitivement "${selectedPack?.name}" ?`
+                      <Label htmlFor="points">Points</Label>
+                      <Input 
+                        id="points" 
+                        name="points" 
+                        type="number" 
+                        value={formData.points} 
+                        onChange={handleInputChange} 
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="duration">Durée</Label>
+                      <Input 
+                        id="duration" 
+                        name="duration" 
+                        value={formData.duration} 
+                        onChange={handleInputChange} 
+                        placeholder="Ex: 5 min" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Intensité</Label>
+                      <Select 
+                        value={formData.intensity_id.toString()} 
+                        onValueChange={(v) => setFormData({...formData, intensity_id: Number(v)})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez une intensité" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {intensities.map(intensity => (
+                            <SelectItem key={intensity.id} value={intensity.id.toString()}>
+                              {intensity.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Section: Médias et Objectifs */}
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <Label htmlFor="objective">Objectif du défi</Label>
+                      <Input 
+                        id="objective" 
+                        name="objective" 
+                        value={formData.objective} 
+                        onChange={handleInputChange} 
+                        placeholder="Ex: Réduire le stress" 
+                      />
+                    </div>
+                    {/* <div>
+                      <Label htmlFor="pack_thematique">Pack Thématique</Label>
+                      <Input 
+                        id="pack_thematique" 
+                        name="pack_thematique" 
+                        value={formData.pack_thematique} 
+                        onChange={handleInputChange} 
+                      />
+                    </div> */}
+                    <div>
+                      <Label>Pack Thématique</Label>
+                      <Select
+                        value={formData.pack_id?.toString() ?? ''} // si null, on met ''
+                        onValueChange={(v) =>
+                          setFormData({
+                            ...formData,
+                            pack_id: v === '' ? null : Number(v), // string -> number ou null
+                          })
                         }
-                        {!selectedChallenge && (
-                          <span className="block mt-1 font-medium">
-                            Cette action est irréversible !
-                          </span>
-                        )}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionnez un pack" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {packs.map((pack) => (
+                            <SelectItem key={pack.id} value={pack.id.toString()}>
+                              {pack.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Champ pour uploader une image */}
+                    <div>
+                      <Label htmlFor="image">Image du défi</Label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-500 transition-colors">
+                        <input
+                          id="image"
+                          name="image"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                        <label htmlFor="image" className="cursor-pointer flex flex-col items-center">
+                          <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">Cliquez pour uploader une image</p>
+                          <p className="text-xs text-gray-500 mt-1">JPEG, PNG, JPG, GIF, SVG (max 2MB)</p>
+                        </label>
+                      </div>
+                      
+                      {/* Aperçu de l'image ou image existante */}
+                      {imagePreview && (
+                        <div className="mt-4 relative">
+                          <div className="flex justify-between items-center mb-2">
+                            <p className="text-sm font-medium">Aperçu de l'image:</p>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemoveImage}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="w-4 h-4" />
+                              Supprimer
+                            </Button>
+                          </div>
+                          <img 
+                            src={imagePreview} 
+                            alt="Aperçu" 
+                            className="h-48 w-full object-cover rounded-lg border"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Afficher l'image existante si on est en mode édition et qu'aucune nouvelle image n'est sélectionnée */}
+                      {!imagePreview && selectedChallenge?.image_path && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium mb-2">Image actuelle:</p>
+                          <img 
+                            src={
+                              selectedChallenge.image_path.startsWith('http') 
+                                ? selectedChallenge.image_path 
+                                : `${API_BASE_URL.replace('/api', '')}/storage/${selectedChallenge.image_path}`
+                            } 
+                            alt={selectedChallenge.title} 
+                            className="h-48 w-full object-cover rounded-lg border"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="video_path">URL de la vidéo</Label>
+                      <Input 
+                        id="video_path" 
+                        name="video_path" 
+                        value={formData.video_path} 
+                        onChange={handleInputChange} 
+                        placeholder="/videos/example.mp4" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Mode ARCHIVER pour défi */
+                <div className="py-4">
+                  <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <AlertTriangle className="w-6 h-6 text-orange-600" />
+                    <div>
+                      <p className="font-medium text-orange-800">Confirmation d'archivage</p>
+                      <p className="text-sm text-orange-600 mt-1">
+                        Voulez-vous vraiment archiver <strong>{selectedChallenge?.title}</strong> ?
                       </p>
                     </div>
                   </div>
@@ -1541,29 +1539,126 @@ const AdminContentPanel = () => {
 
             {/* FOOTER FIXE */}
             <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={loading}>
+              <Button variant="outline" onClick={closeChallengeDialog} disabled={loading}>
                 Annuler
               </Button>
               <Button 
-                onClick={selectedChallenge !== null ? handleSubmit : handlePackSubmit} 
+                onClick={handleChallengeSubmit} 
                 disabled={loading}
-                className={
-                  dialogMode === 'delete' 
-                    ? selectedChallenge
-                      ? 'bg-orange-600 hover:bg-orange-700'
-                      : 'bg-red-600 hover:bg-red-700'
-                    : selectedChallenge
-                      ? 'bg-purple-600 hover:bg-purple-700'
-                      : 'bg-blue-600 hover:bg-blue-700'
-                }
+                className={challengeDialogMode === 'delete' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-purple-600 hover:bg-purple-700'}
               >
                 {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}
-                {dialogMode === 'create' 
-                  ? (selectedChallenge ? 'Créer le défi' : 'Créer le pack')
-                  : dialogMode === 'edit' 
-                  ? (selectedChallenge ? 'Sauvegarder' : 'Mettre à jour')
-                  : (selectedChallenge ? 'Confirmer l\'archivage' : 'Supprimer définitivement')
-                }
+                {challengeDialogMode === 'create' ? 'Créer le défi' : challengeDialogMode === 'edit' ? 'Sauvegarder' : 'Confirmer l\'archivage'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* DIALOGUE POUR LES PACKS */}
+        <Dialog open={isPackDialogOpen} onOpenChange={closePackDialog}>
+          <DialogContent className="sm:max-w-lg p-0 flex flex-col max-h-[90vh] overflow-hidden">
+            
+            {/* HEADER FIXE */}
+            <DialogHeader className="p-6 pb-2 border-b">
+              <DialogTitle className="text-xl font-bold">
+                {packDialogMode === 'create' && 'Créer un nouveau pack'}
+                {packDialogMode === 'edit' && 'Modifier le pack'}
+                {packDialogMode === 'delete' && 'Supprimer le pack'}
+              </DialogTitle>
+              <DialogDescription>
+                {packDialogMode === 'delete' 
+                  ? 'Le pack sera définitivement supprimé.'
+                  : 'Remplissez les informations du pack thématique ci-dessous.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* ZONE DE CONTENU SCROLLABLE */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+              
+              {/* Alertes de Notifications */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="w-4 h-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert className="bg-green-50 border-green-200">
+                  <AlertTriangle className="w-4 h-4 text-green-600" />
+                  <AlertDescription className="text-green-600">{success}</AlertDescription>
+                </Alert>
+              )}
+
+              {packDialogMode !== 'delete' ? (
+                /* FORMULAIRE PACKS */
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="pack_name">Nom du pack *</Label>
+                    <Input 
+                      id="pack_name" 
+                      name="name" 
+                      value={packFormData.name} 
+                      onChange={handlePackInputChange} 
+                      placeholder="Ex: Pack Anti-stress" 
+                      required 
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pack_description">Description</Label>
+                    <Textarea 
+                      id="pack_description" 
+                      name="description" 
+                      className="min-h-[100px]" 
+                      value={packFormData.description} 
+                      onChange={handlePackInputChange} 
+                      placeholder="Décrivez le pack thématique..." 
+                    />
+                  </div>
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
+                      <Info className="w-4 h-4" />
+                      Information
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Les packs thématiques permettent de regrouper plusieurs défis autour d'une même thématique.
+                      Vous pourrez ensuite associer des défis à ce pack depuis leur fiche individuelle.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Mode SUPPRESSION pour pack */
+                <div className="py-4">
+                  <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                    <div>
+                      <p className="font-medium text-red-800">Confirmation de suppression</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        Voulez-vous vraiment supprimer définitivement <strong>{selectedPack?.name}</strong> ?
+                        <span className="block mt-1 font-medium">
+                          Cette action est irréversible !
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* FOOTER FIXE */}
+            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
+              <Button variant="outline" onClick={closePackDialog} disabled={loading}>
+                Annuler
+              </Button>
+              <Button 
+                onClick={handlePackSubmit} 
+                disabled={loading}
+                className={packDialogMode === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
+              >
+                {loading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {packDialogMode === 'create' ? 'Créer le pack' : packDialogMode === 'edit' ? 'Mettre à jour' : 'Supprimer définitivement'}
               </Button>
             </div>
           </DialogContent>

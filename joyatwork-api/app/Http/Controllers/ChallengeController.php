@@ -65,6 +65,7 @@ class ChallengeController extends Controller
             'intensity_id' => 'required|exists:challenge_intensity,id',
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
+            'pack_id' => 'nullable|exists:challenge_packs,id',
             'video_path' => 'nullable|string',
         ]);
 
@@ -98,6 +99,7 @@ class ChallengeController extends Controller
             'intensity_id' => 'required|exists:challenge_intensity,id',
             'objective' => 'nullable|string',
             'pack_thematique' => 'nullable|string',
+            'pack_id' => 'nullable|exists:challenge_packs,id',
             'video_path' => 'nullable|string',
             // Note: 'image' n'est pas dans la validation car c'est un fichier
         ]);

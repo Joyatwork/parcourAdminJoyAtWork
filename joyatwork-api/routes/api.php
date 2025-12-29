@@ -7,9 +7,8 @@ use App\Http\Controllers\PractitionerController;
 use App\Http\Controllers\ChallengeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ChallengePackController;
+use App\Http\Controllers\ChallengePackController;
 
-// Route::apiResource('challenge-packs', ChallengePackController::class);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -50,35 +49,34 @@ Route::get('/challenges/{id}/participants', [ChallengeController::class, 'partic
 // Routes pour les user_challenges
 Route::get('/user-challenges/length-participants/{id}', [UserChallengeController::class, 'lenghParticipantsParDefi']);
 // Routes for dropdown data
-Route::get('/challenge-categories', function() {
+Route::get('/challenge-categories', function () {
     return \App\Models\ChallengeCategory::all();
 });
 
-Route::get('/challenge-types', function() {
+Route::get('/challenge-types', function () {
     return \App\Models\ChallengeType::all();
 });
 
-Route::get('/challenge-intensities', function() {
+Route::get('/challenge-intensities', function () {
     return \App\Models\ChallengeIntensity::all();
 });
 
 Route::post('/challenges/{id}/upload-image', [ChallengeController::class, 'uploadImage']);
 
+
+
 // Challnege Packs
-
-Route::get('/test_get_packs', [ChallengePackController::class, 'index']);
-
+Route::apiResource('challenge-packs', ChallengePackController::class);
 
 
-// Route de test AVANT tout le reste
-Route::get('/test-direct', function() {
+Route::get('/test-direct', function () {
     return response()->json([
         'status' => 'ok',
         'message' => 'API is working'
     ]);
 });
 
-Route::get('/test-packs-simple', function() {
+Route::get('/test-packs-simple', function () {
     $packs = \App\Models\ChallengePack::all();
     return response()->json($packs);
 });

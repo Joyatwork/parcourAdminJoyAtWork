@@ -22,6 +22,7 @@ class Challenge extends Model
         'participants',
         'completion_rate',
         'pack_thematique',
+        'pack_id',
         'image_path',
         'video_path',
     ];
@@ -46,5 +47,9 @@ class Challenge extends Model
 
     public function intensity() {
         return $this->belongsTo(ChallengeIntensity::class, 'intensity_id');
+    }
+
+    public function pack() {
+        return $this->belongsTo(ChallengePack::class, 'pack_id');
     }
 }
