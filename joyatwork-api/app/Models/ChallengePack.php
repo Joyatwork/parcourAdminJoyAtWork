@@ -17,9 +17,10 @@ class ChallengePack extends Model
     ];
 
 
-    // public function challenges()
-    // {
-    //     return $this->hasMany(Challenge::class, 'pack_thematique', 'name');
-    // }
+    // Relation avec les défis
+    public function challenges()
+    {
+        return $this->hasMany(Challenge::class, 'pack_id');
+    }
 }
 

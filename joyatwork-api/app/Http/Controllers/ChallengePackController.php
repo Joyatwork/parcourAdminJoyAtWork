@@ -12,7 +12,8 @@ class ChallengePackController extends Controller
     // GET /api/challenge-packs
     public function index()
     {
-        $packs = ChallengePack::all();
+        // Ajoutez withCount pour compter les défis associés
+        $packs = ChallengePack::withCount('challenges')->get();
         return response()->json($packs);
     }
 
@@ -20,7 +21,8 @@ class ChallengePackController extends Controller
     public function show($id)
     {
         try {
-            $pack = ChallengePack::findOrFail($id);
+            // Ajoutez aussi withCount pour le show
+            $pack = ChallengePack::withCount('challenges')->findOrFail($id);
             return response()->json($pack, 200);
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack show: ' . $e->getMessage());
@@ -39,7 +41,11 @@ class ChallengePackController extends Controller
 
             $pack = ChallengePack::create($validated);
 
-            return response()->json($pack, 201);
+            // Retournez avec le count
+            return response()->json(
+                ChallengePack::withCount('challenges')->find($pack->id), 
+                201
+            );
 
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack store: ' . $e->getMessage());
@@ -60,7 +66,11 @@ class ChallengePackController extends Controller
 
             $pack->update($validated);
 
-            return response()->json($pack, 200);
+            // Retournez avec le count
+            return response()->json(
+                ChallengePack::withCount('challenges')->find($id), 
+                200
+            );
 
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack update: ' . $e->getMessage());
