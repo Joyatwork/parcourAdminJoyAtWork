@@ -7,6 +7,9 @@ use App\Http\Controllers\PractitionerController;
 use App\Http\Controllers\ChallengeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ChallengePackController;
+
+// Route::apiResource('challenge-packs', ChallengePackController::class);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -59,5 +62,23 @@ Route::get('/challenge-intensities', function() {
     return \App\Models\ChallengeIntensity::all();
 });
 
-
 Route::post('/challenges/{id}/upload-image', [ChallengeController::class, 'uploadImage']);
+
+// Challnege Packs
+
+Route::get('/test_get_packs', [ChallengePackController::class, 'index']);
+
+
+
+// Route de test AVANT tout le reste
+Route::get('/test-direct', function() {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'API is working'
+    ]);
+});
+
+Route::get('/test-packs-simple', function() {
+    $packs = \App\Models\ChallengePack::all();
+    return response()->json($packs);
+});
