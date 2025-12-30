@@ -31,8 +31,12 @@ import {
   ZoomIn,
   Tags,
   FolderOpen,
-  Info
+  Info,
+  Quote
 } from 'lucide-react';
+// New Components
+import CitationsTab from '@/components/Challenges/tabs/citationsTab'; 
+
 
 const API_BASE_URL = 'http://localhost:8000/api';
 
@@ -810,7 +814,7 @@ const AdminContentPanel = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-white">
+          <TabsList className="grid w-full grid-cols-4 bg-white">
             <TabsTrigger value="defis" className="flex items-center gap-2">
               <Target className="w-4 h-4" />
               Défis
@@ -818,6 +822,10 @@ const AdminContentPanel = () => {
             <TabsTrigger value="packs" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               Packs Thématiques
+            </TabsTrigger>
+            <TabsTrigger value="citations" className="flex items-center gap-2">
+              <Quote className="w-4 h-4" />
+              Citations
             </TabsTrigger>
             <TabsTrigger value="archives" className="flex items-center gap-2">
               <Archive className="w-4 h-4" />
@@ -1196,6 +1204,11 @@ const AdminContentPanel = () => {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          {/* TAB: CITATIONS POSITIVES */}
+          <TabsContent value="citations" className="space-y-4">
+            <CitationsTab />
           </TabsContent>
 
           {/* TAB: ARCHIVES */}

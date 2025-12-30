@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChallengePackController;
 
+use App\Http\Controllers\ChallengeCitationController;
+use App\Http\Controllers\ChallengeCitationThemeController;
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -80,3 +83,7 @@ Route::get('/test-packs-simple', function () {
     $packs = \App\Models\ChallengePack::all();
     return response()->json($packs);
 });
+
+// Challenge Citations Routes
+Route::apiResource('challenge-citations', ChallengeCitationController::class);
+Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
