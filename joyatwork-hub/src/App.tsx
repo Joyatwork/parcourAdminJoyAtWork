@@ -13,6 +13,11 @@ import ChallengesDashboard from "./pages/ChallengesDashboard";
 import SanteDiagnosticDashboard from "./pages/SanteDiagnosticDashboard";
 import RendezVousDashboard from "./pages/RendezVousDashboard";
 import TestNavigation from "./pages/TestNavigation";
+import BillingDashboard from "./pages/BillingDashboard";
+import BillingWalletPage from "./pages/BillingWalletPage";
+import BillingOrdersPage from "./pages/BillingOrdersPage";
+import BillingCreditsPage from "./pages/BillingCreditsPage";
+import BillingUsagesPage from "./pages/BillingUsagesPage";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +47,11 @@ const App = () => (
               element={<SanteDiagnosticDashboard />}
             />
             <Route path="/rendez-vous" element={<RendezVousDashboard />} />
+            <Route path="/billing" element={<BillingDashboard />} />
+            <Route path="/billing/wallet" element={<BillingWalletPage />} />
+            <Route path="/billing/orders" element={<BillingOrdersPage />} />
+            <Route path="/billing/credits" element={<BillingCreditsPage />} />
+            <Route path="/billing/usages" element={<BillingUsagesPage />} />
             <Route path="/test" element={<TestNavigation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
