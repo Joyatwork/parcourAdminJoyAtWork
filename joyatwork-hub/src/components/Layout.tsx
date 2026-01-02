@@ -26,6 +26,8 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("health");
     } else if (location.pathname === "/rendez-vous") {
       setActiveSection("appointments");
+    } else if (location.pathname === "/billing" || location.pathname.startsWith("/billing/")) {
+      setActiveSection("billing");
     }
   }, [location.pathname]);
 
@@ -42,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
           activeSection={activeSection}
           onSectionChange={handleSectionChange}
         />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 ml-64">{children}</main>
       </div>
     </div>
   );
