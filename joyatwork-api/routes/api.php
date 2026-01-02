@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\OrderController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\CreditController;
 
+use App\Http\Controllers\PractitionerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -51,3 +54,19 @@ Route::post('/billing/generate-monthly', [BillingController::class, 'generateMon
 
 Route::get('/credits', [CreditController::class, 'index']);
 Route::get('/credits/{credit}', [CreditController::class, 'show']);
+// Routes pour les praticiens
+Route::apiResource('practitioners', PractitionerController::class);
+Route::post('practitioners/{practitioner}/suspendre', [PractitionerController::class, 'suspend']);
+Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
+Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
+// Routes pour les certificats des praticiens
+Route::post('practitioners/{practitioner}/verify-certif-iprp', [PractitionerController::class, 'verifyCertifIprp']);
+Route::post('practitioners/{practitioner}/verify-master-psy', [PractitionerController::class, 'verifyMasterPsyTravail']);
+
+// Routes pour les rendez-vous
+Route::apiResource('appointments', AppointmentController::class);
+Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
+Route::get(
+    'practitioners/{practitioner}/appointments',
+    [AppointmentController::class, 'getAppointmentsByPractitioner']
+);
