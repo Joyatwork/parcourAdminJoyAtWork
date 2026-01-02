@@ -19,10 +19,17 @@ import BillingOrdersPage from "./pages/BillingOrdersPage";
 import BillingCreditsPage from "./pages/BillingCreditsPage";
 import BillingUsagesPage from "./pages/BillingUsagesPage";
 
-const queryClient = new QueryClient();
+const App = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+  return (
+    <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -60,6 +67,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

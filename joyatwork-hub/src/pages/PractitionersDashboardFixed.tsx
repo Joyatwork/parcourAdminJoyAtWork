@@ -170,7 +170,7 @@ const resetAppointmentFilters = () => {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/practitioners/${practitionerId}`, {
+      const response = await fetch(`http://localhost:8001/api/practitioners/${practitionerId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ const resetAppointmentFilters = () => {
       if (data.success) {
         alert(`${practitionerName} a été supprimé avec succès !`);
         // Recharger la liste des praticiens
-        const refreshResponse = await fetch('http://localhost:8000/api/practitioners');
+        const refreshResponse = await fetch('http://localhost:8001/api/practitioners');
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -208,7 +208,7 @@ const resetAppointmentFilters = () => {
     
     try {
       setIsSubmitting(true);
-      const response = await fetch(`http://localhost:8000/api/practitioners/${editingPractitioner.id}`, {
+      const response = await fetch(`http://localhost:8001/api/practitioners/${editingPractitioner.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -235,7 +235,7 @@ const resetAppointmentFilters = () => {
         setEditingPractitioner(null);
         
         // Recharger la liste
-        const refreshResponse = await fetch('http://localhost:8000/api/practitioners');
+        const refreshResponse = await fetch('http://localhost:8001/api/practitioners');
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -255,7 +255,7 @@ const resetAppointmentFilters = () => {
     const loadPractitioners = async () => {
       try {
         console.log('Tentative de connexion à l\'API...');
-        const response = await fetch('http://localhost:8000/api/practitioners');
+        const response = await fetch('http://localhost:8001/api/practitioners');
         console.log('Réponse reçue:', response.status);
         
         if (!response.ok) {
@@ -272,7 +272,7 @@ const resetAppointmentFilters = () => {
         }
       } catch (error) {
         console.error('Erreur complète:', error);
-        setError(error instanceof Error ? error.message : 'Failed to fetch - Vérifiez que le serveur API fonctionne sur le port 8002');
+        setError(error instanceof Error ? error.message : 'Failed to fetch - Vérifiez que le serveur Laravel API fonctionne sur le port 8001');
       } finally {
         setLoading(false);
       }
@@ -281,7 +281,7 @@ const resetAppointmentFilters = () => {
     const loadAppointments = async () => {
       try {
         setAppointmentsLoading(true);
-        const response = await fetch('http://localhost:8000/api/appointments');
+        const response = await fetch('http://localhost:8001/api/appointments');
         
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
@@ -317,7 +317,7 @@ const resetAppointmentFilters = () => {
     setIsSubmitting(true);
     try {
       console.log('Envoi des données:', newPractitioner);
-      const response = await fetch('http://localhost:8000/api/practitioners', {
+      const response = await fetch('http://localhost:8001/api/practitioners', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ const resetAppointmentFilters = () => {
         setIsDialogOpen(false);
         
         // Recharger la liste
-        const refreshResponse = await fetch('http://localhost:8000/api/practitioners');
+        const refreshResponse = await fetch('http://localhost:8001/api/practitioners');
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -369,7 +369,7 @@ const resetAppointmentFilters = () => {
   
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/practitioners/${suspensionPractitioner.id}/suspendre`, {
+      const response = await fetch(`http://localhost:8001/api/practitioners/${suspensionPractitioner.id}/suspendre`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: suspensionReason })
@@ -384,7 +384,7 @@ const resetAppointmentFilters = () => {
         setSuspensionReason('');
   
         // reload practitioners
-        const refreshResponse = await fetch('http://localhost:8000/api/practitioners');
+        const refreshResponse = await fetch('http://localhost:8001/api/practitioners');
         const refreshData = await refreshResponse.json();
         if (refreshData.success) setPractitioners(refreshData.data);
       } else {
@@ -405,7 +405,7 @@ const resetAppointmentFilters = () => {
     try {
       setIsSubmitting(true);
   
-      const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/reactivate`, {
+      const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/reactivate`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
@@ -436,7 +436,7 @@ const resetAppointmentFilters = () => {
 const handleVerifyPractitioner = async (practitioner: Practitioner) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/verify`, {
+    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -465,7 +465,7 @@ const openAgenda = async (practitioner: Practitioner) => {
 
   try {
     const res = await fetch(
-      `http://localhost:8000/api/practitioners/${practitioner.id}/appointments`
+      `http://localhost:8001/api/practitioners/${practitioner.id}/appointments`
     );
     const data = await res.json();
 
@@ -585,7 +585,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
   
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/verify-certif-iprp`, {
+    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify-certif-iprp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -616,7 +616,7 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
   
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8000/api/practitioners/${practitioner.id}/verify-master-psy`, {
+    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify-master-psy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -664,8 +664,8 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
               <strong>Solutions possibles :</strong>
             </p>
             <ul className="text-sm text-yellow-600 mt-2 list-disc list-inside">
-              <li>Vérifiez que le serveur API PHP est démarré sur le port 8080</li>
-              <li>Redémarrez le serveur avec : <code>php -S localhost:8080 -t api</code></li>
+              <li>Vérifiez que le serveur Laravel API est démarré sur le port 8001</li>
+              <li>Redémarrez le serveur avec : <code>cd joyatwork-api && php artisan serve --port=8001</code></li>
               <li>Vérifiez la connexion à la base de données MySQL</li>
             </ul>
           </div>
@@ -1757,7 +1757,7 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
                       <div className="mt-2">
                         <p className="text-sm font-medium text-gray-500">Fichier :</p>
                         <a 
-                          href={`http://localhost:8000/${detailsPractitioner.certif_iprp_path}`}
+                          href={`http://localhost:8001/${detailsPractitioner.certif_iprp_path}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline text-sm"
@@ -1801,7 +1801,7 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
                       <div className="mt-2">
                         <p className="text-sm font-medium text-gray-500">Fichier :</p>
                         <a 
-                          href={`http://localhost:8000/${detailsPractitioner.master_psy_travail_path}`}
+                          href={`http://localhost:8001/${detailsPractitioner.master_psy_travail_path}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline text-sm"
