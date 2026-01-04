@@ -35,7 +35,7 @@ import {
   Quote
 } from 'lucide-react';
 // New Components
-import CitationsTab from '@/components/Challenges/tabs/citationsTab'; 
+import CitationsTab from '@/components/Challenges/tabs/CitationsTab'; 
 
 
 const API_BASE_URL = 'http://localhost:8000/api';
