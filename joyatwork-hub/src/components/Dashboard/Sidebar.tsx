@@ -88,11 +88,10 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
               <Button
                 key={item.id}
                 variant={activeSection === item.id ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 h-12 ${
-                  activeSection === item.id
-                    ? "bg-gradient-primary text-white shadow-soft"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
+                className={`w-full justify-start gap-3 h-12 ${activeSection === item.id
+                  ? "bg-gradient-primary text-white shadow-soft"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
                 onClick={() => {
                   handleNavigation(item.id);
                 }}
