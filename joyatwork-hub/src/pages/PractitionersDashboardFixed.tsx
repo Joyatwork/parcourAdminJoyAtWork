@@ -103,6 +103,22 @@ interface AgendaAppointment{
   client_email?: string;
 }
 
+interface Diplome {
+  id: number;
+  praticien_id: number;
+  nom: string;
+  chemin_fichier: string;
+  verifie: number;
+}
+
+interface Certification {
+  id: number;
+  praticien_id: number;
+  nom: string;
+  chemin_fichier: string;
+  verifie: number;
+}
+
 
 export default function PractitionersDashboard() {
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
@@ -116,6 +132,10 @@ export default function PractitionersDashboard() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingPractitioner, setEditingPractitioner] = useState<Practitioner | null>(null);
   const [detailsPractitioner, setDetailsPractitioner] = useState<Practitioner | null>(null);
+
+  // Diplomes et certifications
+  const [diplomes, setDiplomes] = useState<Diplome[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
   
   // États pour les rendez-vous
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -306,7 +326,241 @@ const resetAppointmentFilters = () => {
     loadAppointments();
   }, []);
 
+  // Fonction pour charger les diplomes et certifications d'un praticien
+  const loadDiplomesAndCertifications = async (practitionerId: number) => {
+    try {
+      const [diplomesRes, certificationsRes] = await Promise.all([
+        fetch(`http://localhost:8001/api/praticien-diplomes/${practitionerId}`),
+        fetch(`http://localhost:8001/api/praticien-certifications/${practitionerId}`)
+      ]);
+      const diplomesData = await diplomesRes.json();
+      const certificationsData = await certificationsRes.json();
+      if (diplomesData) setDiplomes(diplomesData);
+      if (certificationsData) setCertifications(certificationsData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des diplômes et certifications:', error);
+    }
+  };
+  
+  const handleVerifyDiplome = async (diplome: Diplome) => {
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8001/api/praticien-diplomes/${diplome.id}/verifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Log pour déboguer
+    console.log('Réponse de vérification diplôme:', data);
+    
+    if (data.success || data.message) {
+      // Mettre à jour le diplôme dans la liste
+      setDiplomes(prev => prev.map(d => 
+        d.id === diplome.id ? { ...d, verifie: 1 } : d
+      ));
+      
+      // Mettre à jour le praticien dans la liste principale
+      if (detailsPractitioner) {
+        const updatedPractitioner = await fetch(`http://localhost:8001/api/practitioners/${detailsPractitioner.id}`)
+          .then(res => res.json());
+        
+        if (updatedPractitioner.success) {
+          setDetailsPractitioner(updatedPractitioner.data);
+          
+          // Mettre à jour dans la liste principale
+          setPractitioners(prev => prev.map(p => 
+            p.id === detailsPractitioner.id ? updatedPractitioner.data : p
+          ));
+        }
+      }
+      
+      //alert('Diplôme vérifié avec succès !');
+    } else {
+      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la vérification du diplôme:', error);
+    alert('Erreur de connexion lors de la vérification du diplôme');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
+const handleVerifyCertification = async (certification: Certification) => {
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8001/api/praticien-certifications/${certification.id}/verifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Log pour déboguer
+    console.log('Réponse de vérification certification:', data);
+    
+    if (data.success || data.message) {
+      // Mettre à jour la certification dans la liste
+      setCertifications(prev => prev.map(c => 
+        c.id === certification.id ? { ...c, verifie: 1 } : c
+      ));
+      
+      // Mettre à jour le praticien dans la liste principale
+      if (detailsPractitioner) {
+        const updatedPractitioner = await fetch(`http://localhost:8001/api/practitioners/${detailsPractitioner.id}`)
+          .then(res => res.json());
+        
+        if (updatedPractitioner.success) {
+          setDetailsPractitioner(updatedPractitioner.data);
+          
+          // Mettre à jour dans la liste principale
+          setPractitioners(prev => prev.map(p => 
+            p.id === detailsPractitioner.id ? updatedPractitioner.data : p
+          ));
+        }
+      }
+      
+      //alert('Certification vérifiée avec succès !');
+    } else {
+      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la vérification de la certification:', error);
+    alert('Erreur de connexion lors de la vérification de la certification');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleUnverifyDiplome = async (diplome: Diplome) => {
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8001/api/praticien-diplomes/${diplome.id}/deverifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    console.log('Réponse de dévérification diplôme:', data);
+    
+    if (data.success || data.message) {
+      setDiplomes(prev => prev.map(d => 
+        d.id === diplome.id ? { ...d, verifie: 0 } : d
+      ));
+      //alert('Diplôme dévérifié avec succès !');
+    } else {
+      alert(`Erreur lors de la dévérification : ${data.error || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la dévérification du diplôme:', error);
+    alert('Erreur de connexion lors de la dévérification du diplôme');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  const handleDeleteDiplome = async (diplomeId: number) => {
+  const confirmDelete = window.confirm('Êtes-vous sûr de vouloir supprimer ce diplôme ?');
+  if (!confirmDelete) return;
+
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8001/api/praticien-diplomes/${diplomeId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    const data = await response.json();
+    
+    if (data.success || data.message) {
+      // Retirer le diplôme de la liste
+      setDiplomes(prev => prev.filter(d => d.id !== diplomeId));
+    } else {
+      alert(`Erreur lors de la suppression : ${data.error || data.message || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression du diplôme:', error);
+    alert('Erreur de connexion lors de la suppression du diplôme');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  // Fonction pour supprimer une certification
+  const handleDeleteCertification = async (certificationId: number) => {
+    const confirmDelete = window.confirm('Êtes-vous sûr de vouloir supprimer cette certification ?');
+    if (!confirmDelete) return;
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch(`http://localhost:8001/api/praticien-certifications/${certificationId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success || data.message) {
+        // Retirer la certification de la liste
+        setCertifications(prev => prev.filter(c => c.id !== certificationId));
+      } else {
+        alert(`Erreur lors de la suppression : ${data.error || data.message || 'Erreur inconnue'}`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la certification:', error);
+      alert('Erreur de connexion lors de la suppression de la certification');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Fonction pour dévérifier une certification
+const handleUnverifyCertification = async (certification: Certification) => {
+  try {
+    setIsSubmitting(true);
+    const response = await fetch(`http://localhost:8001/api/praticien-certifications/${certification.id}/deverifier`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    console.log('Réponse de dévérification certification:', data);
+    
+    if (data.success || data.message) {
+      setCertifications(prev => prev.map(c => 
+        c.id === certification.id ? { ...c, verifie: 0 } : c
+      ));
+      //alert('Certification dévérifiée avec succès !');
+    } else {
+      alert(`Erreur lors de la dévérification : ${data.error || 'Erreur inconnue'}`);
+    }
+  } catch (error) {
+    console.error('Erreur lors de la dévérification de la certification:', error);
+    alert('Erreur de connexion lors de la dévérification de la certification');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleAddPractitioner = async () => {
     if (!newPractitioner.first_name || !newPractitioner.last_name || !newPractitioner.email) {
@@ -610,36 +864,6 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
   }
 };
 
-// Fonction pour vérifier le master psy travail
-const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
-  if (!practitioner) return;
-  
-  try {
-    setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify-master-psy`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // Mettre à jour le praticien dans la liste
-      setPractitioners(prev => prev.map(p => p.id === practitioner.id ? data.data : p));
-      // Mettre à jour le praticien dans detailsPractitioner s'il est ouvert
-      if (detailsPractitioner?.id === practitioner.id) {
-        setDetailsPractitioner(data.data);
-      }
-    } else {
-      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
-    }
-  } catch (error) {
-    console.error('Erreur lors de la vérification:', error);
-    alert('Erreur de connexion lors de la vérification');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
   if (loading) {
     return (
@@ -1003,7 +1227,10 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setDetailsPractitioner(practitioner)}
+                              onClick={() => {
+                                loadDiplomesAndCertifications(practitioner.id);
+                                setDetailsPractitioner(practitioner)
+                              }}
                               className="flex items-center gap-1 flex-1"
                             >
                               <span>📋</span>
@@ -1721,99 +1948,148 @@ const handleVerifyMasterPsy = async (practitioner: Practitioner) => {
                 </div>
 
                 {/* Section des certificats */}
-                <div className="mt-6 space-y-4">
-                  <h5 className="font-semibold text-md flex items-center gap-2">
-                    <span>📋</span> Certificats et vérifications
-                  </h5>
-                  
-                  {/* Certificat IPRP */}
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Certificat IPRP</span>
-                        {detailsPractitioner.certif_iprp_verified ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            ✔ Vérifié
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                            ⚠ Non vérifié
-                          </Badge>
-                        )}
-                      </div>
-                      {!detailsPractitioner.certif_iprp_verified && detailsPractitioner.certif_iprp_path && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleVerifyCertifIprp(detailsPractitioner)}
-                          disabled={isSubmitting}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          Vérifier
-                        </Button>
-                      )}
-                    </div>
-                    {detailsPractitioner.certif_iprp_path ? (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-500">Fichier :</p>
-                        <a 
-                          href={`http://localhost:8001/${detailsPractitioner.certif_iprp_path}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          {detailsPractitioner.certif_iprp_path}
-                        </a>
-                      </div>
+                <div className="space-y-6">
+                  {/* Diplômes */}
+                  <div className="space-y-4">
+                    <h5 className="font-semibold text-md flex items-center gap-2">
+                      <span>📋</span> Diplômes
+                    </h5>
+                    {diplomes.length > 0 ? (
+                      diplomes.map((diplome) => (
+                        <div key={diplome.id} className="p-4 border rounded-lg bg-white">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{diplome.nom}</span>
+                              {diplome.verifie ? (
+                                <Badge variant="default" className="bg-green-100 text-green-800">
+                                  ✔ Vérifié
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                                  ⚠ Non vérifié
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              {!diplome.verifie ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleVerifyDiplome(diplome)}
+                                  disabled={isSubmitting}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  Vérifier
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleUnverifyDiplome(diplome)}
+                                  disabled={isSubmitting}
+                                  className="text-yellow-600 hover:text-yellow-700"
+                                >
+                                  Dévérifier
+                                </Button>
+                              )}
+                              
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteDiplome(diplome.id)}
+                                disabled={isSubmitting}
+                                title="Supprimer ce diplôme"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {diplome.chemin_fichier && (
+                            <div className="mt-2">
+                              <p className="text-sm font-medium text-gray-500">Fichier :</p>
+                              <p>Chemin: {diplome.chemin_fichier}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))
                     ) : (
-                      <p className="text-sm text-gray-500 mt-2">Aucun fichier uploadé</p>
+                      <p className="text-sm text-gray-500">Aucun diplôme enregistré</p>
                     )}
                   </div>
 
-                  {/* Master Psy Travail */}
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">Master Psy Travail</span>
-                        {detailsPractitioner.master_psy_travail_verified ? (
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            ✔ Vérifié
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
-                            ⚠ Non vérifié
-                          </Badge>
-                        )}
-                      </div>
-                      {!detailsPractitioner.master_psy_travail_verified && detailsPractitioner.master_psy_travail_path && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleVerifyMasterPsy(detailsPractitioner)}
-                          disabled={isSubmitting}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          Vérifier
-                        </Button>
-                      )}
-                    </div>
-                    {detailsPractitioner.master_psy_travail_path ? (
-                      <div className="mt-2">
-                        <p className="text-sm font-medium text-gray-500">Fichier :</p>
-                        <a 
-                          href={`http://localhost:8001/${detailsPractitioner.master_psy_travail_path}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          {detailsPractitioner.master_psy_travail_path}
-                        </a>
-                      </div>
+                  {/* Certifications */}
+                  <div className="space-y-4">
+                    <h5 className="font-semibold text-md flex items-center gap-2">
+                      <span>📋</span> Certifications
+                    </h5>
+                    {certifications.length > 0 ? (
+                      certifications.map((certification) => (
+                        <div key={certification.id} className="p-4 border rounded-lg bg-white">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{certification.nom}</span>
+                              {certification.verifie ? (
+                                <Badge variant="default" className="bg-green-100 text-green-800">
+                                  ✔ Vérifié
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700">
+                                  ⚠ Non vérifié
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              {!certification.verifie ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleVerifyCertification(certification)}
+                                  disabled={isSubmitting}
+                                  className="text-green-600 hover:text-green-700"
+                                >
+                                  Vérifier
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleUnverifyCertification(certification)}
+                                  disabled={isSubmitting}
+                                  className="text-yellow-600 hover:text-yellow-700"
+                                >
+                                  Dévérifier
+                                </Button>
+                              )}
+                              
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteCertification(certification.id)}
+                                disabled={isSubmitting}
+                                title="Supprimer cette certification"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {certification.chemin_fichier && (
+                            <div className="mt-2">
+                              <p className="text-sm font-medium text-gray-500">Fichier :</p>
+                              <p>Chemin: {certification.chemin_fichier}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))
                     ) : (
-                      <p className="text-sm text-gray-500 mt-2">Aucun fichier uploadé</p>
+                      <p className="text-sm text-gray-500">Aucune certification enregistrée</p>
                     )}
                   </div>
                 </div>
+
 
                 {/* Informations complémentaires */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

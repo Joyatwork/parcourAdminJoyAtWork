@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Practitioner extends Model
 {
+    protected $table = 'praticiens';
+
     protected $fillable = [
         'first_name',
         'last_name',
-        'email',
         'phone',
         'specialty',
         'location',
@@ -41,8 +42,6 @@ class Practitioner extends Model
         'specializations',
         'certif_iprp_path',
         'certif_iprp_verified',
-        'master_psy_travail_path',
-        'master_psy_travail_verified'
     ];
 
     protected $casts = [
@@ -55,6 +54,5 @@ class Practitioner extends Model
         'accepts_new_patients' => 'boolean',
         'emergency_consultations' => 'boolean',
         'certif_iprp_verified' => 'boolean',
-        'master_psy_travail_verified' => 'boolean'
     ];
 }
