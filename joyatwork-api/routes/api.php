@@ -19,6 +19,8 @@ use App\Http\Controllers\ChallengePackController;
 
 use App\Http\Controllers\ChallengeCitationController;
 use App\Http\Controllers\ChallengeCitationThemeController;
+use App\Http\Controllers\PraticienDiplomesController;
+use App\Http\Controllers\PraticienCertificationsController;
 
 
 Route::get('/user', function (Request $request) {
@@ -60,23 +62,29 @@ Route::post('/billing/generate-monthly', [BillingController::class, 'generateMon
 
 Route::get('/credits', [CreditController::class, 'index']);
 Route::get('/credits/{credit}', [CreditController::class, 'show']);
-// Routes pour les praticiens
+
+
+// Routes pour les praticiens ---------------------------------------------------------------------------
 Route::apiResource('practitioners', PractitionerController::class);
 Route::post('practitioners/{practitioner}/suspendre', [PractitionerController::class, 'suspend']);
 Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
 Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
-// Routes pour les certificats des praticiens
-Route::post('practitioners/{practitioner}/verify-certif-iprp', [PractitionerController::class, 'verifyCertifIprp']);
-Route::post('practitioners/{practitioner}/verify-master-psy', [PractitionerController::class, 'verifyMasterPsyTravail']);
+
+// Routes pour les certificats/diplomes des praticiens
+Route::get('praticien-diplomes/{praticienId}', [PraticienDiplomesController::class, 'getDiplomesByPraticien']);
+Route::post('praticien-diplomes/{id}/verifier', [PraticienDiplomesController::class, 'verifier_diplome']);
+Route::post('praticien-diplomes/{id}/deverifier', [PraticienDiplomesController::class, 'deverifier_diplome']);
+Route::delete('/praticien-diplomes/{id}', [PraticienDiplomesController::class, 'destroy']);
+
+Route::get('praticien-certifications/{praticienId}', [PraticienCertificationsController::class, 'getCertificationsByPraticien']);
+Route::post('praticien-certifications/{id}/verifier', [PraticienCertificationsController::class, 'verifier_certification']);
+Route::post('praticien-certifications/{id}/deverifier', [PraticienCertificationsController::class, 'deverifier_certfification']);
+Route::delete('/praticien-certifications/{id}', [PraticienCertificationsController::class, 'destroy']);
 
 // Routes pour les rendez-vous
 Route::apiResource('appointments', AppointmentController::class);
 Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
-Route::get(
-    'practitioners/{practitioner}/appointments',
-    [AppointmentController::class, 'getAppointmentsByPractitioner']
-);
-
+Route::get('practitioners/{practitioner}/appointments', [AppointmentController::class, 'getAppointmentsByPractitioner']);
 
 // Routes pour les challenges
 Route::get('/challenges/trashed', [ChallengeController::class, 'trashed']);
@@ -101,23 +109,8 @@ Route::get('/challenge-intensities', function () {
 
 Route::post('/challenges/{id}/upload-image', [ChallengeController::class, 'uploadImage']);
 
-
-
 // Challnege Packs
 Route::apiResource('challenge-packs', ChallengePackController::class);
-
-
-Route::get('/test-direct', function () {
-    return response()->json([
-        'status' => 'ok',
-        'message' => 'API is working'
-    ]);
-});
-
-Route::get('/test-packs-simple', function () {
-    $packs = \App\Models\ChallengePack::all();
-    return response()->json($packs);
-});
 
 // Challenge Citations Routes
 Route::apiResource('challenge-citations', ChallengeCitationController::class);
