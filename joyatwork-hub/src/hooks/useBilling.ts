@@ -2,6 +2,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE_URL = "http://localhost:8001/api";
 
+// Practitioner interface
+export interface Practitioner {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  specialty?: string;
+  location?: string;
+}
+
 // Wallet
 export interface Wallet {
   id: number;
@@ -457,6 +468,22 @@ export function useMarkPayoutPaid() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payouts"] });
+    },
+  });
+}
+
+// Practitioners hook (for billing)
+export function usePractitioners(search?: string) {
+  const params = new URLSearchParams();
+  if (search) params.append("search", search);
+  const url = `${API_BASE_URL}/practitioners?${params.toString()}`;
+
+  return useQuery<{ success: boolean; data: Practitioner[] }>({
+    queryKey: ["practitioners", search],
+    queryFn: async () => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Erreur lors du chargement des praticiens");
+      return response.json();
     },
   });
 }

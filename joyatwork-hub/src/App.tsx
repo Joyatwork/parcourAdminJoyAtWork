@@ -18,6 +18,7 @@ import BillingWalletPage from "./pages/BillingWalletPage";
 import BillingOrdersPage from "./pages/BillingOrdersPage";
 import BillingCreditsPage from "./pages/BillingCreditsPage";
 import BillingUsagesPage from "./pages/BillingUsagesPage";
+import BillingPayoutsPage from "./pages/BillingPayoutsPage";
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/billing/orders" element={<BillingOrdersPage />} />
             <Route path="/billing/credits" element={<BillingCreditsPage />} />
             <Route path="/billing/usages" element={<BillingUsagesPage />} />
+            <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
             <Route path="/test" element={<TestNavigation />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

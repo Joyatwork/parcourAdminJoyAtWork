@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Practitioner extends Model
 {
@@ -57,4 +58,9 @@ class Practitioner extends Model
         'certif_iprp_verified' => 'boolean',
         'master_psy_travail_verified' => 'boolean'
     ];
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
 }
