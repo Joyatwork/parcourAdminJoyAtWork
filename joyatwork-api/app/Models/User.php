@@ -45,4 +45,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+    public function challenges(): BelongsToMany
+    {
+    return $this->belongsToMany(Challenge::class, 'user_challenges')
+                ->withPivot('score', 'rate', 'completed_at')
+                ->withTimestamps();
+    }
 }

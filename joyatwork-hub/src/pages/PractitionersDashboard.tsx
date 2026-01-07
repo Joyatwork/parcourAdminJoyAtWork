@@ -10,44 +10,58 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Phone, Mail, Star, Calendar, Clock, CheckCircle, Users, Bell, Activity, StarIcon, Plus, AlertCircle, XCircle, User, Edit, Trash2 } from 'lucide-react';
 
-// Interface pour les praticiens de votre base MySQL
+// Interface pour les praticiens (format Laravel API)
 interface Practitioner {
   id: number;
-  name: string;
-  email: string | null;
+  first_name: string;
+  last_name: string;
+  email: string;
   phone: string | null;
   specialty: string;
-  location: string | null;
+  location?: string | null;
+  city?: string | null;
+  country?: string | null;
   created_at: string;
   updated_at: string;
-  experience_years?: number;
-  rating?: string;
-  certifications?: string;
-  availability?: string;
-  bio?: string;
-  verified?: number;
+  experience_years?: number | null;
+  rating?: number | null;
+  certifications?: string | null;
+  availability?: string | null;
+  bio?: string | null;
+  is_verified?: boolean;
+  status?: string;
+  // Computed property pour compatibilité
+  name?: string;
 }
 
-// Interface pour les rendez-vous
+// Interface pour les rendez-vous (format Laravel API)
 interface Appointment {
   id: number;
   practitioner_id: number;
-  practitioner_name: string;
-  practitioner_specialty: string;
-  practitioner_email: string | null;
-  practitioner_phone: string | null;
-  patient_name: string;
-  patient_email: string | null;
-  patient_phone: string | null;
-  appointment_date: string;
-  appointment_time: string;
-  duration_minutes: number;
-  appointment_type: 'consultation' | 'suivi' | 'urgence' | 'groupe';
-  status: 'planifie' | 'confirme' | 'en_cours' | 'termine' | 'annule';
-  notes: string | null;
-  price: string | null;
+  practitioner_name?: string;
+  practitioner_specialty?: string;
+  practitioner_email?: string | null;
+  practitioner_phone?: string | null;
+  client_name?: string;
+  client_email?: string | null;
+  scheduled_at: string;
+  duration?: number;
+  type?: string;
+  status?: string;
+  mode?: string;
+  notes?: string | null;
+  price_cents?: number;
   created_at: string;
   updated_at: string;
+  // Pour compatibilité avec l'ancien format
+  appointment_date?: string;
+  appointment_time?: string;
+  duration_minutes?: number;
+  appointment_type?: string;
+  patient_name?: string;
+  patient_email?: string | null;
+  patient_phone?: string | null;
+  price?: string | null;
 }
 
 // Données mises à jour - 14 praticiens de votre base MySQL
@@ -279,7 +293,8 @@ const PractitionersDashboard = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
     specialty: '',
@@ -290,16 +305,24 @@ const PractitionersDashboard = () => {
     availability: 'Disponible'
   });
 
-  // Récupération des praticiens depuis votre base MySQL
+  // Récupération des praticiens depuis l'API Laravel
   useEffect(() => {
     const fetchPractitioners = async () => {
       try {
-        const response = await fetch('http://localhost:8002/practitioners.php');
+        const response = await fetch('http://localhost:8001/api/practitioners');
         if (!response.ok) {
           throw new Error('Erreur lors du chargement des praticiens');
         }
-        const data = await response.json();
-        setPractitioners(data);
+        const result = await response.json();
+        // Format Laravel: {success: true, data: [...]}
+        const data = result.data || result;
+        // Normaliser les données pour compatibilité avec l'interface
+        const normalizedData = Array.isArray(data) ? data.map((p: Practitioner) => ({
+          ...p,
+          name: `${p.first_name} ${p.last_name}`,
+          verified: p.is_verified ? 1 : 0
+        })) : [];
+        setPractitioners(normalizedData);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -312,16 +335,33 @@ const PractitionersDashboard = () => {
     fetchPractitioners();
   }, []);
 
-  // Récupération des rendez-vous depuis votre base MySQL
+  // Récupération des rendez-vous depuis l'API Laravel
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch('http://localhost:8002/appointments.php');
+        const response = await fetch('http://localhost:8001/api/appointments');
         if (!response.ok) {
           throw new Error('Erreur lors du chargement des rendez-vous');
         }
-        const data = await response.json();
-        setAppointments(data);
+        const result = await response.json();
+        // Format Laravel: {success: true, data: [...]}
+        const data = result.data || result;
+        // Normaliser les données pour compatibilité
+        const normalizedData = Array.isArray(data) ? data.map((a: Appointment) => {
+          const scheduledDate = a.scheduled_at ? new Date(a.scheduled_at) : new Date();
+          return {
+            ...a,
+            appointment_date: scheduledDate.toISOString().split('T')[0],
+            appointment_time: scheduledDate.toTimeString().split(' ')[0],
+            duration_minutes: a.duration || 60,
+            appointment_type: a.type || 'consultation',
+            patient_name: a.client_name || 'Client inconnu',
+            patient_email: a.client_email,
+            price: a.price_cents ? (a.price_cents / 100).toString() : null,
+            practitioner_name: a.practitioner_name || 'Praticien inconnu'
+          };
+        }) : [];
+        setAppointments(normalizedData);
         setAppointmentsError(null);
       } catch (err) {
         setAppointmentsError(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -396,7 +436,8 @@ const PractitionersDashboard = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      first_name: '',
+      last_name: '',
       email: '',
       phone: '',
       specialty: '',
@@ -414,14 +455,15 @@ const PractitionersDashboard = () => {
 
     try {
       // Validation basique
-      if (!formData.name || !formData.email || !formData.specialty) {
-        alert('Veuillez remplir les champs obligatoires : Nom, Email et Spécialité');
+      if (!formData.first_name || !formData.last_name || !formData.email || !formData.specialty) {
+        alert('Veuillez remplir les champs obligatoires : Prénom, Nom, Email et Spécialité');
         return;
       }
 
-      // Préparer les données pour l'API
+      // Préparer les données pour l'API Laravel
       const practitionerData = {
-        name: formData.name,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
         phone: formData.phone || null,
         specialty: formData.specialty,
@@ -429,15 +471,15 @@ const PractitionersDashboard = () => {
         experience_years: formData.experience_years ? parseInt(formData.experience_years) : null,
         certifications: formData.certifications || null,
         bio: formData.bio || null,
-        availability: formData.availability,
-        verified: 1
+        availability: formData.availability
       };
 
-      // Appel API réel
-      const response = await fetch('http://localhost:8002/add_practitioner.php', {
+      // Appel API Laravel
+      const response = await fetch('http://localhost:8001/api/practitioners', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(practitionerData)
       });
@@ -445,10 +487,14 @@ const PractitionersDashboard = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Erreur lors de l\'ajout du praticien');
+        throw new Error(result.message || result.error || 'Erreur lors de l\'ajout du praticien');
       }
 
-      const newPractitioner = result.data;
+      const newPractitioner = {
+        ...result.data,
+        name: `${result.data.first_name} ${result.data.last_name}`,
+        verified: result.data.is_verified ? 1 : 0
+      };
       
       // Ajouter à la liste locale
       setPractitioners(prev => [newPractitioner, ...prev]);
@@ -459,31 +505,41 @@ const PractitionersDashboard = () => {
       
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de l\'ajout du praticien');
+      alert(error instanceof Error ? error.message : 'Erreur lors de l\'ajout du praticien');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleEditPractitioner = (practitioner: Practitioner) => {
-    alert(`Éditer le praticien: ${practitioner.name}\nFonctionnalité à développer : formulaire d'édition`);
+    alert(`Éditer le praticien: ${practitioner.name || `${practitioner.first_name} ${practitioner.last_name}`}\nFonctionnalité à développer : formulaire d'édition`);
     // TODO: Ouvrir un modal d'édition avec les données du praticien
   };
 
   const handleDeletePractitioner = async (practitioner: Practitioner) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le praticien "${practitioner.name}" ?`)) {
+    const practitionerName = practitioner.name || `${practitioner.first_name} ${practitioner.last_name}`;
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le praticien "${practitionerName}" ?`)) {
       try {
-        // TODO: Implémenter l'API de suppression
-        alert(`Suppression de ${practitioner.name} - API à implémenter`);
-        // const response = await fetch(`http://localhost:8001/practitioners.php?id=${practitioner.id}`, {
-        //   method: 'DELETE'
-        // });
-        // if (response.ok) {
-        //   // Recharger la liste des praticiens
-        //   setPractitioners(prev => prev.filter(p => p.id !== practitioner.id));
-        // }
+        const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || result.error || 'Erreur lors de la suppression');
+        }
+
+        // Retirer de la liste locale
+        setPractitioners(prev => prev.filter(p => p.id !== practitioner.id));
+        alert(`Praticien "${practitionerName}" supprimé avec succès !`);
       } catch (error) {
-        alert('Erreur lors de la suppression');
+        console.error('Erreur:', error);
+        alert(error instanceof Error ? error.message : 'Erreur lors de la suppression');
       }
     }
   };
@@ -515,7 +571,7 @@ const PractitionersDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des praticiens de votre base MySQL...</p>
+          <p className="mt-4 text-gray-600">Chargement des praticiens depuis l'API Laravel...</p>
         </div>
       </div>
     );
@@ -532,7 +588,10 @@ const PractitionersDashboard = () => {
           <CardContent>
             <p className="text-gray-600">{error}</p>
             <p className="text-sm text-gray-500 mt-2">
-              Vérifiez que le serveur API fonctionne sur le port 8001
+              Vérifiez que le serveur Laravel API fonctionne sur le port 8001
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Démarrez avec : cd joyatwork-api && php artisan serve --port=8001
             </p>
           </CardContent>
         </Card>
@@ -566,14 +625,26 @@ const PractitionersDashboard = () => {
               
               <form onSubmit={handleSubmitPractitioner} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Prénom */}
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">Prénom *</Label>
+                    <Input
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      placeholder="Ex: Marie"
+                      required
+                    />
+                  </div>
+                  
                   {/* Nom */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nom complet *</Label>
+                    <Label htmlFor="last_name">Nom *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Ex: Dr. Marie Dubois"
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      placeholder="Ex: Dubois"
                       required
                     />
                   </div>
@@ -841,13 +912,13 @@ const PractitionersDashboard = () => {
             {/* Liste des praticiens */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPractitioners.map((practitioner) => (
-            <Card key={practitioner.id} className="hover:shadow-lg transition-shadow duration-200">
+              <Card key={practitioner.id} className="hover:shadow-lg transition-shadow duration-200">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
-                      {practitioner.name}
-                      {practitioner.verified && (
+                      {practitioner.name || `${practitioner.first_name} ${practitioner.last_name}`}
+                      {(practitioner.verified || practitioner.is_verified) && (
                         <CheckCircle className="inline-block w-4 h-4 text-green-500 ml-2" />
                       )}
                     </CardTitle>

@@ -14,6 +14,7 @@ import {
   Shield,
   TrendingUp,
   Building2,
+  DollarSign,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -44,6 +45,9 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
       case "health":
         navigate("/sante-diagnostic");
         break;
+      case "billing":
+        navigate("/billing");
+        break;
       default:
         onSectionChange(section);
     }
@@ -58,13 +62,14 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
     { id: "contracts", label: "Contrats", icon: FileText },
     { id: "practitioners", label: "Praticiens", icon: Stethoscope },
     { id: "challenges", label: "Challenges", icon: Target },
+    { id: "billing", label: "Billing & Wallet", icon: DollarSign },
     { id: "reports", label: "Rapports", icon: FileText },
     { id: "trends", label: "Tendances", icon: TrendingUp },
     { id: "settings", label: "Paramètres", icon: Settings },
   ];
 
   return (
-    <aside className="w-64 bg-card border-r border-border h-screen overflow-y-auto">
+    <aside className="w-64 bg-card border-r border-border h-screen fixed inset-y-0 left-0 z-20 overflow-y-auto scrollbar-hide">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
@@ -83,11 +88,10 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
               <Button
                 key={item.id}
                 variant={activeSection === item.id ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 h-12 ${
-                  activeSection === item.id
-                    ? "bg-gradient-primary text-white shadow-soft"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
+                className={`w-full justify-start gap-3 h-12 ${activeSection === item.id
+                  ? "bg-gradient-primary text-white shadow-soft"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
                 onClick={() => {
                   handleNavigation(item.id);
                 }}
