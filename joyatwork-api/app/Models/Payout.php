@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payout extends Model
 {
@@ -30,6 +31,11 @@ class Payout extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(PayoutLine::class);
+    }
+
+    public function practitioner(): BelongsTo
+    {
+        return $this->belongsTo(Practitioner::class, 'practitioner_id');
     }
 }
 

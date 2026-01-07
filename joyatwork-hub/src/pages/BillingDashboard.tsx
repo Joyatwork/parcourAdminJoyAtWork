@@ -156,12 +156,12 @@ const BillingDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Payouts praticiens</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {(payouts?.data ?? []).slice(0, 5).map((p) => (
+      <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/billing/payouts")}>
+        <CardHeader>
+          <CardTitle>Payouts praticiens</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {(payouts?.data ?? []).slice(0, 5).map((p) => (
               <div key={p.id} className="flex justify-between">
                 <span>
                   {p.practitioner_id ?? "N/A"} | {p.periode_debut} →{" "}

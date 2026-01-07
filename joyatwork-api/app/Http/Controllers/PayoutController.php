@@ -16,7 +16,7 @@ class PayoutController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Payout::with('lines')
+        $query = Payout::with(['practitioner', 'lines'])
             ->when($request->filled('practitioner_id'), fn($q) => $q->where('practitioner_id', $request->practitioner_id))
             ->when($request->filled('statut'), fn($q) => $q->where('statut', $request->statut))
             ->when($request->filled('periode_debut'), fn($q) => $q->whereDate('periode_debut', '>=', $request->periode_debut))
@@ -31,7 +31,7 @@ class PayoutController extends Controller
      */
     public function show(Payout $payout): JsonResponse
     {
-        $payout->load('lines.usage');
+        $payout->load(['practitioner', 'lines.usage']);
         return response()->json($payout);
     }
 
