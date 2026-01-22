@@ -26,6 +26,7 @@ import {
   BarChart3,
   Zap
 } from "lucide-react";
+import { BenchmarkCharts } from "@/components/Dashboard/BenchmarkCharts";
 
 const Index = () => {
   return (
@@ -33,17 +34,19 @@ const Index = () => {
       {/* Strategic QVCT Header */}
       <StrategicQVCTHeader />
       
+      
       {/* Main Dashboard Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Primary Metrics */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Health Metrics Overview */}
-          <HealthMetrics />
-          
           {/* Performance & Engagement Chart */}
           <PerformanceEngagementChart />
           
-          {/* Advanced KPIs */}
+          {/* Health Metrics Overview */}
+          <HealthMetrics />
+
+          
+          {/* Advanced KPIs Admin*/}
           <AdvancedKPIs />
           
           {/* QVCT Strategic Overview */}
@@ -70,7 +73,7 @@ const Index = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Employee Verbatims */}
         <EmployeeVerbatims />
-        
+
         {/* ROI Calculator */}
         <ROICalculator />
       </div>

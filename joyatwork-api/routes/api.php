@@ -22,6 +22,10 @@ use App\Http\Controllers\ChallengeCitationThemeController;
 use App\Http\Controllers\PraticienDiplomesController;
 use App\Http\Controllers\PraticienCertificationsController;
 
+// KPI Company Health Controller
+use App\Http\Controllers\KpiCompanyHealthController;
+use App\Models\KpiCompanyHealth;
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -115,3 +119,7 @@ Route::apiResource('challenge-packs', ChallengePackController::class);
 // Challenge Citations Routes
 Route::apiResource('challenge-citations', ChallengeCitationController::class);
 Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
+
+
+// KPI Company Health Routes
+Route::get('/kpi-company-health/global-metrics', [KpiCompanyHealthController::class, 'getGlobalMetrics']);
