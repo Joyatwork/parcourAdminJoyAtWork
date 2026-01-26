@@ -26,6 +26,8 @@ use App\Http\Controllers\PraticienCertificationsController;
 use App\Http\Controllers\KpiCompanyHealthController;
 use App\Models\KpiCompanyHealth;
 
+// Santé & Diagnostics
+use App\Http\Controllers\DiagnosticController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -123,3 +125,11 @@ Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController
 
 // KPI Company Health Routes
 Route::get('/kpi-company-health/global-metrics', [KpiCompanyHealthController::class, 'getGlobalMetrics']);
+
+// Santé & Diagnostics Routes
+Route::get('/diagnostics/user-health', [DiagnosticController::class, 'get_users_health_per_month']);
+Route::get('/diagnostics/company-health', [DiagnosticController::class, 'get_company_health_per_month']);
+Route::get('/diagnostics', function() {
+    return \App\Models\Diagnostic::latest()->get(); // For the History tab
+});
+Route::get('/diagnostics/global-stats', [DiagnosticController::class, 'get_global_stats']);
