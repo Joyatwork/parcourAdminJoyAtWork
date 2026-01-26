@@ -48,18 +48,4 @@
             return response()->json($results);
         }
 
-        public function get_global_stats()
-        {
-            $results = DB::select("
-                SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') AS month,
-                    AVG(stress_level) AS avg_stress,
-                    AVG(energy_level) AS avg_energy
-                FROM diagnostics
-                GROUP BY month
-                ORDER BY month ASC
-            ");
-
-            return response()->json($results);
-        }
     }
