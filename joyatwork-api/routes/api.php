@@ -124,7 +124,7 @@ Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController
 
 
 // KPI Company Health Routes
-Route::get('/kpi-company-health/global-metrics', [KpiCompanyHealthController::class, 'getGlobalMetrics']);
+Route::get('/kpi-company-health/global-health', [KpiCompanyHealthController::class, 'get_global_health']);
 
 // Santé & Diagnostics Routes
 Route::get('/diagnostics/user-health', [DiagnosticController::class, 'get_users_health_per_month']);
