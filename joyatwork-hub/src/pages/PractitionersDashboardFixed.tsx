@@ -1113,7 +1113,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               <CardTitle className="text-lg font-semibold mb-1">
                                 {practitioner.first_name && practitioner.last_name 
                                   ? `${practitioner.first_name} ${practitioner.last_name}`
-                                  : practitioner.name || 'Nom non spécifié'
+                                  : practitioner.first_name || 'Nom non spécifié'
                                 }
                               </CardTitle>
                               <div className="flex gap-2 mb-3">
@@ -1149,7 +1149,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={() => handleDeletePractitioner(practitioner.id, `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.name || 'ce praticien')}
+                                onClick={() => handleDeletePractitioner(practitioner.id, `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.first_name || 'ce praticien')}
                                 className="text-red-600 hover:text-red-700"
                                 title="Supprimer ce praticien"
                               >

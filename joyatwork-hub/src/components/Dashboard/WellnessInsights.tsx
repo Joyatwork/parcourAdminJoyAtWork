@@ -55,7 +55,7 @@ export function WellnessInsights() {
   return (
     <Card className="p-6 shadow-soft">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-foreground">Insights bien-être</h3>
+        <h3 className="text-xl font-semibold text-foreground">Bien-être</h3>
         <Button variant="outline" size="sm" className="gap-2">
           <TrendingUp className="w-4 h-4" />
           Voir plus
