@@ -42,16 +42,26 @@ const Index = () => {
         {/* Left Column - Primary Metrics */}
         <div className="lg:col-span-2 space-y-6">
           
-          
           {/* Health Metrics Overview */}
           <HealthMetrics />
+          
+          {/* Absenteeism Cost Breakdown */}
+          <AbsenteeismCostBreakdown />
 
+          {/* ROI Calculator */}
+          <ROICalculator />
+          
+          
+
+          {/* Wellness Insights */}
+          <WellnessInsights />
           
           {/* Advanced KPIs Admin*/}
           <AdvancedKPIs />
           
           {/* QVCT Strategic Overview */}
           <QVCTOverview />
+ 
         </div>
 
         {/* Right Column - Secondary Info */}
@@ -63,8 +73,6 @@ const Index = () => {
           {/* Real-time Alerts */}
           <RealTimeAlerts />
           
-          
-          
           {/* Upcoming Appointments */}
           <UpcomingAppointments />
           
@@ -74,25 +82,23 @@ const Index = () => {
       </div>
 
       {/* Bottom Row - Extended Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols gap-6">
+        {/* Predictive Analytics */}
+          <PredictiveAnalytics />
         {/* Employee Verbatims */}
         <EmployeeVerbatims />
 
-        {/* ROI Calculator */}
-        <ROICalculator />
+        
       </div>
 
       {/* Advanced Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Predictive Analytics */}
-        <PredictiveAnalytics />
         
-        {/* Absenteeism Cost Breakdown */}
-        <AbsenteeismCostBreakdown />
+        
+        
       </div>
 
-      {/* Wellness Insights */}
-      <WellnessInsights />
+      
     </div>
   );
 };
