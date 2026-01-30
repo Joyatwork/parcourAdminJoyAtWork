@@ -21,7 +21,7 @@ class KpiCompanyHealthController extends Controller
         // 2. Use bindings to prevent SQL injection and filter the results
         $data = DB::select("
             SELECT *
-            FROM v_global_company_health
+            FROM v_global_company_health_v2
             WHERE year = ? AND month = ?
             LIMIT 1
         ", [$year, $month]);

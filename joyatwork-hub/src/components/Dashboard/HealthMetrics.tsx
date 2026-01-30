@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Brain, Battery, Calendar, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
+import { Brain, Battery, Calendar, CheckCircle2, AlertCircle, AlertTriangle, Smile, Moon, Briefcase } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const metricConfigs = {
@@ -64,6 +64,24 @@ export function HealthMetrics() {
             value: data[0].moyen_energie,
             status: data[0].moyen_energie < 4 ? 'warning' : data[0].moyen_energie < 6 ? 'medium' : 'good',
             icon: Battery,
+          },
+          {
+            category: 'Humeur',
+            value: data[0].moyen_mood,
+            status: data[0].moyen_mood < 4 ? 'warning' : data[0].moyen_mood < 6 ? 'medium' : 'good',
+            icon: Smile,
+          },
+          {
+            category: 'Sommeil',
+            value: data[0].moyen_sommeil,
+            status: data[0].moyen_sommeil < 4 ? 'warning' : data[0].moyen_sommeil < 6 ? 'medium' : 'good',
+            icon: Moon,
+          },
+          {
+            category: 'Pression',
+            value: data[0].moyen_pression,
+            status: data[0].moyen_pression > 6 ? 'warning' : data[0].moyen_pression > 4 ? 'medium' : 'good',
+            icon: Briefcase,
           }
         ];
 

@@ -4,17 +4,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users 
+  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar 
 } from 'lucide-react';
 
 const SanteDiagnosticDashboard = () => {
-  const [activeTab, setActiveTab] = useState('entreprises'); // Par défaut sur Entreprises
+  const [activeTab, setActiveTab] = useState('entreprises');
   const [companyHealthData, setCompanyHealthData] = useState([]);
   const [usersHealthData, setUsersHealthData] = useState([]);
+  const [globalHealthData, setGlobalHealthData] = useState([]); // Changé en tableau pour matcher l'API
   const [loading, setLoading] = useState(true);
 
   // Filtres
-  const [selectedMonth, setSelectedMonth] = useState(0); 
+  const [selectedMonth, setSelectedMonth] = useState(11); // Novembre par défaut selon ton code
   const [selectedYear, setSelectedYear] = useState(2025);
   const [searchTerm, setSearchTerm] = useState(""); 
 
@@ -30,12 +31,15 @@ const SanteDiagnosticDashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [resCompany, resUser] = await Promise.all([
+        const [resCompany, resUser, resGlobal] = await Promise.all([
           fetch('http://localhost:8001/api/diagnostics/company-health'),
-          fetch('http://localhost:8001/api/diagnostics/user-health')
+          fetch('http://localhost:8001/api/diagnostics/user-health'),
+          fetch('http://localhost:8001/api/kpi-company-health/global-health')
         ]);
+        
         setCompanyHealthData(await resCompany.json());
         setUsersHealthData(await resUser.json());
+        setGlobalHealthData(await resGlobal.json());
       } catch (err) {
         console.error("Erreur API:", err);
       } finally {
@@ -45,6 +49,7 @@ const SanteDiagnosticDashboard = () => {
     fetchData();
   }, []);
 
+  // --- LOGIQUE DE FILTRE ---
   const filterLogic = (data, searchKey) => {
     return data.filter(item => {
       const matchYear = item.month.startsWith(selectedYear.toString());
@@ -59,6 +64,17 @@ const SanteDiagnosticDashboard = () => {
 
   const filteredCompanies = filterLogic(companyHealthData, 'company');
   const filteredUsers = filterLogic(usersHealthData, 'user');
+
+  // --- LOGIQUE STATS GLOBALES ---
+  // On cherche dans globalHealthData l'entrée qui correspond au mois/année selectionnés
+  const currentStats = globalHealthData.find(
+    (s) => Number(s.year) === selectedYear && Number(s.month) === (selectedMonth === 0 ? 11 : selectedMonth)
+  ) || { moyen_stress: 0, moyen_energie: 0, moyen_sommeil: 0, moyen_mood: 0, moyen_pression: 0 };
+
+  // Calcul du score global (moyenne simple pour l'exemple)
+  const globalScore = currentStats.moyen_stress === 0 ? 0 : (
+    (Number(currentStats.moyen_energie) + Number(currentStats.moyen_mood) + Number(currentStats.moyen_sommeil) + (10 - Number(currentStats.moyen_stress))) / 4 * 10
+  ).toFixed(0);
 
   if (loading) return (
     <div className="h-screen w-full flex items-center justify-center bg-gray-50">
@@ -83,12 +99,12 @@ const SanteDiagnosticDashboard = () => {
 
         {/* Métriques Globales (Résumé) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <StatCard title="Stress Moyen" value="4.2/10" color="red" icon={<Brain className="w-5 h-5"/>} />
-          <StatCard title="Énergie Moyenne" value="7.8/10" color="orange" icon={<Zap className="w-5 h-5"/>} />
-          <StatCard title="Qualité Sommeil" value="85%" color="purple" icon={<Moon className="w-5 h-5"/>} />
-          <StatCard title="Humeur" value="Bien" color="blue" icon={<Smile className="w-5 h-5"/>} />
-          <StatCard title="Focus" value="92%" color="teal" icon={<Target className="w-5 h-5"/>} />
-          <StatCard title="Global Score" value="78" color="green" icon={<Shield className="w-5 h-5"/>} />
+          <StatCard title="Stress Moyen" value={`${Number(currentStats.moyen_stress).toFixed(1)}/10`} color="red" icon={<Brain className="w-5 h-5"/>} />
+          <StatCard title="Énergie Moyenne" value={`${Number(currentStats.moyen_energie).toFixed(1)}/10`} color="orange" icon={<Zap className="w-5 h-5"/>} />
+          <StatCard title="Qualité Sommeil" value={`${Number(currentStats.moyen_sommeil).toFixed(1)}/10`} color="purple" icon={<Moon className="w-5 h-5"/>} />
+          <StatCard title="Humeur Moyen" value={`${Number(currentStats.moyen_mood).toFixed(1)}/10`} color="blue" icon={<Smile className="w-5 h-5"/>} />
+          <StatCard title="Pression Moyen" value={`${Number(currentStats.moyen_pression).toFixed(1)}/10`} color="teal" icon={<Target className="w-5 h-5"/>} />
+          <StatCard title="Global Score" value={`${globalScore}%`} color="green" icon={<Shield className="w-5 h-5"/>} />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -115,9 +131,11 @@ const SanteDiagnosticDashboard = () => {
                   <tr>
                     <th className="px-6 py-4">Entreprise</th>
                     <th className="px-6 py-4">Période</th>
-                    <th className="px-6 py-4 text-center">Moy. Stress (/10)</th>
-                    <th className="px-6 py-4 text-center">Moy. Énergie (/10)</th>
-                    <th className="px-6 py-4 text-center">Status</th>
+                    <th className="px-6 py-4 text-center">Moy. Stress</th>
+                    <th className="px-6 py-4 text-center">Moy. Énergie</th>
+                    <th className="px-6 py-4 text-center">Moy. Sommeil</th>
+                    <th className="px-6 py-4 text-center">Moy. Humeur</th>
+                    <th className="px-6 py-4 text-center">Moy. Pression</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -127,16 +145,13 @@ const SanteDiagnosticDashboard = () => {
                       <td className="px-6 py-4 text-gray-500 font-medium">{c.month}</td>
                       <td className="px-6 py-4 text-center font-bold text-lg">{Number(c.avg_stress).toFixed(1)}</td>
                       <td className="px-6 py-4 text-center font-bold text-lg text-orange-600">{Number(c.avg_energy).toFixed(1)}</td>
-                      <td className="px-6 py-4 text-center">
-                        <Badge className="bg-green-50 text-green-700 border-green-200 px-3">Stable</Badge>
-                      </td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-purple-600">{Number(c.avg_sleep).toFixed(1)}</td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-blue-600">{Number(c.avg_mood).toFixed(1)}</td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-slate-600">{Number(c.avg_pressure).toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filteredCompanies.length === 0 && (
-                <div className="p-10 text-center text-gray-400">Aucune entreprise trouvée pour ces filtres.</div>
-              )}
             </Card>
           </TabsContent>
 
@@ -156,6 +171,9 @@ const SanteDiagnosticDashboard = () => {
                     <th className="px-6 py-4">Mois</th>
                     <th className="px-6 py-4 text-center">Score Stress</th>
                     <th className="px-6 py-4 text-center">Score Énergie</th>
+                    <th className="px-6 py-4 text-center">Score Sommeil</th>
+                    <th className="px-6 py-4 text-center">Score Humeur</th>
+                    <th className="px-6 py-4 text-center">Score Pression</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -174,13 +192,19 @@ const SanteDiagnosticDashboard = () => {
                       <td className="px-6 py-4 text-center font-bold text-lg text-orange-500">
                         {Number(u.avg_energy).toFixed(1)}
                       </td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-purple-500">
+                        {Number(u.avg_sleep).toFixed(1)}
+                      </td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-blue-500">
+                        {Number(u.avg_mood).toFixed(1)}
+                      </td>
+                      <td className="px-6 py-4 text-center font-bold text-lg text-slate-500">
+                        {Number(u.avg_pressure).toFixed(1)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filteredUsers.length === 0 && (
-                <div className="p-10 text-center text-gray-400">Aucun collaborateur trouvé pour ces filtres.</div>
-              )}
             </Card>
           </TabsContent>
         </Tabs>
@@ -237,6 +261,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedMonth, setSelectedMonth,
       >
         <option value={2025}>2025</option>
         <option value={2024}>2024</option>
+        <option value={2026}>2026</option>
       </select>
     </div>
   </div>
