@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar, User, 
-  BarChart3
+  BarChart3, FileText, Activity, CheckCircle, Clock, AlertCircle, TrendingUp
 } from 'lucide-react';
 
 const SanteDiagnosticDashboard = () => {
@@ -29,6 +30,115 @@ const SanteDiagnosticDashboard = () => {
     { value: 7, label: 'Juillet' }, { value: 8, label: 'Août' }, { value: 9, label: 'Septembre' },
     { value: 10, label: 'Octobre' }, { value: 11, label: 'Novembre' }, { value: 12, label: 'Décembre' }
   ];
+
+  // Données du questionnaire "Retour de congés"
+  const questionnaireSections = [
+    {
+      id: 'ressenti-reprise',
+      title: 'Ressenti à la reprise',
+      completed: true,
+      score: 18,
+      maxScore: 25,
+      questions: 5
+    },
+    {
+      id: 'energie-physique',
+      title: 'Énergie physique',
+      completed: true,
+      score: 22,
+      maxScore: 30,
+      questions: 6
+    },
+    {
+      id: 'bien-etre-mental',
+      title: 'Bien-être mental',
+      completed: false,
+      score: 0,
+      maxScore: 20,
+      questions: 4
+    },
+    {
+      id: 'relations-travail',
+      title: 'Relations au travail',
+      completed: false,
+      score: 0,
+      maxScore: 15,
+      questions: 3
+    }
+  ];
+
+  // Résultats des diagnostics précédents
+  const diagnosticResults = [
+    {
+      id: '1',
+      title: 'Auto-diagnostic - Retour de congés',
+      score: 40,
+      maxScore: 90,
+      category: 'Réintégration',
+      status: 'moyen',
+      date: '2025-01-08',
+      recommendations: [
+        'Prévoir une période d\'adaptation progressive',
+        'Planifier des pauses régulières',
+        'Solliciter le soutien des collègues'
+      ]
+    },
+    {
+      id: '2',
+      title: 'Évaluation stress mensuelle',
+      score: 75,
+      maxScore: 100,
+      category: 'Stress',
+      status: 'bon',
+      date: '2025-01-01',
+      recommendations: [
+        'Maintenir les techniques de relaxation',
+        'Continuer l\'activité physique régulière'
+      ]
+    },
+    {
+      id: '3',
+      title: 'Bilan bien-être général',
+      score: 85,
+      maxScore: 100,
+      category: 'Bien-être',
+      status: 'excellent',
+      date: '2024-12-15',
+      recommendations: [
+        'Excellent équilibre maintenu',
+        'Partager les bonnes pratiques avec l\'équipe'
+      ]
+    }
+  ];
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'excellent': return 'bg-green-100 text-green-800 border-green-200';
+      case 'bon': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'moyen': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'attention': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'critique': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'excellent': return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'bon': return <CheckCircle className="w-5 h-5 text-blue-600" />;
+      case 'moyen': return <Clock className="w-5 h-5 text-yellow-600" />;
+      case 'attention': return <AlertCircle className="w-5 h-5 text-orange-600" />;
+      case 'critique': return <AlertCircle className="w-5 h-5 text-red-600" />;
+      default: return <Activity className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  const getScoreColor = (value, max) => {
+    const percentage = (value / max) * 100;
+    if (percentage >= 70) return 'text-green-600';
+    if (percentage >= 40) return 'text-orange-600';
+    return 'text-red-600';
+  };
 
   useEffect(() => {
     const initData = async () => {
@@ -174,6 +284,15 @@ const SanteDiagnosticDashboard = () => {
             <TabsTrigger value="users" className="flex items-center gap-2 px-8 font-semibold rounded-lg">
               <Users className="w-4 h-4" /> Utilisateurs
             </TabsTrigger>
+            <TabsTrigger value="questionnaire" className="flex items-center gap-2 px-6 font-semibold rounded-lg">
+              <FileText className="w-4 h-4" /> Questionnaire
+            </TabsTrigger>
+            <TabsTrigger value="historique" className="flex items-center gap-2 px-6 font-semibold rounded-lg">
+              <Calendar className="w-4 h-4" /> Historique
+            </TabsTrigger>
+            <TabsTrigger value="recommandations" className="flex items-center gap-2 px-6 font-semibold rounded-lg">
+              <Target className="w-4 h-4" /> Recommandations
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="entreprises" className="space-y-4">
@@ -196,6 +315,203 @@ const SanteDiagnosticDashboard = () => {
               placeholder="Rechercher un collaborateur..."
             />
             <TableCard data={filteredUsers} type="user" />
+          </TabsContent>
+
+          <TabsContent value="questionnaire" className="space-y-6">
+            <Card className="p-6 border border-slate-200 shadow-sm rounded-xl bg-white">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Auto-diagnostic - Retour de congés
+              </h3>
+              <p className="text-slate-600 mb-6">Évaluez votre ressenti après votre période d'absence</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {questionnaireSections.map((section) => (
+                  <Card key={section.id} className={`p-4 border-2 rounded-xl ${section.completed ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-slate-800">{section.title}</h4>
+                      {section.completed ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Clock className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">{section.questions} questions</span>
+                        <span className={`font-bold ${section.completed ? 'text-green-600' : 'text-slate-500'}`}>
+                          {section.completed ? `${section.score}/${section.maxScore}` : 'Non commencé'}
+                        </span>
+                      </div>
+                      
+                      {section.completed && (
+                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            style={{ width: `${(section.score / section.maxScore) * 100}%` }}
+                          />
+                        </div>
+                      )}
+                      
+                      <Button 
+                        className={`w-full mt-3 rounded-lg font-semibold ${
+                          section.completed 
+                            ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+                        }`}
+                      >
+                        {section.completed ? 'Réviser' : 'Commencer'}
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-5 h-5 text-blue-600" />
+                  <span className="font-semibold text-blue-900">Progression globale</span>
+                </div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-slate-700">Sections complétées: 2/4</span>
+                  <span className="font-bold text-blue-600">50%</span>
+                </div>
+                <div className="w-full bg-blue-100 rounded-full h-2 overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: '50%' }} />
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="historique" className="space-y-4">
+            {diagnosticResults.map((result) => (
+              <Card key={result.id} className="p-6 border border-slate-200 shadow-sm rounded-xl bg-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(result.status)}
+                    <div>
+                      <h3 className="font-bold text-slate-800">{result.title}</h3>
+                      <p className="text-sm text-slate-500">{result.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge className={`${getStatusColor(result.status)} rounded-lg px-3 py-1`}>
+                      {result.status}
+                    </Badge>
+                    <p className="text-sm text-slate-500 mt-1">{result.date}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex-1">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-slate-600">Score obtenu</span>
+                      <span className={`font-bold ${getScoreColor(result.score, result.maxScore)}`}>
+                        {result.score}/{result.maxScore}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                        style={{ width: `${(result.score / result.maxScore) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-slate-700 mb-2">Recommandations:</p>
+                  <ul className="text-sm text-slate-600 space-y-1">
+                    {result.recommendations.map((rec, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Target className="w-3 h-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="recommandations" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+                <h3 className="text-lg font-bold text-green-900 mb-4 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Points forts à maintenir
+                </h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Excellent équilibre vie pro/perso</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Relations harmonieuses avec l'équipe</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Motivation et engagement élevés</span>
+                  </li>
+                </ul>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl shadow-sm">
+                <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Axes d'amélioration
+                </h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Améliorer la qualité du sommeil</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Gérer le stress en fin de journée</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-700">Planifier des pauses plus régulières</span>
+                  </li>
+                </ul>
+              </Card>
+
+              <Card className="p-6 col-span-full border border-slate-200 shadow-sm rounded-xl bg-white">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Plan d'action personnalisé
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <h4 className="font-bold text-blue-900 mb-2">Cette semaine</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Routine de coucher à 22h</li>
+                      <li>• 5 min de méditation quotidienne</li>
+                      <li>• Pauses de 10 min toutes les 2h</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                    <h4 className="font-bold text-purple-900 mb-2">Ce mois</h4>
+                    <ul className="text-sm text-purple-800 space-y-1">
+                      <li>• Rejoindre le groupe sport entreprise</li>
+                      <li>• Organiser 2 pauses café équipe</li>
+                      <li>• Évaluation mi-parcours</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <h4 className="font-bold text-green-900 mb-2">Long terme</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>• Formation gestion du stress</li>
+                      <li>• Aménagement poste de travail</li>
+                      <li>• Bilan trimestriel complet</li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
