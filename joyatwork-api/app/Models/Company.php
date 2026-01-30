@@ -16,17 +16,34 @@ class Company extends Model
     protected $table = 'entreprises';
 
     /**
-     * Colonnes modifiables adaptées à la structure réelle
-     * supposée : id, name, domain, is_active, created_at, updated_at
+     * Colonnes modifiables adaptées à la structure réelle de la table 'entreprises'
      */
     protected $fillable = [
         'name',
         'domain',
         'is_active',
+        'adresse_facturation',
+        'code_postal',
+        'ville',
+        'pays',
+        'siret',
+        'numero_tva',
+        'forme_juridique',
+        'contact_principal',
+        'email_contact',
+        'telephone_contact',
+        'nombre_employes',
+        'secteur_activite',
+        'site_web',
+        'description',
+        'date_premier_contact',
+        'source_lead',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'date_premier_contact' => 'date',
+        'nombre_employes' => 'integer',
     ];
 
     /**

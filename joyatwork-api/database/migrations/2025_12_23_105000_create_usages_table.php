@@ -33,7 +33,7 @@ return new class extends Migration
 
             $table->foreign('entreprise_id')
                 ->references('id')
-                ->on('entreprises')
+                ->on('companies')
                 ->onDelete('cascade');
             $table->foreign('order_line_id')
                 ->references('id')

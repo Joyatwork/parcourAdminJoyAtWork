@@ -62,6 +62,7 @@ import { toast } from "@/components/ui/use-toast";
 const ContractsDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statutFilter, setStatutFilter] = useState("Tous les statuts");
+  const [typeFilter, setTypeFilter] = useState("Tous les types");
   const [entrepriseFilter, setEntrepriseFilter] = useState<number | null>(null);
 
   // États pour la création
@@ -78,6 +79,7 @@ const ContractsDashboard = () => {
   const [newContractDateDebut, setNewContractDateDebut] = useState("");
   const [newContractDateFin, setNewContractDateFin] = useState("");
   const [newContractMontantAnnuel, setNewContractMontantAnnuel] = useState("");
+  const [newContractEmployeesCovered, setNewContractEmployeesCovered] = useState("");
   const [newContractDescription, setNewContractDescription] = useState("");
 
   // États pour l'édition
@@ -95,6 +97,7 @@ const ContractsDashboard = () => {
   const [editContractDateFin, setEditContractDateFin] = useState("");
   const [editContractMontantAnnuel, setEditContractMontantAnnuel] =
     useState("");
+  const [editContractEmployeesCovered, setEditContractEmployeesCovered] = useState("");
   const [editContractDescription, setEditContractDescription] = useState("");
 
   // États pour la suppression
@@ -123,9 +126,20 @@ const ContractsDashboard = () => {
   // Données de fallback
   const fallbackContracts: Contract[] = [];
 
-  const displayedContracts = error
+  const rawContracts = error
     ? fallbackContracts
     : contracts || fallbackContracts;
+
+  // Appliquer le filtre de type côté client
+  const displayedContracts = typeFilter === "Tous les types" 
+    ? rawContracts 
+    : rawContracts.filter(contract => contract.type_contrat === typeFilter);
+
+  // Filtrer les entreprises qui n'ont pas déjà de contrat
+  const companiesWithoutContract = companies?.filter(
+    (company) =>
+      !displayedContracts.some((contract) => contract.entreprise_id === company.id)
+  ) || [];
 
   // Handlers
   const handleCreateContract = () => {
@@ -150,6 +164,7 @@ const ContractsDashboard = () => {
         date_debut: newContractDateDebut,
         date_fin: newContractDateFin || null,
         montant_annuel: parseFloat(newContractMontantAnnuel),
+        nombre_employes_couverts: newContractEmployeesCovered ? parseInt(newContractEmployeesCovered, 10) : 0,
         description: newContractDescription || null,
       },
       {
@@ -161,6 +176,7 @@ const ContractsDashboard = () => {
           setNewContractDateDebut("");
           setNewContractDateFin("");
           setNewContractMontantAnnuel("");
+          setNewContractEmployeesCovered("");
           setNewContractDescription("");
           toast({
             title: "Contrat créé",
@@ -178,6 +194,7 @@ const ContractsDashboard = () => {
     setEditContractDateDebut(contract.date_debut);
     setEditContractDateFin(contract.date_fin || "");
     setEditContractMontantAnnuel(contract.montant_annuel.toString());
+    setEditContractEmployeesCovered(contract.nombre_employes_couverts?.toString() || "0");
     setEditContractDescription(contract.description || "");
     setIsEditOpen(true);
   };
@@ -200,6 +217,7 @@ const ContractsDashboard = () => {
           date_debut: editContractDateDebut,
           date_fin: editContractDateFin || null,
           montant_annuel: parseFloat(editContractMontantAnnuel),
+          nombre_employes_couverts: editContractEmployeesCovered ? parseInt(editContractEmployeesCovered, 10) : 0,
           description: editContractDescription || null,
         },
       },
@@ -390,6 +408,20 @@ const ContractsDashboard = () => {
                 <SelectItem value="Actif">Actif</SelectItem>
                 <SelectItem value="Expiré">Expiré</SelectItem>
                 <SelectItem value="Résilié">Résilié</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tous les types">
+                  Tous les types
+                </SelectItem>
+                <SelectItem value="Standard">Standard</SelectItem>
+                <SelectItem value="Premium">Premium</SelectItem>
+                <SelectItem value="Enterprise">Enterprise</SelectItem>
               </SelectContent>
             </Select>
 
@@ -586,11 +618,17 @@ const ContractsDashboard = () => {
                   <SelectValue placeholder="Sélectionner une entreprise" />
                 </SelectTrigger>
                 <SelectContent>
-                  {companies?.map((company) => (
-                    <SelectItem key={company.id} value={company.id.toString()}>
-                      {company.name}
+                  {companiesWithoutContract && companiesWithoutContract.length > 0 ? (
+                    companiesWithoutContract.map((company) => (
+                      <SelectItem key={company.id} value={company.id.toString()}>
+                        {company.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      Toutes les entreprises ont déjà un contrat
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -684,6 +722,19 @@ const ContractsDashboard = () => {
                 placeholder="Ex: 45000"
                 value={newContractMontantAnnuel}
                 onChange={(e) => setNewContractMontantAnnuel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Nombre d'employés couverts
+              </label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex: 50"
+                value={newContractEmployeesCovered}
+                onChange={(e) => setNewContractEmployeesCovered(e.target.value)}
               />
             </div>
 
@@ -820,6 +871,19 @@ const ContractsDashboard = () => {
                 placeholder="Ex: 45000"
                 value={editContractMontantAnnuel}
                 onChange={(e) => setEditContractMontantAnnuel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Nombre d'employés couverts
+              </label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex: 50"
+                value={editContractEmployeesCovered}
+                onChange={(e) => setEditContractEmployeesCovered(e.target.value)}
               />
             </div>
 

@@ -15,29 +15,29 @@ class CompanyController extends Controller
     {
         $query = Company::query();
 
-        // Filtrage par secteur
+        // Filtrage par secteur (industry dans la table legacy)
         if ($request->has('sector') && $request->sector !== 'Tous les secteurs') {
-            $query->where('sector', $request->sector);
+            $query->where('industry', $request->sector);
         }
 
-        // Filtrage par statut
-        if ($request->has('status') && $request->status !== 'Tous les statuts') {
-            $query->where('status', $request->status);
-        }
-
-        // Recherche par nom, secteur ou localisation
+        // Recherche par nom, secteur ou localisation (adresse/ville/pays)
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sector', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                  ->orWhere('industry', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%")
+                  ->orWhere('country', 'like', "%{$search}%");
             });
         }
 
-        $companies = $query->orderBy('name')->get();
+        $companiesData = [];
+        foreach ($query->orderBy('name')->get() as $company) {
+            $companiesData[] = $this->mapToFrontend($company);
+        }
 
-        return response()->json($companies);
+        return response()->json($companiesData);
     }
 
     /**
@@ -45,7 +45,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company): JsonResponse
     {
-        return response()->json($company);
+        return response()->json($this->mapToFrontend($company));
     }
 
     /**
@@ -55,22 +55,36 @@ class CompanyController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'sector' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'employees' => 'required|integer|min:0',
+            'sector' => 'nullable|string|max:255',
+            'industry' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:255',
+            'siret' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
-            'email' => 'required|email|unique:companies,email',
+            'email' => 'required|email|unique:entreprises,email',
             'website' => 'nullable|url',
-            'description' => 'nullable|string',
-            'wellness_programs' => 'nullable|array',
-            'status' => 'nullable|in:Actif,En négociation,Inactif',
-            'contract_value' => 'nullable|numeric|min:0',
-            'verified' => 'boolean'
         ]);
 
-        $company = Company::create($validatedData);
+        // Mapping vers le schéma legacy
+        $data = [
+            'name' => $validatedData['name'],
+            'industry' => $validatedData['industry'] ?? $validatedData['sector'] ?? 'Non spécifié',
+            'siret' => $validatedData['siret'] ?? null,
+            'address' => $validatedData['address'] ?? $validatedData['location'] ?? null,
+            'city' => $validatedData['city'] ?? null,
+            'postal_code' => $validatedData['postal_code'] ?? null,
+            'country' => $validatedData['country'] ?? null,
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'] ?? null,
+            'website' => $validatedData['website'] ?? null,
+        ];
 
-        return response()->json($company, 201);
+        $company = Company::create($data);
+
+        return response()->json($this->mapToFrontend($company), 201);
     }
 
     /**
@@ -80,22 +94,35 @@ class CompanyController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'sector' => 'sometimes|required|string|max:255',
-            'location' => 'sometimes|required|string|max:255',
-            'employees' => 'sometimes|required|integer|min:0',
+            'sector' => 'nullable|string|max:255',
+            'industry' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:255',
+            'siret' => 'nullable|string|max:20',
             'phone' => 'nullable|string|max:20',
-            'email' => 'sometimes|required|email|unique:companies,email,' . $company->id,
+            'email' => 'sometimes|required|email|unique:entreprises,email,' . $company->id,
             'website' => 'nullable|url',
-            'description' => 'nullable|string',
-            'wellness_programs' => 'nullable|array',
-            'status' => 'nullable|in:Actif,En négociation,Inactif',
-            'contract_value' => 'nullable|numeric|min:0',
-            'verified' => 'boolean'
         ]);
 
-        $company->update($validatedData);
+        $data = [
+            'name' => $validatedData['name'] ?? $company->name,
+            'industry' => $validatedData['industry'] ?? $validatedData['sector'] ?? $company->industry,
+            'siret' => $validatedData['siret'] ?? $company->siret,
+            'address' => $validatedData['address'] ?? $validatedData['location'] ?? $company->address,
+            'city' => $validatedData['city'] ?? $company->city,
+            'postal_code' => $validatedData['postal_code'] ?? $company->postal_code,
+            'country' => $validatedData['country'] ?? $company->country,
+            'email' => $validatedData['email'] ?? $company->email,
+            'phone' => $validatedData['phone'] ?? $company->phone,
+            'website' => $validatedData['website'] ?? $company->website,
+        ];
 
-        return response()->json($company);
+        $company->update($data);
+
+        return response()->json($this->mapToFrontend($company));
     }
 
     /**
@@ -115,17 +142,44 @@ class CompanyController extends Controller
     {
         $stats = [
             'total_companies' => Company::count(),
-            'active_contracts' => Company::active()->count(),
-            'total_employees' => Company::sum('employees'),
-            'total_revenue' => Company::sum('contract_value'),
-            'average_rating' => 94, // Pourcentage de satisfaction client
-            'sectors' => Company::select('sector')
-                ->groupBy('sector')
-                ->selectRaw('sector, count(*) as count')
+            'active_contracts' => 0,
+            'total_employees' => 0,
+            'total_revenue' => 0,
+            'average_rating' => 0,
+            'sectors' => Company::select('industry')
+                ->groupBy('industry')
+                ->selectRaw('industry, count(*) as count')
                 ->get()
-                ->pluck('count', 'sector')
+                ->pluck('count', 'industry')
         ];
 
         return response()->json($stats);
+    }
+
+    private function mapToFrontend(Company $company): array
+    {
+        $locationParts = array_filter([
+            $company->address,
+            $company->city,
+            $company->country,
+        ]);
+
+        return [
+            'id' => $company->id,
+            'name' => $company->name,
+            'sector' => $company->industry ?? 'Secteur non défini',
+            'location' => empty($locationParts) ? 'Localisation non définie' : implode(', ', $locationParts),
+            'employees' => 0,
+            'phone' => $company->phone,
+            'email' => $company->email,
+            'website' => $company->website,
+            'description' => null,
+            'wellness_programs' => [],
+            'status' => 'Actif',
+            'contract_value' => null,
+            'verified' => false,
+            'created_at' => $company->created_at,
+            'updated_at' => $company->updated_at,
+        ];
     }
 }

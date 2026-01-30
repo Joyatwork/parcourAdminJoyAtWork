@@ -29,11 +29,14 @@ class PractitionerController extends Controller
             $query->where('specialty', $request->specialty);
         }
 
-        $practitioners = $query->orderBy('created_at', 'desc')->get();
+        $practitionersData = [];
+        foreach ($query->orderBy('created_at', 'desc')->get() as $practitioner) {
+            $practitionersData[] = $this->mapToFrontend($practitioner);
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $practitioners
+            'data' => $practitionersData
         ]);
     }
 
@@ -71,7 +74,7 @@ class PractitionerController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -198,5 +201,54 @@ class PractitionerController extends Controller
             'message' => 'Master Psy Travail vérifié avec succès',
             'data' => $practitioner
         ]);
+    }
+
+    private function mapToFrontend(Practitioner $practitioner): array
+    {
+        $locationParts = array_filter([
+            $practitioner->address,
+            $practitioner->city,
+            $practitioner->postal_code,
+            $practitioner->country,
+        ]);
+
+        return [
+            'id' => $practitioner->id,
+            'first_name' => $practitioner->first_name,
+            'last_name' => $practitioner->last_name,
+            'email' => $practitioner->email ?? '',
+            'phone' => $practitioner->phone ?? '',
+            'specialty' => $practitioner->specialty ?? 'Spécialité non définie',
+            'location' => empty($locationParts) ? 'Localisation non définie' : implode(', ', $locationParts),
+            'bio' => $practitioner->bio,
+            'experience_years' => $practitioner->experience_years ?? 0,
+            'rating' => $practitioner->rating ?? 0,
+            'certifications' => $practitioner->certifications ?? '',
+            'availability' => $practitioner->availability ?? '',
+            'is_verified' => $practitioner->is_verified ?? false,
+            'status' => $practitioner->status ?? 'active',
+            'suspended_at' => $practitioner->suspended_at,
+            'suspension_reason' => $practitioner->suspension_reason,
+            'country' => $practitioner->country,
+            'city' => $practitioner->city,
+            'postal_code' => $practitioner->postal_code,
+            'address' => $practitioner->address,
+            'consultation_mode' => $practitioner->consultation_mode,
+            'min_price' => $practitioner->min_price,
+            'max_price' => $practitioner->max_price,
+            'website' => $practitioner->website,
+            'linkedin' => $practitioner->linkedin,
+            'rpps_number' => $practitioner->rpps_number,
+            'siret_number' => $practitioner->siret_number,
+            'payment_methods' => $practitioner->payment_methods ?? [],
+            'accepts_new_patients' => $practitioner->accepts_new_patients ?? false,
+            'emergency_consultations' => $practitioner->emergency_consultations ?? false,
+            'languages' => $practitioner->languages ?? [],
+            'specializations' => $practitioner->specializations ?? [],
+            'certif_iprp_path' => $practitioner->certif_iprp_path,
+            'certif_iprp_verified' => $practitioner->certif_iprp_verified ?? false,
+            'created_at' => $practitioner->created_at,
+            'updated_at' => $practitioner->updated_at,
+        ];
     }
 }
