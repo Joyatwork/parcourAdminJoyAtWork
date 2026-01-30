@@ -3,7 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar, User 
+  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar, User, 
+  BarChart3
 } from 'lucide-react';
 
 const SanteDiagnosticDashboard = () => {
@@ -74,6 +75,8 @@ const SanteDiagnosticDashboard = () => {
     });
   };
 
+  
+
   const filteredCompanies = filterLogic(companyHealthData, 'company');
   const filteredUsers = filterLogic(usersHealthData, 'user');
 
@@ -117,8 +120,51 @@ const SanteDiagnosticDashboard = () => {
           </Button>
         </div>
 
-        {/* Section Stats - STYLE ANCIENNE BRANCHE (Gradients) */}
-        
+        {/* Progression générale */}
+        <Card className="p-6 border border-slate-200 shadow-sm rounded-xl">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5" />
+            Progression des métriques
+          </h3>
+          <div className="space-y-4">
+            <ProgressMetric 
+              label="Score Global" 
+              value={statsLoading ? 0 : globalScore} 
+              max={100}
+              loading={statsLoading}
+            />
+            <ProgressMetric 
+              label="Niveau d'énergie" 
+              value={statsLoading ? 0 : Number(stats.moyen_energie).toFixed(1)} 
+              max={10}
+              loading={statsLoading}
+            />
+            <ProgressMetric 
+              label="Niveau de stress" 
+              value={statsLoading ? 0 : Number(stats.moyen_stress).toFixed(1)} 
+              max={10}
+              loading={statsLoading}
+            />
+            <ProgressMetric 
+              label="Qualité du sommeil" 
+              value={statsLoading ? 0 : Number(stats.moyen_sommeil).toFixed(1)} 
+              max={10}
+              loading={statsLoading}
+            />
+            <ProgressMetric 
+              label="Pression travail" 
+              value={statsLoading ? 0 : Number(stats.moyen_pression).toFixed(1)} 
+              max={10}
+              loading={statsLoading}
+            />
+            <ProgressMetric 
+              label="Humeur" 
+              value={statsLoading ? 0 : Number(stats.moyen_mood).toFixed(1)} 
+              max={10}
+              loading={statsLoading}
+            />
+          </div>
+        </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-slate-200 p-1 h-12 shadow-sm rounded-xl">
@@ -152,6 +198,40 @@ const SanteDiagnosticDashboard = () => {
             <TableCard data={filteredUsers} type="user" />
           </TabsContent>
         </Tabs>
+      </div>
+    </div>
+  );
+};
+
+// --- COMPOSANT PROGRESS METRIC ---
+
+const ProgressMetric = ({ label, value, max, loading }) => {
+  const percentage = (Number(value) / max) * 100;
+  
+  const getScoreColor = (val, maximum) => {
+    const pct = (val / maximum) * 100;
+    if (pct >= 70) return 'text-green-600';
+    if (pct >= 40) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="font-medium text-slate-700">{label}</span>
+        <span className={`font-bold ${loading ? 'text-slate-400' : getScoreColor(value, max)}`}>
+          {loading ? '...' : `${value}${max === 100 ? '' : '/10'}`}
+        </span>
+      </div>
+      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+        <div 
+          className={`h-full rounded-full transition-all duration-500 ${
+            percentage >= 70 ? 'bg-green-500' : 
+            percentage >= 40 ? 'bg-orange-500' : 
+            'bg-red-500'
+          }`}
+          style={{ width: `${loading ? 0 : percentage}%` }}
+        />
       </div>
     </div>
   );
