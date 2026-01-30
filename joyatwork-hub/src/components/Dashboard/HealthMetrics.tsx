@@ -77,12 +77,6 @@ export function HealthMetrics() {
             status: data[0].moyen_sommeil < 4 ? 'warning' : data[0].moyen_sommeil < 6 ? 'medium' : 'good',
             icon: Moon,
           },
-          {
-            category: 'Pression',
-            value: data[0].moyen_pression,
-            status: data[0].moyen_pression > 6 ? 'warning' : data[0].moyen_pression > 4 ? 'medium' : 'good',
-            icon: Briefcase,
-          }
         ];
 
         setHealthData(formattedData);
