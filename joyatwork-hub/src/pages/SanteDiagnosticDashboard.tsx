@@ -118,57 +118,7 @@ const SanteDiagnosticDashboard = () => {
         </div>
 
         {/* Section Stats - STYLE ANCIENNE BRANCHE (Gradients) */}
-        <div className="relative">
-          {statsLoading && (
-            <div className="absolute inset-0 z-10 bg-gray-50/40 backdrop-blur-[1px] flex items-center justify-center rounded-xl">
-               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-            </div>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard 
-              title="Stress" 
-              value={`${Number(stats.moyen_stress).toFixed(1)}`} 
-              subtext={Number(stats.moyen_stress) > 5 ? "Attention" : "Sous contrôle"}
-              color="red" 
-              icon={<Brain className="w-8 h-8" />} 
-            />
-            <StatCard 
-              title="Énergie" 
-              value={`${Number(stats.moyen_energie).toFixed(1)}`} 
-              subtext="Niveau optimal"
-              color="orange" 
-              icon={<Zap className="w-8 h-8" />} 
-            />
-            <StatCard 
-              title="Sommeil" 
-              value={`${Number(stats.moyen_sommeil).toFixed(1)}`} 
-              subtext="Qualité stable"
-              color="purple" 
-              icon={<Moon className="w-8 h-8" />} 
-            />
-            <StatCard 
-              title="Humeur" 
-              value={`${Number(stats.moyen_mood).toFixed(1)}`} 
-              subtext="Très bon"
-              color="blue" 
-              icon={<Smile className="w-8 h-8" />} 
-            />
-            <StatCard 
-              title="Pression" 
-              value={`${Number(stats.moyen_pression).toFixed(1)}`} 
-              subtext="Équilibré"
-              color="teal" 
-              icon={<Target className="w-8 h-8" />} 
-            />
-            <StatCard 
-              title="Score Global" 
-              value={`${globalScore}%`} 
-              subtext="+2% vs dernier"
-              color="green" 
-              icon={<Shield className="w-8 h-8" />} 
-            />
-          </div>
-        </div>
+        
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-slate-200 p-1 h-12 shadow-sm rounded-xl">
