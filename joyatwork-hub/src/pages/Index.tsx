@@ -34,13 +34,14 @@ const Index = () => {
       {/* Strategic QVCT Header */}
       <StrategicQVCTHeader />
       
+      {/* Performance & Engagement Chart */}
+      <PerformanceEngagementChart />
       
       {/* Main Dashboard Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Primary Metrics */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Performance & Engagement Chart */}
-          <PerformanceEngagementChart />
+          
           
           {/* Health Metrics Overview */}
           <HealthMetrics />
@@ -55,11 +56,14 @@ const Index = () => {
 
         {/* Right Column - Secondary Info */}
         <div className="space-y-6">
+
+          {/* Quick Actions */}
+          <QuickActions />
+          
           {/* Real-time Alerts */}
           <RealTimeAlerts />
           
-          {/* Quick Actions */}
-          <QuickActions />
+          
           
           {/* Upcoming Appointments */}
           <UpcomingAppointments />
