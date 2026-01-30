@@ -1,16 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
- * Représentation d'une entreprise basée sur la table SQL existante `entreprise`
- * Colonnes supposées : id, name, domain, is_active, created_at, updated_at
+ * Représentation d'une entreprise basée sur la table SQL existante `entreprises`
  */
+export type CompanyStatus = "Actif" | "En négociation" | "Inactif";
+
 export interface Company {
   id: number;
   name: string;
   domain?: string | null;
-  is_active?: boolean | null;
-  created_at: string;
-  updated_at: string;
+  is_active: boolean;
+  sector: string;
+  location: string;
+  email: string;
+  phone?: string | null;
+  website?: string | null;
+  description?: string | null;
+  employees: number;
+  status: CompanyStatus;
+  verified: boolean;
+  wellness_programs?: string[] | null;
+  contract_value?: number | null;
+  created_at?: string;
+  updated_at?: string;
+  // Champs complets de la table entreprises
+  siret?: string | null;
+  numero_tva?: string | null;
+  forme_juridique?: string | null;
+  contact_principal?: string | null;
+  date_premier_contact?: string | null;
+  source_lead?: string | null;
+  adresse_facturation?: string | null;
+  code_postal?: string | null;
+  ville?: string | null;
+  pays?: string | null;
+  secteur_activite?: string | null;
+  site_web?: string | null;
+  email_contact?: string | null;
+  telephone_contact?: string | null;
+  nombre_employes?: number | null;
 }
 
 export interface CompanyStats {
@@ -22,7 +50,10 @@ export interface CompanyStats {
   sectors: Record<string, number>;
 }
 
-const API_BASE_URL = "http://localhost:8001/api";
+// Utilise la variable d'env VITE_API_BASE_URL pour cibler la bonne API
+const API_BASE_URL =
+  (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/$/, "") ??
+  "http://localhost:8001/api";
 
 // Hook pour récupérer toutes les entreprises
 export function useCompanies(filters?: {
@@ -91,12 +122,7 @@ export function useCompanyStats() {
 export function useCreateCompany() {
   const queryClient = useQueryClient();
 
-  // Données attendues par l'API pour la table `entreprises`
-  type CreateCompanyInput = {
-    name: string;
-    domain?: string | null;
-    is_active?: boolean | null;
-  };
+  type CreateCompanyInput = Partial<Company>;
 
   return useMutation<Company, Error, CreateCompanyInput>({
     mutationFn: async (newCompany) => {
@@ -109,13 +135,14 @@ export function useCreateCompany() {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la création de l'entreprise");
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la création de l'entreprise");
       }
 
-      return response.json();
+      const result = await response.json();
+      return result.data || result;
     },
     onSuccess: () => {
-      // Invalider le cache des entreprises pour recharger la liste
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["company-stats"] });
     },
@@ -126,15 +153,7 @@ export function useCreateCompany() {
 export function useUpdateCompany() {
   const queryClient = useQueryClient();
 
-  // Données attendues par l'API pour la table `entreprises`
-  // Tous les champs sont optionnels car on peut mettre à jour partiellement
-  type UpdateCompanyInput = {
-    name?: string;
-    domain?: string | null;
-    is_active?: boolean | null;
-  };
-
-  return useMutation<Company, Error, { id: number; data: UpdateCompanyInput }>({
+  return useMutation<Company, Error, { id: number; data: Partial<Company> }>({
     mutationFn: async ({ id, data }) => {
       const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
         method: "PUT",
@@ -145,17 +164,16 @@ export function useUpdateCompany() {
       });
 
       if (!response.ok) {
-        throw new Error("Erreur lors de la mise à jour de l'entreprise");
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la mise à jour de l'entreprise");
       }
 
-      return response.json();
+      const result = await response.json();
+      return result.data || result;
     },
     onSuccess: (updatedCompany) => {
-      // Mettre à jour le cache
       queryClient.invalidateQueries({ queryKey: ["companies"] });
-      queryClient.invalidateQueries({
-        queryKey: ["company", updatedCompany.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["company", updatedCompany.id] });
       queryClient.invalidateQueries({ queryKey: ["company-stats"] });
     },
   });
@@ -176,7 +194,6 @@ export function useDeleteCompany() {
       }
     },
     onSuccess: () => {
-      // Invalider le cache
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["company-stats"] });
     },

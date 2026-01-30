@@ -33,14 +33,19 @@ interface Challenge {
   title: string;
   description: string;
   type: string;
-  created_at: string;
-  date_created: string;
-  icon: string;
-  duration: string;
-  color: string;
-  points: number;
-  participants: number;
-  completion_rate: number;
+  created_at?: string;
+  date_created?: string;
+  icon?: string;
+  duration?: string;
+  color?: string;
+  points?: number;
+  participants?: number;
+  completion_rate?: number;
+  // Champs optionnels issus des données fallback
+  category?: string;
+  intensity?: string;
+  status?: string;
+  objective?: string;
 }
 
 const ChallengesDashboard = () => {
@@ -248,7 +253,7 @@ const ChallengesDashboard = () => {
       objective: 'Réduction stress'
     },
     {
-      id: '2',
+      id: 2,
       title: 'Pause active équipe',
       description: 'Exercices de stretching en groupe pendant la pause',
       category: 'Mouvement',
@@ -262,7 +267,7 @@ const ChallengesDashboard = () => {
       objective: 'Cohésion équipe'
     },
     {
-      id: '3',
+      id: 3,
       title: 'Hydratation consciente',
       description: 'Boire 8 verres d\'eau dans la journée avec mindfulness',
       category: 'Énergie',
@@ -276,7 +281,7 @@ const ChallengesDashboard = () => {
       objective: 'Autonomie'
     },
     {
-      id: '4',
+      id: 4,
       title: 'Gratitude express',
       description: 'Noter 3 éléments positifs de sa journée',
       category: 'Émotion',
@@ -290,7 +295,7 @@ const ChallengesDashboard = () => {
       objective: 'Bien-être mental'
     },
     {
-      id: '5',
+      id: 5,
       title: 'Focus deep work',
       description: '25 minutes de travail concentré sans distraction',
       category: 'Focus',
@@ -304,7 +309,7 @@ const ChallengesDashboard = () => {
       objective: 'Productivité'
     },
     {
-      id: '6',
+      id: 6,
       title: 'Sommeil optimisé',
       description: 'Routine de coucher sans écran 30min avant le sommeil',
       category: 'Sommeil',

@@ -51,8 +51,6 @@ const Index = () => {
           {/* ROI Calculator */}
           <ROICalculator />
           
-          
-
           {/* Wellness Insights */}
           <WellnessInsights />
           

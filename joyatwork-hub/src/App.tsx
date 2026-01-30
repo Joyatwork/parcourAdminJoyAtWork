@@ -11,7 +11,6 @@ import Companies from "./pages/Companies";
 import ContractsDashboard from "./pages/ContractsDashboard";
 import ChallengesDashboardNew from "./pages/ChallengesDashboardNew";
 import SanteDiagnosticDashboard from "./pages/SanteDiagnosticDashboard";
-import RendezVousDashboard from "./pages/RendezVousDashboard";
 import TestNavigation from "./pages/TestNavigation";
 import BillingDashboard from "./pages/BillingDashboard";
 import BillingWalletPage from "./pages/BillingWalletPage";
@@ -55,7 +54,6 @@ const App = () => {
               path="/sante-diagnostic"
               element={<SanteDiagnosticDashboard />}
             />
-            <Route path="/rendez-vous" element={<RendezVousDashboard />} />
             <Route path="/billing" element={<BillingDashboard />} />
             <Route path="/billing/wallet" element={<BillingWalletPage />} />
             <Route path="/billing/orders" element={<BillingOrdersPage />} />

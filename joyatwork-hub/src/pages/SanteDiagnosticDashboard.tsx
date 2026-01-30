@@ -105,6 +105,7 @@ const SanteDiagnosticDashboard = () => {
                  </select>
                  <div className="w-px h-3 bg-slate-200 mx-1"></div>
                  <select value={globalYear} onChange={(e) => setGlobalYear(Number(e.target.value))} className="text-xs font-bold text-slate-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer">
+                   <option value={2026}>2026</option>
                    <option value={2025}>2025</option>
                    <option value={2024}>2024</option>
                  </select>
@@ -257,6 +258,7 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedMonth, setSelectedMonth,
         </select>
         <div className="w-px h-4 bg-slate-200 mx-2"></div>
         <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="text-xs font-bold text-slate-600 border-none bg-transparent focus:ring-0 cursor-pointer py-2">
+          <option value={2026}>2026</option>
           <option value={2025}>2025</option>
           <option value={2024}>2024</option>
         </select>

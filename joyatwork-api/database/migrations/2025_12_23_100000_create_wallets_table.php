@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unique('entreprise_id');
             $table->foreign('entreprise_id')
                 ->references('id')
-                ->on('entreprises')
+                ->on('companies')
                 ->onDelete('cascade');
         });
     }
@@ -29,4 +29,3 @@ return new class extends Migration
         Schema::dropIfExists('wallets');
     }
 };
-

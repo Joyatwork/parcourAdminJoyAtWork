@@ -28,7 +28,7 @@ return new class extends Migration
             $table->index(['reference_type', 'reference_id']);
             $table->foreign('entreprise_id')
                 ->references('id')
-                ->on('entreprises')
+                ->on('companies')
                 ->onDelete('cascade');
         });
     }
