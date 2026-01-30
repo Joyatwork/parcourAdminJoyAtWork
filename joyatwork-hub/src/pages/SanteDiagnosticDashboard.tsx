@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar 
+  Heart, Brain, Zap, Moon, Smile, Target, Shield, Search, Loader2, Building2, Users, Calendar, User 
 } from 'lucide-react';
 
 const SanteDiagnosticDashboard = () => {
@@ -92,7 +92,7 @@ const SanteDiagnosticDashboard = () => {
     <div className="p-6 bg-gray-50 min-h-screen text-slate-900 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header - Filtre aligné sur le style global */}
+        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Santé & Diagnostic</h1>
@@ -100,56 +100,81 @@ const SanteDiagnosticDashboard = () => {
                <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Global :</span>
-                 <select 
-                   value={globalMonth} 
-                   onChange={(e) => setGlobalMonth(Number(e.target.value))} 
-                   className="text-xs font-bold text-slate-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
-                 >
+                 <select value={globalMonth} onChange={(e) => setGlobalMonth(Number(e.target.value))} className="text-xs font-bold text-slate-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer">
                    {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                  </select>
                  <div className="w-px h-3 bg-slate-200 mx-1"></div>
-                 <select 
-                   value={globalYear} 
-                   onChange={(e) => setGlobalYear(Number(e.target.value))} 
-                   className="text-xs font-bold text-slate-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
-                 >
+                 <select value={globalYear} onChange={(e) => setGlobalYear(Number(e.target.value))} className="text-xs font-bold text-slate-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer">
                    <option value={2025}>2025</option>
                    <option value={2024}>2024</option>
                  </select>
-                 {statsLoading && <Loader2 className="w-3 h-3 animate-spin text-blue-600 ml-1" />}
                </div>
             </div>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md h-11 px-6 rounded-xl font-semibold transition-all hover:scale-[1.02]">
+          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md h-11 px-6 rounded-xl font-semibold">
             <Heart className="w-4 h-4 mr-2 fill-white" /> Nouveau Bilan
           </Button>
         </div>
 
-        {/* Section Stats avec Loader ciblé */}
-        <div className="relative group">
+        {/* Section Stats - STYLE ANCIENNE BRANCHE (Gradients) */}
+        <div className="relative">
           {statsLoading && (
-            <div className="absolute inset-0 z-10 bg-gray-50/60 backdrop-blur-[2px] flex items-center justify-center rounded-2xl transition-all">
-               <div className="bg-white p-4 rounded-full shadow-2xl border border-blue-50">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-               </div>
+            <div className="absolute inset-0 z-10 bg-gray-50/40 backdrop-blur-[1px] flex items-center justify-center rounded-xl">
+               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
             </div>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard title="Stress" value={`${Number(stats.moyen_stress).toFixed(1)}`} color="red" icon={<Brain className="w-5 h-5"/>} />
-            <StatCard title="Énergie" value={`${Number(stats.moyen_energie).toFixed(1)}`} color="orange" icon={<Zap className="w-5 h-5"/>} />
-            <StatCard title="Sommeil" value={`${Number(stats.moyen_sommeil).toFixed(1)}`} color="purple" icon={<Moon className="w-5 h-5"/>} />
-            <StatCard title="Humeur" value={`${Number(stats.moyen_mood).toFixed(1)}`} color="blue" icon={<Smile className="w-5 h-5"/>} />
-            <StatCard title="Pression" value={`${Number(stats.moyen_pression).toFixed(1)}`} color="teal" icon={<Target className="w-5 h-5"/>} />
-            <StatCard title="Score" value={`${globalScore}%`} color="green" icon={<Shield className="w-5 h-5"/>} />
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <StatCard 
+              title="Stress" 
+              value={`${Number(stats.moyen_stress).toFixed(1)}`} 
+              subtext={Number(stats.moyen_stress) > 5 ? "Attention" : "Sous contrôle"}
+              color="red" 
+              icon={<Brain className="w-8 h-8" />} 
+            />
+            <StatCard 
+              title="Énergie" 
+              value={`${Number(stats.moyen_energie).toFixed(1)}`} 
+              subtext="Niveau optimal"
+              color="orange" 
+              icon={<Zap className="w-8 h-8" />} 
+            />
+            <StatCard 
+              title="Sommeil" 
+              value={`${Number(stats.moyen_sommeil).toFixed(1)}`} 
+              subtext="Qualité stable"
+              color="purple" 
+              icon={<Moon className="w-8 h-8" />} 
+            />
+            <StatCard 
+              title="Humeur" 
+              value={`${Number(stats.moyen_mood).toFixed(1)}`} 
+              subtext="Très bon"
+              color="blue" 
+              icon={<Smile className="w-8 h-8" />} 
+            />
+            <StatCard 
+              title="Pression" 
+              value={`${Number(stats.moyen_pression).toFixed(1)}`} 
+              subtext="Équilibré"
+              color="teal" 
+              icon={<Target className="w-8 h-8" />} 
+            />
+            <StatCard 
+              title="Score Global" 
+              value={`${globalScore}%`} 
+              subtext="+2% vs dernier"
+              color="green" 
+              icon={<Shield className="w-8 h-8" />} 
+            />
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-white border border-slate-200 p-1 h-12 shadow-sm rounded-xl">
-            <TabsTrigger value="entreprises" className="flex items-center gap-2 px-8 font-semibold rounded-lg data-[state=active]:bg-slate-100 data-[state=active]:text-blue-600">
+            <TabsTrigger value="entreprises" className="flex items-center gap-2 px-8 font-semibold rounded-lg">
               <Building2 className="w-4 h-4" /> Entreprises
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 px-8 font-semibold rounded-lg data-[state=active]:bg-slate-100 data-[state=active]:text-blue-600">
+            <TabsTrigger value="users" className="flex items-center gap-2 px-8 font-semibold rounded-lg">
               <Users className="w-4 h-4" /> Utilisateurs
             </TabsTrigger>
           </TabsList>
@@ -181,55 +206,57 @@ const SanteDiagnosticDashboard = () => {
   );
 };
 
-// --- COMPOSANTS INTERNES HARMONISÉS ---
+// --- COMPOSANT STAT CARD (STYLE ANCIEN) ---
 
-const StatCard = ({ title, value, color, icon }) => {
+const StatCard = ({ title, value, subtext, color, icon }) => {
   const themes = {
-    red: "bg-red-50 text-red-600 border-red-100",
-    orange: "bg-orange-50 text-orange-600 border-orange-100",
-    green: "bg-green-50 text-green-600 border-green-100",
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    purple: "bg-purple-50 text-purple-600 border-purple-100",
-    teal: "bg-teal-50 text-teal-600 border-teal-100",
+    red: "from-red-50 to-red-100 border-red-200 text-red-600 icon-red-600",
+    orange: "from-orange-50 to-orange-100 border-orange-200 text-orange-600 icon-orange-600",
+    green: "from-green-50 to-green-100 border-green-200 text-green-600 icon-green-600",
+    blue: "from-blue-50 to-blue-100 border-blue-200 text-blue-600 icon-blue-600",
+    purple: "from-purple-50 to-purple-100 border-purple-200 text-purple-600 icon-purple-600",
+    teal: "from-teal-50 to-teal-100 border-teal-200 text-teal-600 icon-teal-600",
   };
+
+  const currentTheme = themes[color];
+
   return (
-    <Card className={`p-5 border flex items-center justify-between shadow-sm rounded-2xl transition-transform hover:scale-[1.02] ${themes[color]}`}>
-      <div>
-        <p className="text-[10px] font-bold uppercase opacity-60 mb-0.5 tracking-wider">{title}</p>
-        <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
+    <Card className={`p-4 bg-gradient-to-br border ${currentTheme.split(' icon-')[0]} shadow-sm rounded-xl`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium mb-0.5">{title}</p>
+          <p className="text-2xl font-bold text-slate-900">{value}</p>
+          <p className="text-xs opacity-80 mt-1">{subtext}</p>
+        </div>
+        <div className={`${currentTheme.split('icon-')[1]}`}>
+          {icon}
+        </div>
       </div>
-      <div className="p-2.5 bg-white/90 rounded-xl shadow-sm border border-white/50">{icon}</div>
     </Card>
   );
 };
 
+// --- AUTRES COMPOSANTS ---
+
 const FilterBar = ({ searchTerm, setSearchTerm, selectedMonth, setSelectedMonth, selectedYear, setSelectedYear, months, placeholder }) => (
-  <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 border border-slate-200 rounded-2xl shadow-sm">
+  <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 border border-slate-200 rounded-xl shadow-sm">
     <div className="relative flex-1 max-w-md">
       <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
       <input 
         type="text" 
         placeholder={placeholder}
-        className="w-full pl-11 pr-4 py-2.5 text-sm border border-slate-100 rounded-xl bg-slate-50 focus:ring-2 ring-blue-500/10 focus:border-blue-400 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+        className="w-full pl-11 pr-4 py-2 text-sm border border-slate-100 rounded-xl bg-slate-50 focus:ring-2 ring-blue-500/10 outline-none transition-all"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
     </div>
     <div className="flex gap-2">
-      <div className="flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1">
-        <select 
-          value={selectedMonth} 
-          onChange={(e) => setSelectedMonth(Number(e.target.value))} 
-          className="text-xs font-bold text-slate-600 bg-transparent border-none focus:ring-0 cursor-pointer py-1.5"
-        >
+      <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2">
+        <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="text-xs font-bold text-slate-600 border-none bg-transparent focus:ring-0 cursor-pointer py-2">
           {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
         <div className="w-px h-4 bg-slate-200 mx-2"></div>
-        <select 
-          value={selectedYear} 
-          onChange={(e) => setSelectedYear(Number(e.target.value))} 
-          className="text-xs font-bold text-slate-600 bg-transparent border-none focus:ring-0 cursor-pointer py-1.5"
-        >
+        <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="text-xs font-bold text-slate-600 border-none bg-transparent focus:ring-0 cursor-pointer py-2">
           <option value={2025}>2025</option>
           <option value={2024}>2024</option>
         </select>
@@ -239,20 +266,20 @@ const FilterBar = ({ searchTerm, setSearchTerm, selectedMonth, setSelectedMonth,
 );
 
 const TableCard = ({ data, type }) => (
-  <Card className="border border-slate-200 shadow-sm overflow-hidden bg-white rounded-2xl">
+  <Card className="border border-slate-200 shadow-sm overflow-hidden bg-white rounded-xl">
     <table className="w-full text-left">
-      <thead className="bg-slate-50/50 border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-widest">
+      <thead className="bg-slate-50 border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-wider">
         <tr>
-          <th className="px-6 py-5">{type === 'user' ? 'Collaborateur' : 'Entreprise'}</th>
-          <th className="px-6 py-5">Période</th>
-          <th className="px-6 py-5 text-center">Stress</th>
-          <th className="px-6 py-5 text-center text-orange-600">Énergie</th>
-          <th className="px-6 py-5 text-center text-purple-600">Sommeil</th>
-          <th className="px-6 py-5 text-center text-blue-600">Humeur</th>
-          <th className="px-6 py-5 text-center">Pression</th>
+          <th className="px-6 py-5 text-slate-700">{type === 'user' ? 'Collaborateur' : 'Entreprise'}</th>
+          <th className="px-6 py-5 text-slate-700">Période</th>
+          <th className="px-6 py-5 text-center text-slate-700">Stress</th>
+          <th className="px-6 py-5 text-center text-slate-700">Énergie</th>
+          <th className="px-6 py-5 text-center text-slate-700">Sommeil</th>
+          <th className="px-6 py-5 text-center text-slate-700">Humeur</th>
+          <th className="px-6 py-5 text-center text-slate-700">Pression</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-slate-50">
+      <tbody className="divide-y divide-slate-100">
         {data.map((item, i) => (
           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
             <td className="px-6 py-5">
@@ -265,14 +292,12 @@ const TableCard = ({ data, type }) => (
                 <span className="font-bold text-slate-800">{item.company_name}</span>
               )}
             </td>
-            <td className="px-6 py-5 text-slate-400 text-sm">{item.month}</td>
-            <td className={`px-6 py-5 text-center font-bold text-lg ${type === 'user' && Number(item.avg_stress) > 7 ? 'text-red-500' : 'text-slate-700'}`}>
-              {Number(item.avg_stress || item.avg_stress).toFixed(1)}
-            </td>
-            <td className="px-6 py-5 text-center font-bold text-lg text-orange-500">{Number(item.avg_energy || item.avg_energy).toFixed(1)}</td>
-            <td className="px-6 py-5 text-center font-bold text-lg text-purple-500">{Number(item.avg_sleep || item.avg_sleep).toFixed(1)}</td>
-            <td className="px-6 py-5 text-center font-bold text-lg text-blue-500">{Number(item.avg_mood || item.avg_mood).toFixed(1)}</td>
-            <td className="px-6 py-5 text-center font-bold text-lg text-slate-400">{Number(item.avg_pressure || item.avg_pressure).toFixed(1)}</td>
+            <td className="px-6 py-5 text-slate-400 text-sm text-slate-700">{item.month}</td>
+            <td className="px-6 py-5 text-center font-bold text-lg text-slate-700">{Number(item.avg_stress).toFixed(1)}</td>
+            <td className="px-6 py-5 text-center font-bold text-lg text-slate-700">{Number(item.avg_energy).toFixed(1)}</td>
+            <td className="px-6 py-5 text-center font-bold text-lg text-slate-700">{Number(item.avg_sleep).toFixed(1)}</td>
+            <td className="px-6 py-5 text-center font-bold text-lg text-slate-700">{Number(item.avg_mood).toFixed(1)}</td>
+            <td className="px-6 py-5 text-center font-bold text-lg text-slate-700">{Number(item.avg_pressure).toFixed(1)}</td>
           </tr>
         ))}
       </tbody>

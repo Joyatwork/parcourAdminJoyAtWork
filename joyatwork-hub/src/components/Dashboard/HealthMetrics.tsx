@@ -114,13 +114,17 @@ export function HealthMetrics() {
   };
 
   const getProgressColor = (status) => {
-    switch(status) {
-      case 'good': return 'bg-green-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'warning': return 'bg-red-500';
-      default: return 'bg-blue-500';
-    }
-  };
+  switch(status) {
+    case 'good': 
+      return 'bg-emerald-400';    // Un vert plus doux
+    case 'medium': 
+      return 'bg-yellow-200';     // Orange clair (pêche)
+    case 'warning': 
+      return 'bg-red-200';        // Rouge clair (corail/rose)
+    default: 
+      return 'bg-blue-300';
+  }
+};
 
   if (loading) return <Card className="p-6 text-center">Chargement...</Card>;
 
