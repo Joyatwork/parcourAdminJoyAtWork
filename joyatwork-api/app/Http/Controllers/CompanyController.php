@@ -15,25 +15,27 @@ class CompanyController extends Controller
     {
         $query = Company::query();
 
-        // Recherche par nom ou domaine
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('domain', 'like', "%{$search}%");
+                  ->orWhere('domain', 'like', "%{$search}%")
+                  ->orWhere('ville', 'like', "%{$search}%")
+                  ->orWhere('secteur_activite', 'like', "%{$search}%");
             });
         }
 
-        $companies = $query->orderBy('name')->get([
-            'id',
-            'name',
-            'domain',
-            'is_active',
-            'created_at',
-            'updated_at',
-        ]);
+        if ($request->has('sector') && $request->sector && $request->sector !== 'Tous les secteurs') {
+            $query->where('secteur_activite', $request->sector);
+        }
 
-        return response()->json($companies);
+        $rawCompanies = $query->orderBy('name')->get();
+        $mappedCompanies = [];
+        foreach ($rawCompanies as $company) {
+            $mappedCompanies[] = $this->mapToFrontend($company);
+        }
+
+        return response()->json($mappedCompanies);
     }
 
     /**
@@ -41,11 +43,11 @@ class CompanyController extends Controller
      */
     public function show(Company $company): JsonResponse
     {
-        return response()->json($company);
+        return response()->json($this->mapToFrontend($company));
     }
 
     /**
-     * Créer une nouvelle entreprise (basée sur la table 'entreprise')
+     * Créer une nouvelle entreprise
      */
     public function store(Request $request): JsonResponse
     {
@@ -53,15 +55,31 @@ class CompanyController extends Controller
             'name' => 'required|string|max:255',
             'domain' => 'nullable|string|max:255',
             'is_active' => 'nullable|boolean',
+            'adresse_facturation' => 'nullable|string',
+            'code_postal' => 'nullable|string|max:10',
+            'ville' => 'nullable|string|max:100',
+            'pays' => 'nullable|string|max:50',
+            'siret' => 'nullable|string|max:14',
+            'numero_tva' => 'nullable|string|max:20',
+            'forme_juridique' => 'nullable|string|max:50',
+            'contact_principal' => 'nullable|string|max:100',
+            'email_contact' => 'nullable|email|max:255',
+            'telephone_contact' => 'nullable|string|max:20',
+            'nombre_employes' => 'nullable|integer',
+            'secteur_activite' => 'nullable|string|max:100',
+            'site_web' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'date_premier_contact' => 'nullable|date',
+            'source_lead' => 'nullable|string|max:50',
         ]);
 
         $company = Company::create($validatedData);
 
-        return response()->json($company, 201);
+        return response()->json(['success' => true, 'data' => $this->mapToFrontend($company)], 201);
     }
 
     /**
-     * Mettre à jour une entreprise (basée sur la table 'entreprise')
+     * Mettre à jour une entreprise
      */
     public function update(Request $request, Company $company): JsonResponse
     {
@@ -69,11 +87,27 @@ class CompanyController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'domain' => 'sometimes|nullable|string|max:255',
             'is_active' => 'sometimes|nullable|boolean',
+            'adresse_facturation' => 'nullable|string',
+            'code_postal' => 'nullable|string|max:10',
+            'ville' => 'nullable|string|max:100',
+            'pays' => 'nullable|string|max:50',
+            'siret' => 'nullable|string|max:14',
+            'numero_tva' => 'nullable|string|max:20',
+            'forme_juridique' => 'nullable|string|max:50',
+            'contact_principal' => 'nullable|string|max:100',
+            'email_contact' => 'nullable|email|max:255',
+            'telephone_contact' => 'nullable|string|max:20',
+            'nombre_employes' => 'nullable|integer',
+            'secteur_activite' => 'nullable|string|max:100',
+            'site_web' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'date_premier_contact' => 'nullable|date',
+            'source_lead' => 'nullable|string|max:50',
         ]);
 
         $company->update($validatedData);
 
-        return response()->json($company);
+        return response()->json(['success' => true, 'data' => $this->mapToFrontend($company)]);
     }
 
     /**
@@ -91,20 +125,66 @@ class CompanyController extends Controller
      */
     public function stats(): JsonResponse
     {
-        // La table 'entreprise' ne contient que des informations basiques.
-        // On adapte donc les statistiques pour rester compatibles
-        // avec le front actuel tout en utilisant les données disponibles.
         $stats = [
             'total_companies' => Company::count(),
-            // On considère "active_contracts" comme le nombre d'entreprises actives
             'active_contracts' => Company::where('is_active', true)->count(),
-            // Ces valeurs ne sont pas disponibles dans la table 'entreprise'
-            'total_employees' => 0,
-            'total_revenue' => 0,
-            'average_rating' => 0,
-            'sectors' => [],
+            'total_employees' => Company::sum('nombre_employes') ?? 0,
+            'sectors' => Company::distinct('secteur_activite')
+                ->pluck('secteur_activite')
+                ->filter()
+                ->values()
+                ->toArray(),
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Mapper les données de la base de données vers le format attendu par le frontend
+     */
+    private function mapToFrontend(Company $company): array
+    {
+        $location = trim(implode(', ', array_filter([
+            $company->adresse_facturation,
+            $company->code_postal,
+            $company->ville,
+            $company->pays,
+        ])));
+
+        return [
+            'id' => $company->id,
+            'name' => $company->name,
+            'domain' => $company->domain,
+            'sector' => $company->secteur_activite ?? 'Secteur non défini',
+            'location' => !empty($location) ? $location : 'Localisation non définie',
+            'email' => $company->email_contact ?? '',
+            'phone' => $company->telephone_contact ?? '',
+            'website' => $company->site_web ?? '',
+            'description' => $company->description ?? '',
+            'employees' => $company->nombre_employes ?? 0,
+            'status' => $company->is_active ? 'Actif' : 'Inactif',
+            'verified' => false,
+            'wellness_programs' => [],
+            'contract_value' => 0,
+            // Champs additionnels pour le backend
+            'siret' => $company->siret,
+            'numero_tva' => $company->numero_tva,
+            'forme_juridique' => $company->forme_juridique,
+            'contact_principal' => $company->contact_principal,
+            'date_premier_contact' => $company->date_premier_contact,
+            'source_lead' => $company->source_lead,
+            'adresse_facturation' => $company->adresse_facturation,
+            'code_postal' => $company->code_postal,
+            'ville' => $company->ville,
+            'pays' => $company->pays,
+            'secteur_activite' => $company->secteur_activite,
+            'site_web' => $company->site_web,
+            'email_contact' => $company->email_contact,
+            'telephone_contact' => $company->telephone_contact,
+            'nombre_employes' => $company->nombre_employes,
+            'is_active' => $company->is_active,
+            'created_at' => $company->created_at,
+            'updated_at' => $company->updated_at,
+        ];
     }
 }

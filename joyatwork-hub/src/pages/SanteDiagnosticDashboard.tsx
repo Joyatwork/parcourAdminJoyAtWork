@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,11 @@ import {
   FileText,
   BarChart3,
   User,
-  Shield
+  Shield,
+  Search,
+  Loader2,
+  Building2,
+  Users
 } from 'lucide-react';
 
 interface DiagnosticResult {
@@ -43,8 +47,58 @@ interface QuestionnaireSection {
   questions: number;
 }
 
+interface CompanyHealthData {
+  company_name: string;
+  month: string;
+  avg_stress: number;
+  avg_energy: number;
+  avg_sleep: number;
+  avg_mood: number;
+  avg_pressure: number;
+}
+
+interface UserHealthData {
+  first_name: string;
+  last_name: string;
+  company_name: string;
+  month: string;
+  avg_stress: number;
+  avg_energy: number;
+  avg_sleep: number;
+  avg_mood: number;
+  avg_pressure: number;
+}
+
+interface GlobalStats {
+  moyen_stress: number;
+  moyen_energie: number;
+  moyen_sommeil: number;
+  moyen_mood: number;
+  moyen_pression: number;
+}
+
 const SanteDiagnosticDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [companyHealthData, setCompanyHealthData] = useState<CompanyHealthData[]>([]);
+  const [usersHealthData, setUsersHealthData] = useState<UserHealthData[]>([]);
+  const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+  
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  const [tableMonth, setTableMonth] = useState(0);
+  const [tableYear, setTableYear] = useState(2025);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [globalMonth, setGlobalMonth] = useState(new Date().getMonth() + 1);
+  const [globalYear, setGlobalYear] = useState(new Date().getFullYear());
+
+  const months = [
+    { value: 1, label: 'Janvier' }, { value: 2, label: 'Février' }, { value: 3, label: 'Mars' },
+    { value: 4, label: 'Avril' }, { value: 5, label: 'Mai' }, { value: 6, label: 'Juin' },
+    { value: 7, label: 'Juillet' }, { value: 8, label: 'Août' }, { value: 9, label: 'Septembre' },
+    { value: 10, label: 'Octobre' }, { value: 11, label: 'Novembre' }, { value: 12, label: 'Décembre' }
+  ];
 
   // Données du questionnaire "Retour de congés"
   const questionnaireSections: QuestionnaireSection[] = [
@@ -126,16 +180,6 @@ const SanteDiagnosticDashboard = () => {
     }
   ];
 
-  const healthMetrics = {
-    overall_score: 72,
-    energy_level: 78,
-    stress_level: 35,
-    sleep_quality: 68,
-    work_satisfaction: 82,
-    social_connection: 75,
-    trend: '+8%'
-  };
-
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'excellent': return 'bg-green-100 text-green-800 border-green-200';
@@ -158,8 +202,8 @@ const SanteDiagnosticDashboard = () => {
     }
   };
 
-  const getScoreColor = (score: number, maxScore: number) => {
-    const percentage = (score / maxScore) * 100;
+  const getScoreColor = (value: number, max: number) => {
+    const percentage = (value / max) * 100;
     if (percentage >= 80) return 'text-green-600';
     if (percentage >= 60) return 'text-blue-600';
     if (percentage >= 40) return 'text-yellow-600';
@@ -167,11 +211,103 @@ const SanteDiagnosticDashboard = () => {
     return 'text-red-600';
   };
 
+  // Fonction pour calculer le score global
+  const calculateGlobalScore = (stats: GlobalStats | null) => {
+    if (!stats) return 0;
+    const { moyen_energie, moyen_mood, moyen_sommeil, moyen_stress } = stats;
+    return Math.round(
+      ((Number(moyen_energie) + Number(moyen_mood) + Number(moyen_sommeil) + (10 - Number(moyen_stress))) / 4) * 10
+    );
+  };
+
+  // Fonction pour obtenir le trend
+  const getTrend = () => {
+    // Simuler un trend positif pour l'exemple
+    return '+8%';
+  };
+
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        setInitialLoading(true);
+        const [resCompany, resUser, resGlobal] = await Promise.all([
+          fetch('http://localhost:8001/api/diagnostics/company-health'),
+          fetch('http://localhost:8001/api/diagnostics/user-health'),
+          fetch(`http://localhost:8001/api/kpi-company-health/global-health?year=${globalYear}&month=${globalMonth}`)
+        ]);
+        
+        const companyData = await resCompany.json();
+        const userData = await resUser.json();
+        const globalData = await resGlobal.json();
+        
+        setCompanyHealthData(companyData);
+        setUsersHealthData(userData);
+        setGlobalStats(globalData.length > 0 ? globalData[0] : null);
+      } catch (err) { 
+        console.error('Erreur lors du chargement des données:', err); 
+      } finally { 
+        setInitialLoading(false); 
+      }
+    };
+    initData();
+  }, []);
+
+  useEffect(() => {
+    if (initialLoading) return;
+    const updateStats = async () => {
+      setStatsLoading(true);
+      try {
+        const res = await fetch(
+          `http://localhost:8001/api/kpi-company-health/global-health?year=${globalYear}&month=${globalMonth}`
+        );
+        const globalData = await res.json();
+        setGlobalStats(globalData.length > 0 ? globalData[0] : null);
+      } catch (err) { 
+        console.error('Erreur lors de la mise à jour des stats:', err); 
+      } finally { 
+        setTimeout(() => setStatsLoading(false), 300); 
+      }
+    };
+    updateStats();
+  }, [globalMonth, globalYear]);
+
+  const filterLogic = (data: any[], searchKey: string) => {
+    return data.filter(item => {
+      const matchYear = item.month.startsWith(tableYear.toString());
+      const monthStr = String(tableMonth).padStart(2, '0');
+      const matchMonth = tableMonth === 0 ? true : item.month === `${tableYear}-${monthStr}`;
+      const searchTarget = searchKey === 'user' 
+        ? `${item.first_name} ${item.last_name}`.toLowerCase() 
+        : item.company_name.toLowerCase();
+      return matchYear && matchMonth && searchTarget.includes(searchTerm.toLowerCase());
+    });
+  };
+
+  const filteredCompanies = filterLogic(companyHealthData, 'company');
+  const filteredUsers = filterLogic(usersHealthData, 'user');
+
+  const stats = globalStats || { 
+    moyen_stress: 0, 
+    moyen_energie: 0, 
+    moyen_sommeil: 0, 
+    moyen_mood: 0, 
+    moyen_pression: 0 
+  };
+
+  const globalScore = calculateGlobalScore(stats);
+  const trend = getTrend();
+
+  if (initialLoading) return (
+    <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+    </div>
+  );
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Santé & Diagnostic</h1>
             <p className="text-gray-600">Suivez votre bien-être et recevez des recommandations personnalisées</p>
@@ -188,85 +324,62 @@ const SanteDiagnosticDashboard = () => {
           </div>
         </div>
 
-        {/* Métriques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Score Global</p>
-                <p className="text-2xl font-bold text-green-900">{healthMetrics.overall_score}%</p>
-                <p className="text-xs text-green-600">{healthMetrics.trend} vs mois dernier</p>
-              </div>
-              <Shield className="w-8 h-8 text-green-600" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600">Énergie</p>
-                <p className="text-2xl font-bold text-orange-900">{healthMetrics.energy_level}%</p>
-                <p className="text-xs text-orange-600">Niveau élevé</p>
-              </div>
-              <Zap className="w-8 h-8 text-orange-600" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-600">Stress</p>
-                <p className="text-2xl font-bold text-red-900">{healthMetrics.stress_level}%</p>
-                <p className="text-xs text-red-600">Sous contrôle</p>
-              </div>
-              <Brain className="w-8 h-8 text-red-600" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600">Sommeil</p>
-                <p className="text-2xl font-bold text-purple-900">{healthMetrics.sleep_quality}%</p>
-                <p className="text-xs text-purple-600">À améliorer</p>
-              </div>
-              <Moon className="w-8 h-8 text-purple-600" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Satisfaction</p>
-                <p className="text-2xl font-bold text-blue-900">{healthMetrics.work_satisfaction}%</p>
-                <p className="text-xs text-blue-600">Très bon</p>
-              </div>
-              <Smile className="w-8 h-8 text-blue-600" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-teal-600">Relations</p>
-                <p className="text-2xl font-bold text-teal-900">{healthMetrics.social_connection}%</p>
-                <p className="text-xs text-teal-600">Équilibré</p>
-              </div>
-              <User className="w-8 h-8 text-teal-600" />
-            </div>
-          </Card>
-        </div>
-
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="questionnaire">Questionnaire en cours</TabsTrigger>
-            <TabsTrigger value="historique">Historique</TabsTrigger>
-            <TabsTrigger value="recommandations">Recommandations</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Vue d'ensemble
+            </TabsTrigger>
+            <TabsTrigger value="entreprises" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              Entreprises
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Utilisateurs
+            </TabsTrigger>
+            <TabsTrigger value="questionnaire" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Questionnaire
+            </TabsTrigger>
+            <TabsTrigger value="historique" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Historique
+            </TabsTrigger>
+            <TabsTrigger value="recommandations" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Recommandations
+            </TabsTrigger>
           </TabsList>
 
+          {/* Vue d'ensemble */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Filter Global */}
+            <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider mr-1">Global :</span>
+                <select 
+                  value={globalMonth} 
+                  onChange={(e) => setGlobalMonth(Number(e.target.value))} 
+                  className="text-sm font-medium text-gray-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
+                >
+                  {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                </select>
+                <div className="w-px h-4 bg-gray-200 mx-2"></div>
+                <select 
+                  value={globalYear} 
+                  onChange={(e) => setGlobalYear(Number(e.target.value))} 
+                  className="text-sm font-medium text-gray-700 border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
+                >
+                  <option value={2026}>2026</option>
+                  <option value={2025}>2025</option>
+                  <option value={2024}>2024</option>
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Progression générale */}
               <Card className="p-6">
@@ -275,28 +388,43 @@ const SanteDiagnosticDashboard = () => {
                   Progression des métriques
                 </h3>
                 <div className="space-y-4">
-                  {Object.entries(healthMetrics).filter(([key]) => !['trend'].includes(key)).map(([key, value]) => {
-                    const labels = {
-                      overall_score: 'Score Global',
-                      energy_level: 'Niveau d\'énergie', 
-                      stress_level: 'Niveau de stress',
-                      sleep_quality: 'Qualité du sommeil',
-                      work_satisfaction: 'Satisfaction travail',
-                      social_connection: 'Connexions sociales'
-                    };
-                    return (
-                      <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>{labels[key as keyof typeof labels]}</span>
-                          <span className={getScoreColor(value as number, 100)}>{value}%</span>
-                        </div>
-                        <Progress 
-                          value={value as number} 
-                          className="h-2"
-                        />
-                      </div>
-                    );
-                  })}
+                  <ProgressMetric 
+                    label="Score Global" 
+                    value={statsLoading ? 0 : globalScore} 
+                    max={100}
+                    loading={statsLoading}
+                    trend={trend}
+                  />
+                  <ProgressMetric 
+                    label="Niveau d'énergie" 
+                    value={statsLoading ? 0 : Number(stats.moyen_energie).toFixed(1)} 
+                    max={10}
+                    loading={statsLoading}
+                  />
+                  <ProgressMetric 
+                    label="Niveau de stress" 
+                    value={statsLoading ? 0 : Number(stats.moyen_stress).toFixed(1)} 
+                    max={10}
+                    loading={statsLoading}
+                  />
+                  <ProgressMetric 
+                    label="Qualité du sommeil" 
+                    value={statsLoading ? 0 : Number(stats.moyen_sommeil).toFixed(1)} 
+                    max={10}
+                    loading={statsLoading}
+                  />
+                  <ProgressMetric 
+                    label="Satisfaction travail" 
+                    value={statsLoading ? 0 : Number(stats.moyen_mood).toFixed(1)} 
+                    max={10}
+                    loading={statsLoading}
+                  />
+                  <ProgressMetric 
+                    label="Pression travail" 
+                    value={statsLoading ? 0 : Number(stats.moyen_pression).toFixed(1)} 
+                    max={10}
+                    loading={statsLoading}
+                  />
                 </div>
               </Card>
 
@@ -345,6 +473,203 @@ const SanteDiagnosticDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Entreprises */}
+          <TabsContent value="entreprises" className="space-y-4">
+            {/* Barre de filtre */}
+            <Card className="p-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher une entreprise..."
+                    className="w-full pl-11 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+                    <select 
+                      value={tableMonth} 
+                      onChange={(e) => setTableMonth(Number(e.target.value))} 
+                      className="text-sm font-medium text-gray-700 border-none bg-transparent focus:ring-0 cursor-pointer"
+                    >
+                      <option value={0}>Tous les mois</option>
+                      {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                    </select>
+                    <div className="w-px h-4 bg-gray-200 mx-2"></div>
+                    <select 
+                      value={tableYear} 
+                      onChange={(e) => setTableYear(Number(e.target.value))} 
+                      className="text-sm font-medium text-gray-700 border-none bg-transparent focus:ring-0 cursor-pointer"
+                    >
+                      <option value={2026}>2026</option>
+                      <option value={2025}>2025</option>
+                      <option value={2024}>2024</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Tableau des entreprises */}
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900">Entreprise</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900">Période</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Stress</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Énergie</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Sommeil</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Humeur</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Pression</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredCompanies.map((item, i) => (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-gray-900">{item.company_name}</span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 text-sm">{item.month}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_stress).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_energy).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_sleep).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_mood).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_pressure).toFixed(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Utilisateurs */}
+          <TabsContent value="users" className="space-y-4">
+            {/* Barre de filtre */}
+            <Card className="p-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un collaborateur..."
+                    className="w-full pl-11 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-2 ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+                    <select 
+                      value={tableMonth} 
+                      onChange={(e) => setTableMonth(Number(e.target.value))} 
+                      className="text-sm font-medium text-gray-700 border-none bg-transparent focus:ring-0 cursor-pointer"
+                    >
+                      <option value={0}>Tous les mois</option>
+                      {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                    </select>
+                    <div className="w-px h-4 bg-gray-200 mx-2"></div>
+                    <select 
+                      value={tableYear} 
+                      onChange={(e) => setTableYear(Number(e.target.value))} 
+                      className="text-sm font-medium text-gray-700 border-none bg-transparent focus:ring-0 cursor-pointer"
+                    >
+                      <option value={2026}>2026</option>
+                      <option value={2025}>2025</option>
+                      <option value={2024}>2024</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Tableau des utilisateurs */}
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900">Collaborateur</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900">Entreprise</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900">Période</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Stress</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Énergie</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Sommeil</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Humeur</th>
+                      <th className="px-6 py-4 text-sm font-semibold text-gray-900 text-center">Pression</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredUsers.map((item, i) => (
+                      <tr key={i} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-gray-900">
+                            {item.first_name} {item.last_name}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-600">{item.company_name}</span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-600 text-sm">{item.month}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_stress).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_energy).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_sleep).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_mood).toFixed(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-bold text-lg text-gray-900">
+                            {Number(item.avg_pressure).toFixed(1)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* Questionnaire en cours */}
           <TabsContent value="questionnaire" className="space-y-6">
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -406,6 +731,7 @@ const SanteDiagnosticDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Historique */}
           <TabsContent value="historique" className="space-y-6">
             <div className="space-y-4">
               {diagnosticResults.map((result) => (
@@ -457,6 +783,7 @@ const SanteDiagnosticDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Recommandations */}
           <TabsContent value="recommandations" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
@@ -537,6 +864,50 @@ const SanteDiagnosticDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+};
+
+// Composant ProgressMetric
+const ProgressMetric = ({ 
+  label, 
+  value, 
+  max, 
+  loading, 
+  trend 
+}: { 
+  label: string; 
+  value: number | string; 
+  max: number; 
+  loading: boolean; 
+  trend?: string;
+}) => {
+  const percentage = (Number(value) / max) * 100;
+  
+  const getScoreColor = (val: number, maximum: number) => {
+    const pct = (val / maximum) * 100;
+    if (pct >= 70) return 'text-green-600';
+    if (pct >= 40) return 'text-blue-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="font-medium text-gray-700">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className={`font-bold ${loading ? 'text-gray-400' : getScoreColor(Number(value), max)}`}>
+            {loading ? '...' : `${value}${max === 100 ? '%' : '/10'}`}
+          </span>
+          {trend && !loading && (
+            <span className="text-xs text-green-600 font-medium">{trend}</span>
+          )}
+        </div>
+      </div>
+      <Progress 
+        value={loading ? 0 : percentage} 
+        className="h-2"
+      />
     </div>
   );
 };
