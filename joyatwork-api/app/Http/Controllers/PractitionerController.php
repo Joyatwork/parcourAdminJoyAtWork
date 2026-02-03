@@ -21,12 +21,12 @@ class PractitionerController extends Controller
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('specialty', 'like', "%{$search}%");
+                    ->orWhere('speciality', 'like', "%{$search}%");
             });
         }
 
-        if ($request->has('specialty') && $request->specialty !== 'all') {
-            $query->where('specialty', $request->specialty);
+        if ($request->has('speciality') && $request->speciality !== 'all') {
+            $query->where('speciality', $request->speciality);
         }
 
         $practitionersData = [];
@@ -48,22 +48,28 @@ class PractitionerController extends Controller
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:practitioners,email',
-            'phone' => 'nullable|string|max:20',
-            'specialty' => 'required|string|max:255', //required mais pour tester
-            'experience_years' => 'nullable|integer',
-            'rating' => 'nullable|numeric|min:0|max:5',
-            'bio' => 'nullable|string',
+            'phone' => 'nullable|string|max:255',
+            'speciality' => 'nullable|string|max:255',  
+            'country' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'postal_code' => 'nullable|string|max:255',
             'availability' => 'nullable|string',
-            'certifications' => 'nullable|string',
+            'bio' => 'nullable|string',
         ]);
+        
+        // Add default values for required DB fields
+        $validated['status'] = 'active';
+        $validated['accepts_new_patients'] = 1;
+        $validated['emergency_consultations'] = 0;
+        $validated['consultation_mode'] = 'both';
+        $validated['user_id'] = $request->user_id ?? 1;  // ← Default user_id
 
         $practitioner = Practitioner::create($validated);
 
         return response()->json([
             'success' => true,
             'message' => 'Praticien créé avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ], 201);
     }
 
@@ -86,9 +92,9 @@ class PractitionerController extends Controller
         $validated = $request->validate([
             'first_name' => 'sometimes|required|string|max:255',
             'last_name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:practitioners,email,' . $practitioner->id,
+            'email' => 'sometimes|required|email|unique:praticiens,email,' . $practitioner->id,
             'phone' => 'nullable|string|max:20',
-            'specialty' => 'sometimes|required|string|max:255',
+            'speciality' => 'sometimes|required|string|max:255',
             'experience_years' => 'nullable|integer',
             'rating' => 'nullable|numeric|min:0|max:5',
             'bio' => 'nullable|string',
@@ -102,7 +108,7 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Praticien mis à jour avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -137,7 +143,7 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Praticien suspendu avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -153,9 +159,10 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Praticien vérifié avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
+    
     /**
      * Reactivate a suspended practitioner.
      */
@@ -170,7 +177,7 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Praticien réactivé avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -183,7 +190,7 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Certificat IPRP vérifié avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -199,7 +206,7 @@ class PractitionerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Master Psy Travail vérifié avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner)
         ]);
     }
 
@@ -218,7 +225,7 @@ class PractitionerController extends Controller
             'last_name' => $practitioner->last_name,
             'email' => $practitioner->email ?? '',
             'phone' => $practitioner->phone ?? '',
-            'specialty' => $practitioner->specialty ?? 'Spécialité non définie',
+            'speciality' => $practitioner->speciality ?? 'Spécialité non définie',
             'location' => empty($locationParts) ? 'Localisation non définie' : implode(', ', $locationParts),
             'bio' => $practitioner->bio,
             'experience_years' => $practitioner->experience_years ?? 0,

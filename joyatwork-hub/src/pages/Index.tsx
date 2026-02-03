@@ -60,9 +60,7 @@ const Index = () => {
           {/* Predictive Analytics */}
           <PredictiveAnalytics />
           
-          {/* QVCT Strategic Overview */}
-          <QVCTOverview />
- 
+          
         </div>
 
         {/* Right Column - Secondary Info */}
@@ -84,11 +82,11 @@ const Index = () => {
 
       {/* Bottom Row - Extended Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols gap-6">
-        
+        {/* QVCT Strategic Overview */}
+        <QVCTOverview />
+ 
         {/* Employee Verbatims */}
         <EmployeeVerbatims />
-
-        
       </div>
 
       {/* Advanced Analytics Row */}

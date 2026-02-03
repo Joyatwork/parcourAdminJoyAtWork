@@ -28,6 +28,10 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("appointments");
     } else if (location.pathname === "/billing" || location.pathname.startsWith("/billing/")) {
       setActiveSection("billing");
+    }else if (location.pathname === "/qvct") {
+      setActiveSection("qvct");
+    }else if (location.pathname === "/analytics") {
+      setActiveSection("analytics");
     }
   }, [location.pathname]);
 

@@ -16,10 +16,7 @@ interface Practitioner {
   last_name: string;
   email: string | null;
   phone: string | null;
-  specialty: string;
-  certifications: string;
-  experience_years: string;
-  rating: string;
+  speciality: string;
   availability: string;
   is_verified: number,
   bio: string;
@@ -44,8 +41,6 @@ interface Practitioner {
 
   // Nouvelles colonnes de la base
   certif_iprp_verified: number;
-  master_psy_travail_path: string;
-  master_psy_travail_verified: number;
   accepts_new_patients: number;
   emergency_consultations: number;
   location: string;
@@ -55,15 +50,16 @@ interface Practitioner {
   created_at: string;
   updated_at: string;
 }
+
 interface NewPractitioner {
   first_name: string;
   last_name: string;
   phone: string;
   email: string;
-  specialty: string;
-  experience_years: string;
-  rating: string;
-  certifications: string;
+  speciality: string;
+  country: string;
+  city: string;
+  postal_code: string;
   availability: string;
   bio: string;
 }
@@ -153,17 +149,17 @@ export default function PractitionersDashboard() {
   const [agendaLoading, setAgendaLoading] = useState(false);
 
   const [newPractitioner, setNewPractitioner] = useState<NewPractitioner>({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    email: '',
-    specialty: '',
-    experience_years: '',
-    rating: '',
-    certifications: '',
-    availability: '',
-    bio: ''
-  });
+  first_name: '',
+  last_name: '',
+  phone: '',
+  email: '',
+  speciality: '',
+  country: 'France',
+  city: '',
+  postal_code: '',
+  availability: '',
+  bio: ''
+});
 
   // États pour les filtres des rendez-vous
 const [appointmentSearchTerm, setAppointmentSearchTerm] = useState('');
@@ -238,12 +234,9 @@ const resetAppointmentFilters = () => {
           last_name: editingPractitioner.last_name,
           email: editingPractitioner.email,
           phone: editingPractitioner.phone,
-          specialty: editingPractitioner.specialty,
+          specialty: editingPractitioner.speciality,
           bio: editingPractitioner.bio,
           availability: editingPractitioner.availability,
-          certifications: editingPractitioner.certifications,
-          experience_years: editingPractitioner.experience_years,
-          rating: editingPractitioner.rating,
         })
       });
 
@@ -585,18 +578,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
       
       if (data.success) {
         //alert('Praticien ajouté avec succès!');
-        setNewPractitioner({
-          first_name: '',
-          last_name: '',
-          phone: '',
-          email: '',
-          specialty:'',
-          experience_years: '',
-          rating: '',
-          certifications: '',
-          availability: '',
-          bio: ''
-        });
+        
         setIsDialogOpen(false);
         
         // Recharger la liste
@@ -765,22 +747,21 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
   const filteredPractitioners = practitioners.filter(practitioner => {
     const fullName = `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.first_name || '';
     // Gestion des deux variantes : specialty et speciality
-    const speciality = practitioner.specialty || practitioner.specialty || '';
+    const speciality = practitioner.speciality || practitioner.speciality || '';
     const email = practitioner.email || '';
-    const certifications = practitioner.certifications || '';
     
     const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         certifications.toLowerCase().includes(searchTerm.toLowerCase());
+                         email.toLowerCase().includes(searchTerm.toLowerCase());
+                         
                          
     // Gestion des deux variantes pour le filtre de spécialité
-    const practitionerSpecialty = practitioner.specialty || practitioner.specialty || '';
+    const practitionerSpecialty = practitioner.speciality || practitioner.speciality || '';
     const matchesSpecialty = selectedSpecialty === 'all' || practitionerSpecialty === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
 
-  const uniqueSpecialties = [...new Set(practitioners.map(p => p.specialty || p.specialty || 'Non spécifié').filter(s => s))];
+  const uniqueSpecialties = [...new Set(practitioners.map(p => p.speciality || p.speciality || 'Non spécifié').filter(s => s))];
 
   // Filtrage des rendez-vous
 const filteredAppointments = appointments.filter(appointment => {
@@ -832,38 +813,6 @@ const filteredAppointments = appointments.filter(appointment => {
 
   return matchesSearch && matchesStatus && matchesMode && matchesPeriod;
 });
-
-// Fonction pour vérifier le certificat IPRP
-const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
-  if (!practitioner) return;
-  
-  try {
-    setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify-certif-iprp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // Mettre à jour le praticien dans la liste
-      setPractitioners(prev => prev.map(p => p.id === practitioner.id ? data.data : p));
-      // Mettre à jour le praticien dans detailsPractitioner s'il est ouvert
-      if (detailsPractitioner?.id === practitioner.id) {
-        setDetailsPractitioner(data.data);
-      }
-    } else {
-      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
-    }
-  } catch (error) {
-    console.error('Erreur lors de la vérification:', error);
-    alert('Erreur de connexion lors de la vérification');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
 
   if (loading) {
     return (
@@ -1017,48 +966,18 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
 
                     {/*Speciality: 'specialty' */}
                     <div>
-                      <Label htmlFor="Specialité">Specialité *</Label>
-                      <Input
-                        id="specialty"
-                        type="specialty"
-                        value={newPractitioner.specialty}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, specialty: e.target.value }))}
-                        placeholder="Santé"
-                      />
-                    </div>
+                    <Label htmlFor="speciality">Spécialité</Label>
+                    <Input
+                      id="speciality"
+                      type="text"
+                      value={newPractitioner.speciality}
+                      onChange={(e) => setNewPractitioner(prev => ({ ...prev, speciality: e.target.value }))}
+                      placeholder="Psychologue du travail"
+                    />
+                  </div>
 
-                    <div>
-                      <Label htmlFor="experience_years">Années d'expérience</Label>
-                      <Input
-                        id="experience_years"
-                        type="number"
-                        value={newPractitioner.experience_years}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, experience_years: e.target.value }))}
-                        placeholder="5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="rating">Note (1-5)</Label>
-                      <Input
-                        id="rating"
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        value={newPractitioner.rating}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, rating: e.target.value }))}
-                        placeholder="4.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="certifications">Certifications</Label>
-                      <Input
-                        id="certifications"
-                        value={newPractitioner.certifications}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, certifications: e.target.value }))}
-                        placeholder="Psychologue clinicien, Thérapeute cognitivo-comportemental"
-                      />
-                    </div>
+                    
+                    
                     <div>
                       <Label htmlFor="availability">Disponibilité</Label>
                       <Input
@@ -1116,13 +1035,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                                   : practitioner.first_name || 'Nom non spécifié'
                                 }
                               </CardTitle>
-                              <div className="flex gap-2 mb-3">
-                                {practitioner.rating && (
-                                  <Badge variant="outline">
-                                    ⭐ {practitioner.rating}
-                                  </Badge>
-                                )}
-                              </div>
+                              
                               {/* Nouveau badge pour le statut */}
                               <Badge 
                                 variant={practitioner.status === 'suspended' ? 'destructive' : 'default'}
@@ -1211,14 +1124,6 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               </div>
                             )}
                             
-                            {practitioner.certifications && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <span className="text-green-600">🏆</span>
-                                <span className="truncate" title={practitioner.certifications}>
-                                  {practitioner.certifications}
-                                </span>
-                              </div>
-                            )}
                             
                           
                           </div>
@@ -1560,46 +1465,9 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                 />
               </div>
               
-              <div>
-                <Label htmlFor="edit-experience-years">Années d'expérience</Label>
-                <Input
-                  id="edit-experience-years"
-                  type="number"
-                  value={editingPractitioner.experience_years || ''}
-                  onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, experience_years: e.target.value } : null
-                  )}
-                  placeholder="5"
-                />
-              </div>
               
-              <div>
-                <Label htmlFor="edit-rating">Note (1-5)</Label>
-                <Input
-                  id="edit-rating"
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  value={editingPractitioner.rating || ''}
-                  onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, rating: e.target.value } : null
-                  )}
-                  placeholder="4.5"
-                />
-              </div>
+             
               
-              <div>
-                <Label htmlFor="edit-certifications">Certifications</Label>
-                <Input
-                  id="edit-certifications"
-                  value={editingPractitioner.certifications || ''}
-                  onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, certifications: e.target.value } : null
-                  )}
-                  placeholder="Psychologue clinicien, Thérapeute cognitivo-comportemental"
-                />
-              </div>
               
               <div>
                 <Label htmlFor="edit-availability">Disponibilité</Label>
@@ -1788,11 +1656,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                           ⚠ Non vérifié
                         </Badge>
                       )}
-                      {detailsPractitioner.rating && (
-                        <Badge variant="outline" className="bg-yellow-50">
-                          ⭐ {detailsPractitioner.rating}/5
-                        </Badge>
-                      )}
+                      
                     </div>
                   </div>
                 </div>
@@ -1840,15 +1704,10 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Spécialité</p>
                       <Badge variant="outline" className="mt-1">
-                        {detailsPractitioner.specialty || 'Non spécifié'}
+                        {detailsPractitioner.speciality || 'Non spécifié'}
                       </Badge>
                     </div>
-                    {detailsPractitioner.experience_years && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Expérience</p>
-                        <p className="font-medium">{detailsPractitioner.experience_years} ans</p>
-                      </div>
-                    )}
+                   
                     {detailsPractitioner.consultation_mode && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">Mode de consultation</p>
@@ -2131,18 +1990,6 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                   </div>
                 )}
               </div>
-
-              {/* Certifications */}
-              {detailsPractitioner.certifications && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-lg flex items-center gap-2">
-                    <span>🏆</span> Certifications
-                  </h4>
-                  <p className="p-4 bg-gray-50 rounded-md border">
-                    {detailsPractitioner.certifications}
-                  </p>
-                </div>
-              )}
 
               {/* Spécialisations */}
               {detailsPractitioner.specializations && (
