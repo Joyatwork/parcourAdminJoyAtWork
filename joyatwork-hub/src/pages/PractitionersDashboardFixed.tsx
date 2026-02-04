@@ -14,41 +14,38 @@ interface Practitioner {
   id: number;
   first_name: string;
   last_name: string;
-  email: string | null;
-  phone: string | null;
   speciality: string;
-  availability: string;
-  is_verified: number,
-  bio: string;
-  status: null;
-  suspended_at: string;
-  suspension_reason: string;
-
-  // new infos
+  user_id: number;
+  phone: string | null;
   country: string;
   city: string;
-  consultation_mode: string;
+  postal_code: string;
   address: string;
+  consultation_mode: string;
   min_price: number;
   max_price: number;
   website: string;
   linkedin: string;
-  rpps_number: number;
-  siret_number: number;
-  payment_methods: string;
-  languages: string;
-  certif_iprp_path: string;
-
-  // Nouvelles colonnes de la base
-  certif_iprp_verified: number;
+  rpps_number: string;
+  siret_number: string;
+  payment_methods: string[];
   accepts_new_patients: number;
   emergency_consultations: number;
-  location: string;
-  postal_code: string;
-  specializations: string;
-
+  availability: string;
+  languages: string[];
+  specializations: string[];
+  bio: string;
+  avatar_url: string;
+  is_verified: number;
+  verified_at: string | null;
+  verified_by: number | null;
+  status: string;
+  suspended_at: string;
+  suspension_reason: string;
   created_at: string;
   updated_at: string;
+  certif_iprp_path: string;
+  certif_iprp_verified: number;
 }
 
 interface NewPractitioner {
@@ -160,7 +157,7 @@ export default function PractitionersDashboard() {
   availability: '',
   bio: ''
 });
-
+ 
   // États pour les filtres des rendez-vous
 const [appointmentSearchTerm, setAppointmentSearchTerm] = useState('');
 const [appointmentStatusFilter, setAppointmentStatusFilter] = useState('all');
@@ -219,7 +216,9 @@ const resetAppointmentFilters = () => {
   };
 
   // Fonction pour sauvegarder les modifications
-  const handleUpdatePractitioner = async () => {
+// In PractitionersDashboardFixed.tsx, replace handleUpdatePractitioner with:
+
+const handleUpdatePractitioner = async () => {
     if (!editingPractitioner) return;
     
     try {
@@ -232,18 +231,30 @@ const resetAppointmentFilters = () => {
         body: JSON.stringify({
           first_name: editingPractitioner.first_name,
           last_name: editingPractitioner.last_name,
-          email: editingPractitioner.email,
           phone: editingPractitioner.phone,
-          specialty: editingPractitioner.speciality,
+          speciality: editingPractitioner.speciality,
           bio: editingPractitioner.bio,
           availability: editingPractitioner.availability,
-        })
+          country: editingPractitioner.country,
+          city: editingPractitioner.city,
+          postal_code: editingPractitioner.postal_code,
+          address: editingPractitioner.address,
+          consultation_mode: editingPractitioner.consultation_mode,
+          min_price: editingPractitioner.min_price,
+          max_price: editingPractitioner.max_price,
+          website: editingPractitioner.website,
+          linkedin: editingPractitioner.linkedin,
+          rpps_number: editingPractitioner.rpps_number,
+          siret_number: editingPractitioner.siret_number,
+          payment_methods: editingPractitioner.payment_methods,
+          languages: editingPractitioner.languages,
+          specializations: editingPractitioner.specializations,
+        }),
       });
 
       const data = await response.json();
       
       if (data.success) {
-        //alert('Praticien modifié avec succès !');
         setIsEditDialogOpen(false);
         setEditingPractitioner(null);
         
@@ -748,7 +759,7 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
     const fullName = `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.first_name || '';
     // Gestion des deux variantes : specialty et speciality
     const speciality = practitioner.speciality || practitioner.speciality || '';
-    const email = practitioner.email || '';
+    const email ='';
     
     const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1111,12 +1122,12 @@ const filteredAppointments = appointments.filter(appointment => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2 text-sm">
-                            {practitioner.email && (
+                            {/* {practitioner.email && (
                               <div className="flex items-center gap-2 text-gray-600">
                                 <Mail className="w-4 h-4" />
                                 <span>{practitioner.email}</span>
                               </div>
-                            )}
+                            )} */}
                             {practitioner.phone && (
                               <div className="flex items-center gap-2 text-gray-600">
                                 <Phone className="w-4 h-4" />
@@ -1451,23 +1462,159 @@ const filteredAppointments = appointments.filter(appointment => {
                   placeholder="01 23 45 67 89"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="edit-email">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="edit-country">Pays</Label>
                 <Input
-                  id="edit-email"
-                  type="email"
-                  value={editingPractitioner.email || ''}
+                  id="edit-country"
+                  value={editingPractitioner.country || ''}
                   onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, email: e.target.value } : null
+                    prev ? { ...prev, country: e.target.value } : null
                   )}
-                  placeholder="marie.dupont@example.com"
+                  placeholder="Lundi-Vendredi 9h-17h"
                 />
               </div>
-              
-              
-             
-              
+              <div>
+                <Label htmlFor="edit-city">Ville</Label>
+                <Input
+                  id="edit-city"
+                  value={editingPractitioner.city || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, city: e.target.value } : null
+                  )}
+                  placeholder="France"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-postal-code">Code Postal</Label>
+                <Input
+                  id="edit-postal-code"
+                  value={editingPractitioner.postal_code || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, postal_code: e.target.value } : null
+                  )}
+                  placeholder="00000"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-adress">Adresse</Label>
+                <Input
+                  id="edit-adress"
+                  value={editingPractitioner.address || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, address: e.target.value } : null
+                  )}
+                  placeholder="123 Rue Exemple"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-consultation-mode">Mode Consultation</Label>
+                <Input
+                  id="edit-consultation-mode"
+                  value={editingPractitioner.consultation_mode || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, consultation_mode: e.target.value } : null
+                  )}
+                  placeholder="both"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-min-price">Prix Min</Label>
+                <Input
+                  id="edit-min-price"
+                  value={editingPractitioner.min_price || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, min_price: Number(e.target.value) } : null
+                  )}
+                  placeholder="1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-max-price">Prix Max</Label>
+                <Input
+                  id="edit-max-price"
+                  value={editingPractitioner.max_price || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, max_price: Number(e.target.value) } : null
+                  )}
+                  placeholder="1000"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-website">Site Web</Label>
+                <Input
+                  id="edit-website"
+                  value={editingPractitioner.website || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, website: e.target.value } : null
+                  )}
+                  placeholder="https://monpraticien.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-linkedin">LinkedIn</Label>
+                <Input
+                  id="edit-linkedin"
+                  value={editingPractitioner.linkedin || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, linkedin: e.target.value } : null
+                  )}
+                  placeholder="https://linkedin.com/in/monprofil"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-rpps-number">RPPS Numéro</Label>
+                <Input
+                  id="edit-rpps-number"
+                  value={editingPractitioner.rpps_number || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, rpps_number: e.target.value } : null
+                  )}
+                  placeholder="12345678901"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-siret-number">Siret Numéro</Label>
+                <Input
+                  id="edit-siret-number"
+                  value={editingPractitioner.siret_number || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, siret_number: e.target.value } : null
+                  )}
+                  placeholder="12345678900010"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-payment-methods">Methodes de payement</Label>
+                <Input
+                  id="edit-payment-methods"
+                  value={
+                    Array.isArray(editingPractitioner.payment_methods)
+                      ? editingPractitioner.payment_methods.join(', ')
+                      : editingPractitioner.payment_methods || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            payment_methods: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Carte, Espèces, Virement"
+                />
+              </div>
               
               <div>
                 <Label htmlFor="edit-availability">Disponibilité</Label>
@@ -1480,7 +1627,53 @@ const filteredAppointments = appointments.filter(appointment => {
                   placeholder="Lundi-Vendredi 9h-17h"
                 />
               </div>
-              
+
+              <div>
+                <Label htmlFor="edit-languages">Langues</Label>
+                <Input
+                  id="edit-languages"
+                  value={
+                    Array.isArray(editingPractitioner.languages)
+                      ? editingPractitioner.languages.join(', ')
+                      : editingPractitioner.languages || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            languages: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Francais, Anglais, Espagnol"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-specializations">Specialisations</Label>
+                <Input
+                  id="edit-specializations"
+                  value={
+                    Array.isArray(editingPractitioner.specializations)
+                      ? editingPractitioner.specializations.join(', ')
+                      : editingPractitioner.specializations || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            specializations: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Cardiologie, Neurologie"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="edit-bio">Biographie</Label>
                 <textarea
@@ -1682,7 +1875,7 @@ const filteredAppointments = appointments.filter(appointment => {
                       <p className="text-sm font-medium text-gray-500">Email</p>
                       <p className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        {detailsPractitioner.email || 'Non renseigné'}
+                        {'Non renseigné'}
                       </p>
                     </div>
                     <div>
@@ -1740,12 +1933,6 @@ const filteredAppointments = appointments.filter(appointment => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Code postal</p>
                       <p>{detailsPractitioner.postal_code}</p>
-                    </div>
-                  )}
-                  {detailsPractitioner.location && (
-                    <div className="md:col-span-3">
-                      <p className="text-sm font-medium text-gray-500">Localisation</p>
-                      <p>{detailsPractitioner.location}</p>
                     </div>
                   )}
                   {detailsPractitioner.address && (
