@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Practitioner;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class PractitionerController extends Controller
 {
@@ -21,12 +22,12 @@ class PractitionerController extends Controller
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('specialty', 'like', "%{$search}%");
+                    ->orWhere('speciality', 'like', "%{$search}%");
             });
         }
 
-        if ($request->has('specialty') && $request->specialty !== 'all') {
-            $query->where('specialty', $request->specialty);
+        if ($request->has('speciality') && $request->speciality !== 'all') {
+            $query->where('speciality', $request->speciality);
         }
 
         $practitionersData = [];
@@ -45,26 +46,40 @@ class PractitionerController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:practitioners,email',
-            'phone' => 'nullable|string|max:20',
-            'specialty' => 'required|string|max:255', //required mais pour tester
-            'experience_years' => 'nullable|integer',
-            'rating' => 'nullable|numeric|min:0|max:5',
-            'bio' => 'nullable|string',
-            'availability' => 'nullable|string',
-            'certifications' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'phone' => 'nullable|string|max:255',
+                'speciality' => 'nullable|string|max:255',  
+                'country' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:255',
+                'postal_code' => 'nullable|string|max:255',
+                'availability' => 'nullable|string',
+                'bio' => 'nullable|string',
+            ]);
+            
+            // Add default values for required DB fields
+            $validated['status'] = 'active';
+            $validated['accepts_new_patients'] = 1;
+            $validated['emergency_consultations'] = 0;
+            $validated['consultation_mode'] = 'both';
+            $validated['user_id'] = $request->user_id ?? 1;
 
-        $practitioner = Practitioner::create($validated);
+            $practitioner = Practitioner::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Praticien créé avec succès',
-            'data' => $practitioner
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Praticien créé avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error creating practitioner: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -83,26 +98,34 @@ class PractitionerController extends Controller
      */
     public function update(Request $request, Practitioner $practitioner): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'sometimes|required|string|max:255',
-            'last_name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:practitioners,email,' . $practitioner->id,
-            'phone' => 'nullable|string|max:20',
-            'specialty' => 'sometimes|required|string|max:255',
-            'experience_years' => 'nullable|integer',
-            'rating' => 'nullable|numeric|min:0|max:5',
-            'bio' => 'nullable|string',
-            'availability' => 'nullable|string',
-            'certifications' => 'nullable|string',
-            'status' => 'nullable|in:active,suspended,inactive',
+        // Just update whatever fields are sent - no strict validation
+        $data = $request->only([
+            'first_name', 'last_name', 'phone', 'speciality',
+            'country', 'city', 'postal_code', 'address',
+            'consultation_mode', 'bio', 'availability',
+            'website', 'linkedin', 'rpps_number', 'siret_number',
+            'min_price', 'max_price', 'payment_methods',
+            'accepts_new_patients', 'emergency_consultations',
+            'languages', 'specializations',
         ]);
 
-        $practitioner->update($validated);
+        // Convert arrays to JSON
+        if (isset($data['payment_methods']) && is_array($data['payment_methods'])) {
+            $data['payment_methods'] = json_encode($data['payment_methods']);
+        }
+        if (isset($data['languages']) && is_array($data['languages'])) {
+            $data['languages'] = json_encode($data['languages']);
+        }
+        if (isset($data['specializations']) && is_array($data['specializations'])) {
+            $data['specializations'] = json_encode($data['specializations']);
+        }
+
+        $practitioner->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Praticien mis à jour avec succès',
-            'data' => $practitioner
+            'data' => $this->mapToFrontend($practitioner->fresh())
         ]);
     }
 
@@ -111,12 +134,20 @@ class PractitionerController extends Controller
      */
     public function destroy(Practitioner $practitioner): JsonResponse
     {
-        $practitioner->delete();
+        try {
+            $practitioner->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Praticien supprimé avec succès'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Praticien supprimé avec succès'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting practitioner: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -124,21 +155,29 @@ class PractitionerController extends Controller
      */
     public function suspend(Request $request, Practitioner $practitioner): JsonResponse
     {
-        $request->validate([
-            'reason' => 'required|string|max:255'
-        ]);
+        try {
+            $request->validate([
+                'reason' => 'required|string|max:255'
+            ]);
 
-        $practitioner->update([
-            'status' => 'suspended',
-            'suspended_at' => now(),
-            'suspension_reason' => $request->reason
-        ]);
+            $practitioner->update([
+                'status' => 'suspended',
+                'suspended_at' => now(),
+                'suspension_reason' => $request->reason
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Praticien suspendu avec succès',
-            'data' => $practitioner
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Praticien suspendu avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error suspending practitioner: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -146,45 +185,70 @@ class PractitionerController extends Controller
      */
     public function verify(Practitioner $practitioner): JsonResponse
     {
-        $practitioner->update([
-            'is_verified' => true
-        ]);
+        try {
+            $practitioner->update([
+                'is_verified' => true
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Praticien vérifié avec succès',
-            'data' => $practitioner
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Praticien vérifié avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error verifying practitioner: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+    
     /**
      * Reactivate a suspended practitioner.
      */
     public function reactivate(Practitioner $practitioner): JsonResponse
     {
-        $practitioner->update([
-            'status' => 'active',
-            'suspended_at' => null,
-            'suspension_reason' => null
-        ]);
+        try {
+            $practitioner->update([
+                'status' => 'active',
+                'suspended_at' => null,
+                'suspension_reason' => null
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Praticien réactivé avec succès',
-            'data' => $practitioner
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Praticien réactivé avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error reactivating practitioner: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function verifyCertifIprp(Practitioner $practitioner): JsonResponse
     {
-        $practitioner->update([
-            'certif_iprp_verified' => true
-        ]);
+        try {
+            $practitioner->update([
+                'certif_iprp_verified' => true
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Certificat IPRP vérifié avec succès',
-            'data' => $practitioner
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Certificat IPRP vérifié avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error verifying IPRP certificate: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -192,15 +256,23 @@ class PractitionerController extends Controller
      */
     public function verifyMasterPsyTravail(Practitioner $practitioner): JsonResponse
     {
-        $practitioner->update([
-            'master_psy_travail_verified' => true
-        ]);
+        try {
+            $practitioner->update([
+                'master_psy_travail_verified' => true
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Master Psy Travail vérifié avec succès',
-            'data' => $practitioner
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Master Psy Travail vérifié avec succès',
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error verifying Master Psy Travail: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     private function mapToFrontend(Practitioner $practitioner): array
@@ -218,7 +290,7 @@ class PractitionerController extends Controller
             'last_name' => $practitioner->last_name,
             'email' => $practitioner->email ?? '',
             'phone' => $practitioner->phone ?? '',
-            'specialty' => $practitioner->specialty ?? 'Spécialité non définie',
+            'speciality' => $practitioner->speciality ?? 'Spécialité non définie',
             'location' => empty($locationParts) ? 'Localisation non définie' : implode(', ', $locationParts),
             'bio' => $practitioner->bio,
             'experience_years' => $practitioner->experience_years ?? 0,

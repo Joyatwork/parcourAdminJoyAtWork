@@ -18,6 +18,8 @@ import BillingOrdersPage from "./pages/BillingOrdersPage";
 import BillingCreditsPage from "./pages/BillingCreditsPage";
 import BillingUsagesPage from "./pages/BillingUsagesPage";
 import BillingPayoutsPage from "./pages/BillingPayoutsPage";
+import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
+import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -54,6 +56,8 @@ const App = () => {
               path="/sante-diagnostic"
               element={<SanteDiagnosticDashboard />}
             />
+            <Route path="/qvct" element={<QVCTOverview/>}/>
+            <Route path="/analytics" element={<PredictiveAnalytics />} />
             <Route path="/billing" element={<BillingDashboard />} />
             <Route path="/billing/wallet" element={<BillingWalletPage />} />
             <Route path="/billing/orders" element={<BillingOrdersPage />} />

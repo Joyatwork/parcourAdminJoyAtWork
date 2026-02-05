@@ -41,25 +41,26 @@ const Index = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Primary Metrics */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* Health Metrics Overview */}
-          <HealthMetrics />
-          
+
           {/* Absenteeism Cost Breakdown */}
           <AbsenteeismCostBreakdown />
 
-          {/* ROI Calculator */}
+           {/* ROI Calculator */}
           <ROICalculator />
+          
+          {/* Health Metrics Overview */}
+          <HealthMetrics />
           
           {/* Wellness Insights */}
           <WellnessInsights />
           
           {/* Advanced KPIs Admin*/}
           <AdvancedKPIs />
+
+          {/* Predictive Analytics */}
+          <PredictiveAnalytics />
           
-          {/* QVCT Strategic Overview */}
-          <QVCTOverview />
- 
+          
         </div>
 
         {/* Right Column - Secondary Info */}
@@ -81,17 +82,15 @@ const Index = () => {
 
       {/* Bottom Row - Extended Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols gap-6">
-        {/* Predictive Analytics */}
-          <PredictiveAnalytics />
+        {/* QVCT Strategic Overview */}
+        <QVCTOverview />
+ 
         {/* Employee Verbatims */}
         <EmployeeVerbatims />
-
-        
       </div>
 
       {/* Advanced Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
         
         
       </div>

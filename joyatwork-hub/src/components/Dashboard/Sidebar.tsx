@@ -48,6 +48,12 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
       case "billing":
         navigate("/billing");
         break;
+      case "qvct":
+        navigate("/qvct");
+        break;
+      case "analytics":
+        navigate("/analytics");
+        break;
       default:
         onSectionChange(section);
     }
