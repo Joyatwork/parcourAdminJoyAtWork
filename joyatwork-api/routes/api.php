@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\CompanyAppointmentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\OrderController;
@@ -91,6 +92,12 @@ Route::delete('/praticien-certifications/{id}', [PraticienCertificationsControll
 Route::apiResource('appointments', AppointmentController::class);
 Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 Route::get('practitioners/{practitioner}/appointments', [AppointmentController::class, 'getAppointmentsByPractitioner']);
+
+// Routes pour les rendez-vous entreprises
+Route::get('company-appointments', [CompanyAppointmentController::class, 'index']);
+Route::post('company-appointments', [CompanyAppointmentController::class, 'store']);
+Route::put('company-appointments/{appointment}', [CompanyAppointmentController::class, 'update']);
+Route::delete('company-appointments/{appointment}', [CompanyAppointmentController::class, 'destroy']);
 
 // Routes pour les challenges
 Route::get('/challenges/trashed', [ChallengeController::class, 'trashed']);

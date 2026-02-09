@@ -61,6 +61,26 @@ import {
 import { useContracts } from "@/hooks/useContracts";
 import { toast } from "@/components/ui/use-toast";
 
+const COMPANY_API_BASE_URL =
+  (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/$/, "") ??
+  "http://localhost:8001/api";
+
+const toDateString = (date: Date) => date.toISOString().split("T")[0];
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+const getMinTimeForDate = (date: Date | null) => {
+  if (!date) return "00:00";
+  const now = new Date();
+  if (!isSameDay(date, now)) return "00:00";
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
 // Données de fallback en cas d'erreur API
 const fallbackCompanies = [
   {
@@ -219,7 +239,7 @@ const CompaniesDashboard = () => {
   const [selectedTime, setSelectedTime] = useState("10:00");
   const [rdvDetails, setRdvDetails] = useState("");
   const [isRdvListOpen, setIsRdvListOpen] = useState(false);
-  const [rdvList, setRdvList] = useState<{ companyId: number; date: string; time: string; details: string }[]>([]);
+  const [rdvList, setRdvList] = useState<{ id: number; companyId: number; date: string; time: string; details: string }[]>([]);
 
   // État pour afficher les détails complets d'une entreprise
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -228,8 +248,6 @@ const CompaniesDashboard = () => {
   const createCompany = useCreateCompany();
   const updateCompany = useUpdateCompany();
   const deleteCompany = useDeleteCompany();
-
-  // Gestion du bouton "Scroll to top"
   useEffect(() => {
     const handleScroll = () => {
       const scrolled = window.scrollY > 50;
@@ -241,6 +259,35 @@ const CompaniesDashboard = () => {
     
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const loadCompanyAppointments = async () => {
+      try {
+        const response = await fetch(`${COMPANY_API_BASE_URL}/company-appointments`);
+        if (!response.ok) {
+          throw new Error("Erreur de récupération des RDV");
+        }
+        const data = await response.json();
+        if (data?.success && Array.isArray(data.data)) {
+          setRdvList(
+            data.data
+              .filter((item: any) => item && typeof item.id === "number")
+              .map((item: any) => ({
+                id: item.id,
+                companyId: item.entreprise_id,
+                date: item.date,
+                time: item.time,
+                details: item.details ?? "",
+              }))
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadCompanyAppointments();
   }, []);
 
   const scrollToTop = () => {
@@ -533,6 +580,94 @@ const CompaniesDashboard = () => {
         });
       },
     });
+  };
+
+  const handleScheduleRdv = async () => {
+    if (!selectedDate || !selectedCompanyForRdv) return;
+    const minTime = getMinTimeForDate(selectedDate);
+    if (isSameDay(selectedDate, new Date()) && selectedTime < minTime) {
+      toast({
+        title: "Heure invalide",
+        description: "Veuillez choisir une heure a partir de maintenant.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`${COMPANY_API_BASE_URL}/company-appointments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entreprise_id: selectedCompanyForRdv,
+          date: selectedDate.toISOString().split("T")[0],
+          time: selectedTime,
+          details: rdvDetails,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Erreur lors de la planification du RDV");
+      }
+
+      const company = normalizedCompanies.find((c) => c.id === selectedCompanyForRdv);
+      setRdvList((prev) => [
+        {
+          id: data.data.id,
+          companyId: data.data.entreprise_id,
+          date: data.data.date,
+          time: data.data.time,
+          details: data.data.details ?? "",
+        },
+        ...prev,
+      ]);
+      toast({
+        title: "RDV planifié",
+        description: `Rendez-vous avec ${company?.name} planifié pour le ${selectedDate.toLocaleDateString('fr-FR')} à ${selectedTime}`,
+      });
+      setIsScheduleOpen(false);
+      setSelectedDate(null);
+      setSelectedCompanyForRdv(null);
+      setSelectedTime("10:00");
+      setRdvDetails("");
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'enregistrer le rendez-vous",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteRdv = async (rdvId: number, companyName: string) => {
+    try {
+      const response = await fetch(`${COMPANY_API_BASE_URL}/company-appointments/${rdvId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Erreur lors de l'annulation du RDV");
+      }
+
+      setRdvList((prev) => prev.filter((rdv) => rdv.id !== rdvId));
+      toast({
+        title: "RDV annulé",
+        description: `Le rendez-vous avec ${companyName} a été annulé`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler le rendez-vous",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -1552,7 +1687,7 @@ const CompaniesDashboard = () => {
           <DialogHeader>
             <DialogTitle>Planifier un rendez-vous</DialogTitle>
             <DialogDescription>
-              Rendez-vous avec {filteredCompanies.find(c => c.id === selectedCompanyForRdv)?.name || "l'entreprise"}
+              Rendez-vous avec {normalizedCompanies.find(c => c.id === selectedCompanyForRdv)?.name || "l'entreprise"}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
@@ -1560,9 +1695,20 @@ const CompaniesDashboard = () => {
               <label className="text-sm font-medium text-gray-700">Date</label>
               <Input
                 type="date"
-                value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+                value={selectedDate ? toDateString(selectedDate) : ''}
+                min={toDateString(new Date())}
                 onChange={(e) => {
                   const date = new Date(e.target.value);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  if (date < today) {
+                    toast({
+                      title: "Date invalide",
+                      description: "Veuillez choisir une date a partir d'aujourd'hui.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                   setSelectedDate(date);
                 }}
               />
@@ -1572,6 +1718,7 @@ const CompaniesDashboard = () => {
               <Input
                 type="time"
                 value={selectedTime}
+                min={getMinTimeForDate(selectedDate)}
                 onChange={(e) => setSelectedTime(e.target.value)}
               />
             </div>
@@ -1601,26 +1748,7 @@ const CompaniesDashboard = () => {
             </Button>
             <Button 
               className="bg-green-600 hover:bg-green-700"
-              onClick={() => {
-                if (selectedDate && selectedCompanyForRdv) {
-                  const company = filteredCompanies.find(c => c.id === selectedCompanyForRdv);
-                  setRdvList([...rdvList, { 
-                    companyId: selectedCompanyForRdv, 
-                    date: selectedDate.toISOString().split('T')[0],
-                    time: selectedTime,
-                    details: rdvDetails
-                  }]);
-                  toast({
-                    title: "RDV planifié",
-                    description: `Rendez-vous avec ${company?.name} planifié pour le ${selectedDate.toLocaleDateString('fr-FR')} à ${selectedTime}`,
-                  });
-                  setIsScheduleOpen(false);
-                  setSelectedDate(null);
-                  setSelectedCompanyForRdv(null);
-                  setSelectedTime("10:00");
-                  setRdvDetails("");
-                }
-              }}
+              onClick={handleScheduleRdv}
             >
               Planifier
             </Button>
@@ -1639,11 +1767,11 @@ const CompaniesDashboard = () => {
           </DialogHeader>
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {rdvList.length > 0 ? (
-              rdvList.map((rdv, index) => {
-                const company = filteredCompanies.find(c => c.id === rdv.companyId);
+              rdvList.map((rdv) => {
+                const company = normalizedCompanies.find(c => c.id === rdv.companyId);
                 if (!company) return null;
                 return (
-                  <Card key={index} className="p-4">
+                  <Card key={rdv.id} className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{company.name}</h3>
@@ -1668,14 +1796,7 @@ const CompaniesDashboard = () => {
                           variant="outline"
                           size="sm"
                           className="border-red-200 text-red-600 hover:bg-red-50"
-                          onClick={() => {
-                            setRdvList(rdvList.filter((_, i) => i !== index));
-                            toast({
-                              title: "RDV annulé",
-                              description: `Le rendez-vous avec ${company.name} a été annulé`,
-                              variant: "destructive",
-                            });
-                          }}
+                          onClick={() => handleDeleteRdv(rdv.id, company.name)}
                         >
                           Annuler
                         </Button>
