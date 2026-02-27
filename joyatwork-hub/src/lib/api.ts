@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080';
+const rawApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  'http://127.0.0.1:8001/api';
+
+const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, '');
 
 // Configuration d'axios
 const api = axios.create({
@@ -57,6 +62,44 @@ export interface Challenge {
   status: 'Actif' | 'Brouillon' | 'Terminé';
   created_at: string;
   updated_at: string;
+}
+
+export interface UserAccount {
+  id: number;
+  entreprise_id?: number | null;
+  email?: string | null;
+  phone?: string | null;
+  password_hash?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: number | boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  name?: string | null;
+  email_verified_at?: string | null;
+  password?: string | null;
+  role?: 'admin' | 'practitioner' | 'enterprise' | 'employee' | null;
+  remember_token?: string | null;
+  birth_date?: string | null;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+  bio?: string | null;
+  avatar?: string | null;
+  preferences?: unknown;
+  health_goals?: unknown;
+  status?: 'active' | 'inactive' | 'suspended' | null;
+  last_login_at?: string | null;
+  google_id?: string | null;
+  provider?: string | null;
+  avatar_url?: string | null;
+  role_id?: number | null;
+}
+
+export interface CreateAdminPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  password: string;
 }
 
 // Services API
@@ -132,6 +175,13 @@ export const challengesApi = {
   create: (data: Partial<Challenge>) => api.post<Challenge>('/challenges', data),
   update: (id: number, data: Partial<Challenge>) => api.put<Challenge>(`/challenges/${id}`, data),
   delete: (id: number) => api.delete(`/challenges/${id}`),
+};
+
+export const usersApi = {
+  getAll: () => api.get<UserAccount[]>('/users'),
+  createAdmin: (data: CreateAdminPayload) => api.post<UserAccount>('/users/admin', data),
+  update: (id: number, data: Partial<UserAccount>) => api.patch<UserAccount>(`/users/${id}`, data),
+  delete: (id: number) => api.delete(`/users/${id}`),
 };
 
 // Intercepteur pour la gestion des erreurs

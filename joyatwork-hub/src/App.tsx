@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -18,6 +18,8 @@ import BillingOrdersPage from "./pages/BillingOrdersPage";
 import BillingCreditsPage from "./pages/BillingCreditsPage";
 import BillingUsagesPage from "./pages/BillingUsagesPage";
 import BillingPayoutsPage from "./pages/BillingPayoutsPage";
+import Login from "./pages/Login";
+import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
 
@@ -43,7 +45,9 @@ const App = () => {
       >
         <Layout>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/dashboard" element={<Index />} />
             <Route
               path="/practitioners"
               element={<PractitionersDashboardFixed />}
@@ -58,6 +62,7 @@ const App = () => {
             />
             <Route path="/qvct" element={<QVCTOverview/>}/>
             <Route path="/analytics" element={<PredictiveAnalytics />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/billing" element={<BillingDashboard />} />
             <Route path="/billing/wallet" element={<BillingWalletPage />} />
             <Route path="/billing/orders" element={<BillingOrdersPage />} />

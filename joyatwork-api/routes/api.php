@@ -11,6 +11,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\AuthController;
 
 use App\Http\Controllers\PractitionerController;
 use App\Http\Controllers\ChallengeController;
@@ -22,6 +23,8 @@ use App\Http\Controllers\ChallengeCitationController;
 use App\Http\Controllers\ChallengeCitationThemeController;
 use App\Http\Controllers\PraticienDiplomesController;
 use App\Http\Controllers\PraticienCertificationsController;
+use App\Http\Controllers\UserChallengeController;
+use App\Http\Controllers\UserController;
 
 // KPI Company Health Controller
 use App\Http\Controllers\KpiCompanyHealthController;
@@ -33,6 +36,12 @@ use App\Http\Controllers\DiagnosticController;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/users', [UserController::class, 'index']);
+Route::post('/users/admin', [UserController::class, 'storeAdmin']);
+Route::patch('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Routes pour les entreprises (JoyAtWork)
 Route::apiResource('companies', CompanyController::class);

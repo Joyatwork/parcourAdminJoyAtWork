@@ -9,10 +9,11 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [activeSection, setActiveSection] = useState("overview");
   const location = useLocation();
+  const isAuthPage = location.pathname === "/login";
 
   // Synchroniser activeSection avec la route actuelle
   useEffect(() => {
-    if (location.pathname === "/") {
+    if (location.pathname === "/" || location.pathname === "/dashboard") {
       setActiveSection("overview");
     } else if (location.pathname === "/practitioners") {
       setActiveSection("practitioners");
@@ -32,6 +33,8 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("qvct");
     }else if (location.pathname === "/analytics") {
       setActiveSection("analytics");
+    }else if (location.pathname === "/users") {
+      setActiveSection("users");
     }
   }, [location.pathname]);
 
@@ -40,6 +43,10 @@ export function Layout({ children }: LayoutProps) {
     // Cette fonction sera gérée par la navigation React Router
     // La sidebar utilisera directement les liens de navigation
   };
+
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
