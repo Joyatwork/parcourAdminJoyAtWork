@@ -11,32 +11,42 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\CreditController;
+<<<<<<< HEAD
 use App\Http\Controllers\AuthController;
 
+=======
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 use App\Http\Controllers\PractitionerController;
 use App\Http\Controllers\ChallengeController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChallengePackController;
-
 use App\Http\Controllers\ChallengeCitationController;
 use App\Http\Controllers\ChallengeCitationThemeController;
 use App\Http\Controllers\PraticienDiplomesController;
 use App\Http\Controllers\PraticienCertificationsController;
+<<<<<<< HEAD
 use App\Http\Controllers\UserChallengeController;
 use App\Http\Controllers\UserController;
 
 // KPI Company Health Controller
+=======
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 use App\Http\Controllers\KpiCompanyHealthController;
-use App\Models\KpiCompanyHealth;
-
-// Santé & Diagnostics
 use App\Http\Controllers\DiagnosticController;
+use App\Http\Controllers\AdminAnalyticsController; // ✅ AJOUT
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
+// ==========================================
+// AUTH
+// ==========================================
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+<<<<<<< HEAD
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/users', [UserController::class, 'index']);
 Route::post('/users/admin', [UserController::class, 'storeAdmin']);
@@ -44,14 +54,29 @@ Route::patch('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Routes pour les entreprises (JoyAtWork)
+=======
+
+// ==========================================
+// ENTREPRISES
+// ==========================================
+
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 Route::apiResource('companies', CompanyController::class);
 Route::get('/companies-stats', [CompanyController::class, 'stats']);
 
-// Routes pour les contrats
+
+// ==========================================
+// CONTRATS
+// ==========================================
+
 Route::apiResource('contracts', ContractController::class);
 Route::get('/contracts-stats', [ContractController::class, 'stats']);
 
-// Wallet / Orders / Usages / Payouts / Invoices (facturation simplifiée)
+
+// ==========================================
+// FACTURATION / WALLET / USAGES
+// ==========================================
+
 Route::get('/wallets/find-by-entreprise', [WalletController::class, 'findByEntreprise']);
 Route::get('/wallets/{wallet}', [WalletController::class, 'show']);
 Route::get('/wallets/{wallet}/transactions', [WalletController::class, 'transactions']);
@@ -80,13 +105,15 @@ Route::get('/credits', [CreditController::class, 'index']);
 Route::get('/credits/{credit}', [CreditController::class, 'show']);
 
 
-// Routes pour les praticiens ---------------------------------------------------------------------------
+// ==========================================
+// PRATICIENS
+// ==========================================
+
 Route::apiResource('practitioners', PractitionerController::class);
 Route::post('practitioners/{practitioner}/suspendre', [PractitionerController::class, 'suspend']);
 Route::post('practitioners/{practitioner}/reactivate', [PractitionerController::class, 'reactivate']);
 Route::post('practitioners/{practitioner}/verify', [PractitionerController::class, 'verify']);
 
-// Routes pour les certificats/diplomes des praticiens
 Route::get('praticien-diplomes/{praticienId}', [PraticienDiplomesController::class, 'getDiplomesByPraticien']);
 Route::post('praticien-diplomes/{id}/verifier', [PraticienDiplomesController::class, 'verifier_diplome']);
 Route::post('praticien-diplomes/{id}/deverifier', [PraticienDiplomesController::class, 'deverifier_diplome']);
@@ -97,11 +124,16 @@ Route::post('praticien-certifications/{id}/verifier', [PraticienCertificationsCo
 Route::post('praticien-certifications/{id}/deverifier', [PraticienCertificationsController::class, 'deverifier_certfification']);
 Route::delete('/praticien-certifications/{id}', [PraticienCertificationsController::class, 'destroy']);
 
-// Routes pour les rendez-vous
+
+// ==========================================
+// RENDEZ-VOUS
+// ==========================================
+
 Route::apiResource('appointments', AppointmentController::class);
 Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel']);
 Route::get('practitioners/{practitioner}/appointments', [AppointmentController::class, 'getAppointmentsByPractitioner']);
 
+<<<<<<< HEAD
 // Routes pour les rendez-vous entreprises
 Route::get('company-appointments', [CompanyAppointmentController::class, 'index']);
 Route::post('company-appointments', [CompanyAppointmentController::class, 'store']);
@@ -109,43 +141,47 @@ Route::put('company-appointments/{appointment}', [CompanyAppointmentController::
 Route::delete('company-appointments/{appointment}', [CompanyAppointmentController::class, 'destroy']);
 
 // Routes pour les challenges
+=======
+
+// ==========================================
+// CHALLENGES
+// ==========================================
+
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 Route::get('/challenges/trashed', [ChallengeController::class, 'trashed']);
 Route::post('/challenges/{id}/restore', [ChallengeController::class, 'restore']);
 Route::apiResource('challenges', ChallengeController::class);
 Route::get('/challenges/{id}/participants', [ChallengeController::class, 'participantsParDefi']);
 
-// Routes pour les user_challenges
-Route::get('/user-challenges/length-participants/{id}', [UserChallengeController::class, 'lenghParticipantsParDefi']);
-// Routes for dropdown data
-Route::get('/challenge-categories', function () {
-    return \App\Models\ChallengeCategory::all();
-});
-
-Route::get('/challenge-types', function () {
-    return \App\Models\ChallengeType::all();
-});
-
-Route::get('/challenge-intensities', function () {
-    return \App\Models\ChallengeIntensity::all();
-});
-
-Route::post('/challenges/{id}/upload-image', [ChallengeController::class, 'uploadImage']);
-
-// Challnege Packs
 Route::apiResource('challenge-packs', ChallengePackController::class);
-
-// Challenge Citations Routes
 Route::apiResource('challenge-citations', ChallengeCitationController::class);
 Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
 
 
-// KPI Company Health Routes
+// ==========================================
+// KPI & DIAGNOSTICS
+// ==========================================
+
 Route::get('/kpi-company-health/global-health', [KpiCompanyHealthController::class, 'get_global_health']);
 
-// Santé & Diagnostics Routes
 Route::get('/diagnostics/user-health', [DiagnosticController::class, 'get_users_health_per_month']);
 Route::get('/diagnostics/company-health', [DiagnosticController::class, 'get_company_health_per_month']);
 Route::get('/diagnostics', function() {
-    return \App\Models\Diagnostic::latest()->get(); // For the History tab
+    return \App\Models\Diagnostic::latest()->get();
 });
 Route::get('/diagnostics/global-stats', [DiagnosticController::class, 'get_global_stats']);
+
+
+// ==========================================
+// ADMIN ANALYTICS — ADOPTION & CHURN
+// ==========================================
+
+Route::prefix('admin')->group(function () {
+
+    // Démo locale : on supprime temporairement auth:sanctum pour éviter OpaqueResponseBlocking
+    Route::get('/usage-by-company', [AdminAnalyticsController::class, 'usageByCompany'])
+        ->withoutMiddleware(['auth:sanctum']);
+
+    Route::get('/churn-risk', [AdminAnalyticsController::class, 'churnRisk'])
+        ->withoutMiddleware(['auth:sanctum']);
+});

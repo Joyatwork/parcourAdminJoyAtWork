@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,27 +13,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   LayoutDashboard,
-  Activity,
   Heart,
-  Calendar,
-  Users,
-  BarChart3,
   FileText,
   LogOut,
   Stethoscope,
   Target,
+<<<<<<< HEAD
   Shield,
+=======
+  TrendingUp,
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
   Building2,
   DollarSign,
 } from "lucide-react";
 
-interface SidebarProps {
-  activeSection: string;
-  onSectionChange: (section: string) => void;
-}
-
-export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+export function Sidebar() {
   const navigate = useNavigate();
+<<<<<<< HEAD
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const storedUser = localStorage.getItem("user");
   let parsedUser: { first_name?: string; last_name?: string; name?: string } | null = null;
@@ -115,6 +111,29 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
     <>
       <aside className="w-64 bg-card border-r border-border h-screen fixed inset-y-0 left-0 z-20 overflow-y-auto scrollbar-hide">
         <div className="p-6">
+=======
+  const location = useLocation();
+
+  const menuItems = [
+    { id: "/", label: "Vue d'ensemble", icon: LayoutDashboard },
+    { id: "/sante-diagnostic", label: "Santé & Diagnostic", icon: Heart },
+    { id: "/companies", label: "Entreprises", icon: Building2 },
+    { id: "/practitioners", label: "Praticiens", icon: Stethoscope },
+    { id: "/challenges", label: "Challenges", icon: Target },
+
+    // ✅ CHURN page (si widget dans Index → laisser "/")
+    { id: "/churn", label: "Churn Risk", icon: TrendingUp },
+
+    { id: "/billing", label: "Billing & Wallet", icon: DollarSign },
+    { id: "/reports", label: "Rapports", icon: FileText },
+    { id: "/settings", label: "Paramètres", icon: Settings },
+  ];
+
+  return (
+    <aside className="w-64 bg-card border-r border-border h-screen fixed inset-y-0 left-0 z-20 overflow-y-auto">
+      <div className="p-6">
+        {/* LOGO */}
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
             <Heart className="w-6 h-6 text-white" />
@@ -125,12 +144,16 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
           </div>
         </div>
 
+        {/* MENU */}
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isActive = location.pathname === item.id;
+
             return (
               <Button
                 key={item.id}
+<<<<<<< HEAD
                 variant={activeSection === item.id ? "secondary" : "ghost"}
                 className={`w-full justify-start gap-3 h-12 ${activeSection === item.id
                   ? "bg-gradient-primary text-white shadow-soft"
@@ -141,6 +164,15 @@ export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
                 onClick={() => {
                   handleNavigation(item.id);
                 }}
+=======
+                variant={isActive ? "secondary" : "ghost"}
+                className={`w-full justify-start gap-3 h-12 ${
+                  isActive
+                    ? "bg-gradient-primary text-white shadow-soft"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+                onClick={() => navigate(item.id)}
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
               >
                 <Icon className="w-5 h-5" />
                 {item.label}

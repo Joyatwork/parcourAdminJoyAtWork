@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+<<<<<<< HEAD
         User::updateOrCreate(
             ['email' => 'rachid.ouiz@hotmail.com'],
             [
@@ -26,5 +27,17 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+=======
+        // User::factory(10)->create();
+
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+        ]);
+        // On ajoute l'appel au nouveau seeder pour les filtres du Dashboard
+    $this->call([
+        KpiCompanyHealthSeeder::class,
+    ]);
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
     }
 }

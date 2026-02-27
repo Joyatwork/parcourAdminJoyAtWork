@@ -1,39 +1,38 @@
-import axios from 'axios';
+import axios from "axios";
 
+<<<<<<< HEAD
 const rawApiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
   'http://127.0.0.1:8001/api';
 
 const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, '');
+=======
+const API_BASE_URL = "http://localhost:8001/api"; // backend PHP Laravel
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 
-// Configuration d'axios
+// Configuration axios
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
-  withCredentials: false,
+  withCredentials: false, // CORS géré côté Laravel
 });
 
-// Types pour TypeScript
-export interface Company {
-  id: number;
-  name: string;
-  sector: string;
-  employees_count: number;
-  email: string;
-  phone: string;
-  website?: string;
-  status: 'Active' | 'Inactive';
-  description?: string;
-  verified: boolean;
-  active_contracts: number;
-  created_at: string;
-  updated_at: string;
+// Types
+export interface CompanyUsage {
+  company: number | string;
+  company_name: string;
+  total_employees: number;
+  active_users: number;
+  adoption_rate: number;
+  risk_level: string;
+  satisfaction_score?: number;
 }
 
+<<<<<<< HEAD
 export interface Practitioner {
   id?: number | string;
   first_name: string;
@@ -113,56 +112,34 @@ export const companiesApi = {
 
 export const practitionersApi = {
   getAll: async () => {
+=======
+// Service pour churn/adoption
+export const adoptionChurnApi = {
+  getAll: async (): Promise<CompanyUsage[]> => {
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
     try {
-      console.log('Appel API vers:', `${API_BASE_URL}/practitioners-real.php`);
-      const response = await fetch(`${API_BASE_URL}/practitioners-real.php`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Données reçues:', data);
-      return { data };
+      // 🔹 URL correcte pour Laravel
+      const response = await api.get("/admin/churn-risk");
+      const json = response.data;
+      const raw = Array.isArray(json) ? json : json.data ?? [];
+
+      return raw.map((c: any) => ({
+        company: c.company ?? c.company_name ?? "Inconnu",
+        company_name: c.company ?? c.company_name ?? "Inconnu",
+        total_employees: c.total_employees ?? c.nombre_employes ?? 0,
+        active_users: c.active_users ?? 0,
+        adoption_rate: c.usage_rate ?? 0,
+        risk_level: c.churn_risk ?? "Low",
+        satisfaction_score: c.satisfaction ?? 0,
+      }));
     } catch (error) {
-      console.error('Erreur dans practitionersApi.getAll:', error);
+      console.error("Erreur API churn-risk:", error);
       throw error;
     }
   },
-  create: async (data: Partial<Practitioner>) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/add_practitioner.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        mode: 'cors',
-        body: JSON.stringify(data)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      return { data: result };
-    } catch (error) {
-      console.error('Erreur dans practitionersApi.create:', error);
-      throw error;
-    }
-  },
-  update: (id: number, data: Partial<Practitioner>) => api.put<Practitioner>(`/update_practitioner.php?id=${id}`, data),
-  delete: (id: number) => api.delete(`/delete_practitioner.php?id=${id}`),
 };
 
+<<<<<<< HEAD
 // Fonction helper pour créer un praticien
 export const createPractitioner = async (data: Partial<Practitioner>): Promise<Practitioner> => {
   const response = await practitionersApi.create(data);
@@ -185,10 +162,13 @@ export const usersApi = {
 };
 
 // Intercepteur pour la gestion des erreurs
+=======
+// Intercepteur pour erreurs
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error("API Error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );

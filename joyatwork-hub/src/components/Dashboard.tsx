@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Sidebar } from "@/components/Dashboard/Sidebar";
+
 import { HealthMetrics } from "@/components/Dashboard/HealthMetrics";
 import { QuickActions } from "@/components/Dashboard/QuickActions";
 import { RecentActivity } from "@/components/Dashboard/RecentActivity";
@@ -19,61 +18,43 @@ import { PredictiveAnalytics } from "@/components/Dashboard/PredictiveAnalytics"
 import { PerformanceEngagementChart } from "@/components/Dashboard/PerformanceEngagementChart";
 import { AbsenteeismCostBreakdown } from "@/components/Dashboard/AbsenteeismCostBreakdown";
 import { StrategicQVCTHeader } from "@/components/Dashboard/StrategicQVCTHeader";
+import { AdoptionChurnWidget } from "@/components/Dashboard/AdoptionChurnWidget"; // ✅ widget utilisé
+
 import PractitionersDashboard from "@/pages/PractitionersDashboard";
 import Companies from "@/pages/Companies";
-import ChallengesDashboardNew from "@/pages/ChallengesDashboardNew";
+import ChallengesDashboard from "@/pages/ChallengesDashboard";
 import SanteDiagnosticDashboard from "@/pages/SanteDiagnosticDashboard";
-import RendezVousDashboard from "@/pages/RendezVousDashboard";
-import { 
-  Activity, 
-  Heart, 
-  TrendingUp, 
-  Bell,
-  Calendar,
-  Users,
-  BarChart3,
-  Zap
-} from "lucide-react";
+
+import { Heart, TrendingUp, Users, Zap } from "lucide-react";
 
 export function Dashboard() {
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState<string>("overview");
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Synchroniser activeSection avec la route actuelle
   useEffect(() => {
-    if (location.pathname === '/') {
-      setActiveSection('overview');
-    } else if (location.pathname === '/practitioners') {
-      setActiveSection('practitioners');
-    } else if (location.pathname === '/companies') {
-      setActiveSection('companies');
-    } else if (location.pathname === '/challenges') {
-      setActiveSection('challenges');
-    } else if (location.pathname === '/sante-diagnostic') {
-      setActiveSection('health');
-    } else if (location.pathname === '/rendez-vous') {
-      setActiveSection('appointments');
+    switch (location.pathname) {
+      case "/": setActiveSection("overview"); break;
+      case "/practitioners": setActiveSection("practitioners"); break;
+      case "/companies": setActiveSection("companies"); break;
+      case "/challenges": setActiveSection("challenges"); break;
+      case "/sante-diagnostic": setActiveSection("health"); break;
+      case "/rendez-vous": setActiveSection("appointments"); break;
+      case "/churn": setActiveSection("churn"); break;
+      default: setActiveSection("overview");
     }
   }, [location.pathname]);
 
-  // Fonction pour gérer les changements de section avec navigation
   const handleSectionChange = (section: string) => {
-    if (section === 'practitioners') {
-      navigate('/practitioners');
-    } else if (section === 'companies') {
-      navigate('/companies');
-    } else if (section === 'challenges') {
-      navigate('/challenges');
-    } else if (section === 'health') {
-      navigate('/sante-diagnostic');
-    } else if (section === 'appointments') {
-      navigate('/rendez-vous');
-    } else if (section === 'overview') {
-      navigate('/');
-    } else {
-      // Pour les autres sections, utiliser le state local
-      setActiveSection(section);
+    switch (section) {
+      case "practitioners": navigate("/practitioners"); break;
+      case "companies": navigate("/companies"); break;
+      case "challenges": navigate("/challenges"); break;
+      case "health": navigate("/sante-diagnostic"); break;
+      case "appointments": navigate("/rendez-vous"); break;
+      case "overview": navigate("/"); break;
+      case "churn": navigate("/churn"); break;
+      default: setActiveSection(section);
     }
   };
 
@@ -81,27 +62,31 @@ export function Dashboard() {
     <div className="min-h-screen bg-gradient-subtle">
       <div className="flex">
         <Sidebar activeSection={activeSection} onSectionChange={handleSectionChange} />
-        
+
         <main className="flex-1">
-          {activeSection === "practitioners" ? (
-            <PractitionersDashboard />
-          ) : activeSection === "companies" ? (
-            <Companies />
-          ) : activeSection === "challenges" ? (
-            <ChallengesDashboardNew />
-          ) : activeSection === "health" ? (
-            <SanteDiagnosticDashboard />
-          ) : activeSection === "appointments" ? (
-            <RendezVousDashboard />
-          ) : (
+          {/* PAGES */}
+          {activeSection === "practitioners" && <PractitionersDashboard />}
+          {activeSection === "companies" && <Companies />}
+          {activeSection === "challenges" && <ChallengesDashboard />}
+          {activeSection === "health" && <SanteDiagnosticDashboard />}
+
+          {/* CHURN directement avec le widget */}
+          {activeSection === "churn" && (
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Alertes Adoption & Churn</h2>
+              <AdoptionChurnWidget />
+            </div>
+          )}
+
+          {/* OVERVIEW */}
+          {activeSection === "overview" && (
             <div className="p-6 space-y-6">
-              {/* Strategic QVCT Header */}
               <StrategicQVCTHeader />
 
-              {/* Quick Stats */}
+              {/* KPI ROW */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card className="p-6 bg-gradient-primary text-white border-0 shadow-soft">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <div>
                       <p className="text-blue-100">Score bien-être</p>
                       <p className="text-3xl font-bold">84%</p>
@@ -112,7 +97,7 @@ export function Dashboard() {
                 </Card>
 
                 <Card className="p-6 bg-gradient-wellness text-white border-0 shadow-soft">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <div>
                       <p className="text-green-100">Objectifs atteints</p>
                       <p className="text-3xl font-bold">7/10</p>
@@ -123,7 +108,7 @@ export function Dashboard() {
                 </Card>
 
                 <Card className="p-6 bg-gradient-energy text-white border-0 shadow-soft">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <div>
                       <p className="text-orange-100">Équipe active</p>
                       <p className="text-3xl font-bold">156</p>
@@ -133,22 +118,21 @@ export function Dashboard() {
                   <div className="mt-3 text-sm text-orange-100">+12% ce mois</div>
                 </Card>
 
-                <Card className="p-6 border shadow-soft">
-                  <div className="flex items-center justify-between">
+                {/* KPI CHURN GLOBAL */}
+                <Card className="p-6 border shadow-soft cursor-pointer" onClick={() => navigate("/churn")}>
+                  <div className="flex justify-between">
                     <div>
-                      <p className="text-muted-foreground">Alertes critiques</p>
-                      <p className="text-3xl font-bold text-warning">3</p>
+                      <p className="text-muted-foreground">Alertes Churn globales</p>
+                      <p className="text-3xl font-bold text-warning">⚠</p>
                     </div>
                     <Zap className="w-8 h-8 text-warning" />
                   </div>
-                  <div className="mt-3 text-sm text-muted-foreground">À traiter</div>
+                  <div className="mt-3 text-sm text-muted-foreground">Voir détail</div>
                 </Card>
               </div>
 
-              {/* Performance vs Engagement Analysis */}
               <PerformanceEngagementChart />
 
-              {/* Main Content Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <AbsenteeismCostBreakdown />
@@ -156,11 +140,12 @@ export function Dashboard() {
                   <QVCTOverview />
                   <ROICalculator />
                   <AdvancedKPIs />
+                  <AdoptionChurnWidget /> {/* Widget aussi visible dans overview */}
                   <PredictiveAnalytics />
                   <WellnessInsights />
                   <EmployeeVerbatims />
                 </div>
-                
+
                 <div className="space-y-6">
                   <QuickActions />
                   <RealTimeAlerts />

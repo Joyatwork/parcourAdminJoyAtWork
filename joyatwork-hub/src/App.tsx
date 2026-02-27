@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PractitionersDashboardFixed from "./pages/PractitionersDashboardFixed";
@@ -23,6 +24,9 @@ import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
 
+// ✅ Import corrigé : chemin réel du fichier
+import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
+
 const App = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -34,6 +38,7 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+<<<<<<< HEAD
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -77,6 +82,43 @@ const App = () => {
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+=======
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/practitioners" element={<PractitionersDashboardFixed />} />
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/contracts" element={<ContractsDashboard />} />
+              <Route path="/challenges" element={<ChallengesDashboardNew />} />
+              <Route path="/sante-diagnostic" element={<SanteDiagnosticDashboard />} />
+              <Route path="/billing" element={<BillingDashboard />} />
+              <Route path="/billing/wallet" element={<BillingWalletPage />} />
+              <Route path="/billing/orders" element={<BillingOrdersPage />} />
+              <Route path="/billing/credits" element={<BillingCreditsPage />} />
+              <Route path="/billing/usages" element={<BillingUsagesPage />} />
+              <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
+              <Route path="/test" element={<TestNavigation />} />
+
+              {/* ✅ Route Churn ajoutée */}
+              <Route path="/churn" element={<AdoptionChurnWidget />} />
+
+              {/* Catch-all */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
   );
 };
 

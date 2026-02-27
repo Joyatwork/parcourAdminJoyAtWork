@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { Sidebar } from "@/components/Dashboard/Sidebar";
 
 interface LayoutProps {
@@ -7,6 +5,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+<<<<<<< HEAD
   const [activeSection, setActiveSection] = useState("overview");
   const location = useLocation();
   const isAuthPage = location.pathname === "/login";
@@ -48,15 +47,17 @@ export function Layout({ children }: LayoutProps) {
     return <>{children}</>;
   }
 
+=======
+>>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="flex">
-        <Sidebar
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-        />
-        <main className="flex-1 ml-64">{children}</main>
-      </div>
+    <div className="min-h-screen bg-gradient-subtle flex">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Contenu */}
+      <main className="flex-1 ml-64 p-6">
+        {children}
+      </main>
     </div>
   );
 }
