@@ -1,13 +1,15 @@
 import { Sidebar } from "@/components/Dashboard/Sidebar";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-<<<<<<< HEAD
   const [activeSection, setActiveSection] = useState("overview");
   const location = useLocation();
+
   const isAuthPage = location.pathname === "/login";
 
   // Synchroniser activeSection avec la route actuelle
@@ -24,35 +26,26 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("challenges");
     } else if (location.pathname === "/sante-diagnostic") {
       setActiveSection("health");
-    } else if (location.pathname === "/rendez-vous") {
-      setActiveSection("appointments");
     } else if (location.pathname === "/billing" || location.pathname.startsWith("/billing/")) {
       setActiveSection("billing");
-    }else if (location.pathname === "/qvct") {
+    } else if (location.pathname === "/qvct") {
       setActiveSection("qvct");
-    }else if (location.pathname === "/analytics") {
+    } else if (location.pathname === "/analytics") {
       setActiveSection("analytics");
-    }else if (location.pathname === "/users") {
+    } else if (location.pathname === "/users") {
       setActiveSection("users");
     }
   }, [location.pathname]);
 
-  // Fonction pour gérer les changements de section avec navigation
-  const handleSectionChange = (section: string) => {
-    // Cette fonction sera gérée par la navigation React Router
-    // La sidebar utilisera directement les liens de navigation
-  };
-
+  // Si page login → pas de sidebar
   if (isAuthPage) {
     return <>{children}</>;
   }
 
-=======
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
   return (
     <div className="min-h-screen bg-gradient-subtle flex">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar activeSection={activeSection} />
 
       {/* Contenu */}
       <main className="flex-1 ml-64 p-6">

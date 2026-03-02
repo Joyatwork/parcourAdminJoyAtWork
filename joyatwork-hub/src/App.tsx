@@ -23,8 +23,6 @@ import Login from "./pages/Login";
 import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
-
-// ✅ Import corrigé : chemin réel du fichier
 import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
 
 const App = () => {
@@ -38,51 +36,6 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-<<<<<<< HEAD
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <Layout>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/dashboard" element={<Index />} />
-            <Route
-              path="/practitioners"
-              element={<PractitionersDashboardFixed />}
-            />
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/contracts" element={<ContractsDashboard />} />
-            <Route path="/challenges" element={<ChallengesDashboardNew />} />
-
-            <Route
-              path="/sante-diagnostic"
-              element={<SanteDiagnosticDashboard />}
-            />
-            <Route path="/qvct" element={<QVCTOverview/>}/>
-            <Route path="/analytics" element={<PredictiveAnalytics />} />
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/billing" element={<BillingDashboard />} />
-            <Route path="/billing/wallet" element={<BillingWalletPage />} />
-            <Route path="/billing/orders" element={<BillingOrdersPage />} />
-            <Route path="/billing/credits" element={<BillingCreditsPage />} />
-            <Route path="/billing/usages" element={<BillingUsagesPage />} />
-            <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
-            <Route path="/test" element={<TestNavigation />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-=======
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -94,22 +47,34 @@ const App = () => {
         >
           <Layout>
             <Routes>
-              <Route path="/" element={<Index />} />
+              {/* Auth */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+
+              {/* Dashboards */}
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/practitioners" element={<PractitionersDashboardFixed />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/contracts" element={<ContractsDashboard />} />
               <Route path="/challenges" element={<ChallengesDashboardNew />} />
               <Route path="/sante-diagnostic" element={<SanteDiagnosticDashboard />} />
+              <Route path="/qvct" element={<QVCTOverview />} />
+              <Route path="/analytics" element={<PredictiveAnalytics />} />
+              <Route path="/users" element={<UsersPage />} />
+
+              {/* Billing */}
               <Route path="/billing" element={<BillingDashboard />} />
               <Route path="/billing/wallet" element={<BillingWalletPage />} />
               <Route path="/billing/orders" element={<BillingOrdersPage />} />
               <Route path="/billing/credits" element={<BillingCreditsPage />} />
               <Route path="/billing/usages" element={<BillingUsagesPage />} />
               <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
-              <Route path="/test" element={<TestNavigation />} />
 
-              {/* ✅ Route Churn ajoutée */}
+              {/* Churn */}
               <Route path="/churn" element={<AdoptionChurnWidget />} />
+
+              {/* Test */}
+              <Route path="/test" element={<TestNavigation />} />
 
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
@@ -118,7 +83,6 @@ const App = () => {
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
   );
 };
 

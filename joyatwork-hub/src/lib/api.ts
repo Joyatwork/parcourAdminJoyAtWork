@@ -1,27 +1,37 @@
 import axios from "axios";
 
-<<<<<<< HEAD
+/**
+ * ===============================
+ * API BASE URL (ENV prioritaire)
+ * ===============================
+ */
 const rawApiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  'http://127.0.0.1:8001/api';
+  "http://127.0.0.1:8001/api";
 
-const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, '');
-=======
-const API_BASE_URL = "http://localhost:8001/api"; // backend PHP Laravel
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
+const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, "");
 
-// Configuration axios
+/**
+ * ===============================
+ * AXIOS INSTANCE
+ * ===============================
+ */
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  withCredentials: false, // CORS géré côté Laravel
+  withCredentials: false, // CORS Laravel
 });
 
-// Types
+/**
+ * ===============================
+ * TYPES
+ * ===============================
+ */
+
 export interface CompanyUsage {
   company: number | string;
   company_name: string;
@@ -32,7 +42,6 @@ export interface CompanyUsage {
   satisfaction_score?: number;
 }
 
-<<<<<<< HEAD
 export interface Practitioner {
   id?: number | string;
   first_name: string;
@@ -58,7 +67,7 @@ export interface Challenge {
   duration: string;
   participants: number;
   completion_rate: number;
-  status: 'Actif' | 'Brouillon' | 'Terminé';
+  status: "Actif" | "Brouillon" | "Terminé";
   created_at: string;
   updated_at: string;
 }
@@ -77,15 +86,15 @@ export interface UserAccount {
   name?: string | null;
   email_verified_at?: string | null;
   password?: string | null;
-  role?: 'admin' | 'practitioner' | 'enterprise' | 'employee' | null;
+  role?: "admin" | "practitioner" | "enterprise" | "employee" | null;
   remember_token?: string | null;
   birth_date?: string | null;
-  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null;
+  gender?: "male" | "female" | "other" | "prefer_not_to_say" | null;
   bio?: string | null;
   avatar?: string | null;
   preferences?: unknown;
   health_goals?: unknown;
-  status?: 'active' | 'inactive' | 'suspended' | null;
+  status?: "active" | "inactive" | "suspended" | null;
   last_login_at?: string | null;
   google_id?: string | null;
   provider?: string | null;
@@ -101,24 +110,15 @@ export interface CreateAdminPayload {
   password: string;
 }
 
-// Services API
-export const companiesApi = {
-  getAll: () => api.get<Company[]>('/companies'),
-  getById: (id: number) => api.get<Company>(`/companies/${id}`),
-  create: (data: Partial<Company>) => api.post<Company>('/companies', data),
-  update: (id: number, data: Partial<Company>) => api.put<Company>(`/companies/${id}`, data),
-  delete: (id: number) => api.delete(`/companies/${id}`),
-};
+/**
+ * ===============================
+ * SERVICES API
+ * ===============================
+ */
 
-export const practitionersApi = {
-  getAll: async () => {
-=======
-// Service pour churn/adoption
 export const adoptionChurnApi = {
   getAll: async (): Promise<CompanyUsage[]> => {
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
     try {
-      // 🔹 URL correcte pour Laravel
       const response = await api.get("/admin/churn-risk");
       const json = response.data;
       const raw = Array.isArray(json) ? json : json.data ?? [];
@@ -139,32 +139,29 @@ export const adoptionChurnApi = {
   },
 };
 
-<<<<<<< HEAD
-// Fonction helper pour créer un praticien
-export const createPractitioner = async (data: Partial<Practitioner>): Promise<Practitioner> => {
-  const response = await practitionersApi.create(data);
-  return response.data;
-};
-
 export const challengesApi = {
-  getAll: () => api.get<Challenge[]>('/challenges'),
+  getAll: () => api.get<Challenge[]>("/challenges"),
   getById: (id: number) => api.get<Challenge>(`/challenges/${id}`),
-  create: (data: Partial<Challenge>) => api.post<Challenge>('/challenges', data),
-  update: (id: number, data: Partial<Challenge>) => api.put<Challenge>(`/challenges/${id}`, data),
+  create: (data: Partial<Challenge>) => api.post<Challenge>("/challenges", data),
+  update: (id: number, data: Partial<Challenge>) =>
+    api.put<Challenge>(`/challenges/${id}`, data),
   delete: (id: number) => api.delete(`/challenges/${id}`),
 };
 
 export const usersApi = {
-  getAll: () => api.get<UserAccount[]>('/users'),
-  createAdmin: (data: CreateAdminPayload) => api.post<UserAccount>('/users/admin', data),
-  update: (id: number, data: Partial<UserAccount>) => api.patch<UserAccount>(`/users/${id}`, data),
+  getAll: () => api.get<UserAccount[]>("/users"),
+  createAdmin: (data: CreateAdminPayload) =>
+    api.post<UserAccount>("/users/admin", data),
+  update: (id: number, data: Partial<UserAccount>) =>
+    api.patch<UserAccount>(`/users/${id}`, data),
   delete: (id: number) => api.delete(`/users/${id}`),
 };
 
-// Intercepteur pour la gestion des erreurs
-=======
-// Intercepteur pour erreurs
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
+/**
+ * ===============================
+ * AXIOS INTERCEPTOR
+ * ===============================
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
