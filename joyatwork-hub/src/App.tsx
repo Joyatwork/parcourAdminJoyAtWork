@@ -24,7 +24,6 @@ import Login from "./pages/Login";
 import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
-import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -73,7 +72,7 @@ const App = () => {
               <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
 
               {/* Churn */}
-              <Route path="/churn" element={<AdoptionChurnWidget />} />
+              <Route path="/churn" element={<Navigate to="/analytics" replace />} />
 
               {/* Test */}
               <Route path="/test" element={<TestNavigation />} />

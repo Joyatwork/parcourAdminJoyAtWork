@@ -30,10 +30,8 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("billing");
     } else if (location.pathname === "/qvct") {
       setActiveSection("qvct");
-    } else if (location.pathname === "/analytics") {
+    } else if (location.pathname === "/analytics" || location.pathname === "/churn") {
       setActiveSection("analytics");
-    } else if (location.pathname === "/churn") {
-      setActiveSection("churn");
     } else if (location.pathname === "/contents") {
       setActiveSection("contents");
     } else if (location.pathname === "/users") {

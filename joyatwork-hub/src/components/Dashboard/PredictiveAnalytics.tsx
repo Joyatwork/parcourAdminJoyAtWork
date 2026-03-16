@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdoptionChurnWidget } from "@/components/Dashboard/AdoptionChurnWidget";
 import { 
   Brain, 
   TrendingUp, 
@@ -142,11 +143,12 @@ export function PredictiveAnalytics() {
 
       <CardContent>
         <Tabs defaultValue="predictions" className="space-y-6">
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-2 lg:grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-2 lg:grid-cols-5">
             <TabsTrigger value="predictions" className="whitespace-normal px-3 py-2 text-center">Prédictions</TabsTrigger>
             <TabsTrigger value="scenarios" className="whitespace-normal px-3 py-2 text-center">Scénarios</TabsTrigger>
             <TabsTrigger value="timeline" className="whitespace-normal px-3 py-2 text-center">Timeline</TabsTrigger>
             <TabsTrigger value="recommendations" className="whitespace-normal px-3 py-2 text-center">Actions</TabsTrigger>
+            <TabsTrigger value="churn" className="whitespace-normal px-3 py-2 text-center">Churn Risk</TabsTrigger>
           </TabsList>
 
           <TabsContent value="predictions" className="space-y-6">
@@ -454,6 +456,16 @@ export function PredictiveAnalytics() {
                 </div>
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="churn" className="space-y-6">
+            <div className="space-y-2">
+              <h4 className="text-lg font-semibold text-foreground">Adoption et risque de churn</h4>
+              <p className="text-sm text-muted-foreground">
+                Centralisation des signaux d'adoption, satisfaction et risque de désengagement client.
+              </p>
+            </div>
+            <AdoptionChurnWidget />
           </TabsContent>
         </Tabs>
       </CardContent>
