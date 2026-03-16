@@ -125,15 +125,15 @@ export function PredictiveAnalytics() {
   return (
     <Card className="shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <Brain className="w-6 h-6 text-primary" />
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-xl">Analytics Prédictives IA</CardTitle>
               <p className="text-muted-foreground">Anticipation et prévention intelligente</p>
             </div>
           </div>
-          <Badge variant="secondary" className="bg-gradient-primary text-white">
+          <Badge variant="secondary" className="w-fit bg-gradient-primary text-white whitespace-normal">
             <Zap className="w-3 h-3 mr-1" />
             IA Active
           </Badge>
@@ -142,11 +142,11 @@ export function PredictiveAnalytics() {
 
       <CardContent>
         <Tabs defaultValue="predictions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="predictions">Prédictions</TabsTrigger>
-            <TabsTrigger value="scenarios">Scénarios</TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="recommendations">Actions</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-2 lg:grid-cols-4">
+            <TabsTrigger value="predictions" className="whitespace-normal px-3 py-2 text-center">Prédictions</TabsTrigger>
+            <TabsTrigger value="scenarios" className="whitespace-normal px-3 py-2 text-center">Scénarios</TabsTrigger>
+            <TabsTrigger value="timeline" className="whitespace-normal px-3 py-2 text-center">Timeline</TabsTrigger>
+            <TabsTrigger value="recommendations" className="whitespace-normal px-3 py-2 text-center">Actions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="predictions" className="space-y-6">

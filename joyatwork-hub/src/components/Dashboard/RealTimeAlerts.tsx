@@ -129,20 +129,20 @@ export function RealTimeAlerts() {
   return (
     <Card className="shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="relative">
               <Bell className="w-6 h-6 text-primary" />
               {(criticalAlertsCount + warningAlertsCount) > 0 && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full animate-pulse" />
               )}
             </div>
-            <div>
+            <div className="min-w-0">
               <CardTitle className="text-xl">Alertes temps réel</CardTitle>
               <p className="text-muted-foreground">Surveillance intelligente et préventive</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {criticalAlertsCount > 0 && (
               <Badge variant="destructive" className="gap-1">
                 <AlertTriangle className="w-3 h-3" />
@@ -194,14 +194,14 @@ export function RealTimeAlerts() {
                   isViewed ? 'opacity-75' : ''
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="flex min-w-0 items-start gap-3 flex-1">
                     <div className={`p-2 rounded-full bg-background ${getIconColor(alert.color)}`}>
                       <Icon className="w-5 h-5" />
                     </div>
                     
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="text-xs">
                           {alert.category}
                         </Badge>
@@ -227,8 +227,8 @@ export function RealTimeAlerts() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center justify-between p-3 bg-background rounded-lg">
-                        <div className="flex items-center gap-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 bg-background rounded-lg">
+                        <div className="flex flex-wrap items-center gap-4">
                           <div>
                             <span className="text-xs text-muted-foreground">Personnes concernées</span>
                             <div className="font-semibold">{alert.count}</div>
@@ -246,13 +246,13 @@ export function RealTimeAlerts() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-2 ml-3">
+                  <div className="flex flex-col gap-2 xl:ml-3 xl:w-auto w-full sm:w-auto xl:min-w-[8.5rem]">
                     {!isViewed && (
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => handleMarkAsViewed(alert.id)}
-                        className="gap-1"
+                        className="w-full gap-1"
                       >
                         <Eye className="w-3 h-3" />
                         Vu
@@ -263,7 +263,7 @@ export function RealTimeAlerts() {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleDismiss(alert.id)}
-                      className="gap-1"
+                      className="w-full gap-1"
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -271,7 +271,7 @@ export function RealTimeAlerts() {
                     <Button 
                       variant={alert.type === "critical" ? "destructive" : "outline"} 
                       size="sm"
-                      className="gap-1"
+                      className="w-full gap-1"
                     >
                       Action
                       <ChevronRight className="w-3 h-3" />
@@ -285,18 +285,18 @@ export function RealTimeAlerts() {
 
         {/* Actions rapides globales */}
         <div className="p-4 bg-gradient-primary text-white rounded-lg">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h4 className="font-semibold">Actions recommandées</h4>
               <p className="text-sm text-blue-100">
                 Intervention immédiate pour réduire les risques de 60%
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button variant="secondary" size="sm" className="w-full sm:w-auto">
                 Plan d'urgence
               </Button>
-              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto bg-white/10 border-white/20 text-white hover:bg-white/20">
                 Rapport détaillé
               </Button>
             </div>

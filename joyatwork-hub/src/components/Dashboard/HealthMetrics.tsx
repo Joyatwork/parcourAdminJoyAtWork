@@ -119,17 +119,17 @@ export function HealthMetrics() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-6">
+        <div className="min-w-0">
           <h3 className="text-xl font-semibold">Santé & Diagnostic</h3>
           <p className="text-muted-foreground">Suivi des indicateurs globaux</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="border rounded px-3 py-1"
+            className="w-full sm:w-auto border rounded px-3 py-1"
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -137,12 +137,12 @@ export function HealthMetrics() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="border rounded px-3 py-1"
+            className="w-full sm:w-auto border rounded px-3 py-1"
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
 
-          <Button onClick={handleFilterChange} variant="outline" size="sm" className="gap-2">
+          <Button onClick={handleFilterChange} variant="outline" size="sm" className="w-full sm:w-auto gap-2">
             <Calendar className="w-4 h-4" /> Appliquer
           </Button>
         </div>
@@ -155,15 +155,15 @@ export function HealthMetrics() {
           const BadgeConfig = getBadge(metric.status);
           const Icon = metric.icon;
           return (
-            <div key={metric.category} className="flex items-center gap-4 p-4 rounded-lg border bg-white">
+            <div key={metric.category} className="flex items-start gap-4 p-4 rounded-lg border bg-white">
               <div className={`p-3 rounded-full ${metric.status === 'good' ? 'bg-gradient-to-r from-green-100 to-emerald-100' : metric.status === 'medium' ? 'bg-gradient-to-r from-orange-100 to-yellow-100' : 'bg-orange-200'}`}>
                 <Icon className={`w-6 h-6 ${metric.status === 'good' ? 'text-green-500' : metric.status === 'medium' ? 'text-yellow-500' : 'text-orange-500'}`} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
                   <span className="font-medium">{metric.category}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold">{metric.value}</span>
                     <Badge className={`text-xs border ${BadgeConfig.className}`}>
                       <BadgeConfig.icon className="w-3 h-3 mr-1" />

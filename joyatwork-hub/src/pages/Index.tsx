@@ -30,7 +30,7 @@ import { BenchmarkCharts } from "@/components/Dashboard/BenchmarkCharts";
 
 const Index = () => {
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-w-0 overflow-x-hidden p-4 md:p-6 space-y-6">
       {/* Strategic QVCT Header */}
       <StrategicQVCTHeader />
       
@@ -81,7 +81,7 @@ const Index = () => {
       </div>
 
       {/* Bottom Row - Extended Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* QVCT Strategic Overview */}
         <QVCTOverview />
  
@@ -90,10 +90,7 @@ const Index = () => {
       </div>
 
       {/* Advanced Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" />
 
       
     </div>

@@ -23,6 +23,7 @@ import {
   Building2,
   DollarSign,
   Users,
+  Library,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -70,6 +71,7 @@ export function Sidebar({ activeSection }: SidebarProps) {
     { path: "/contracts", key: "contracts", label: "Contrats", icon: FileText },
     { path: "/practitioners", key: "practitioners", label: "Praticiens", icon: Stethoscope },
     { path: "/challenges", key: "challenges", label: "Challenges", icon: Target },
+    { path: "/contents", key: "contents", label: "Contenus", icon: Library },
     { path: "/billing", key: "billing", label: "Billing & Wallet", icon: DollarSign },
     { path: "/users", key: "users", label: "Utilisateurs", icon: Users },
   ];

@@ -32,6 +32,10 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("qvct");
     } else if (location.pathname === "/analytics") {
       setActiveSection("analytics");
+    } else if (location.pathname === "/churn") {
+      setActiveSection("churn");
+    } else if (location.pathname === "/contents") {
+      setActiveSection("contents");
     } else if (location.pathname === "/users") {
       setActiveSection("users");
     }
@@ -43,12 +47,12 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex">
+    <div className="min-h-screen bg-gradient-subtle flex overflow-x-hidden">
       {/* Sidebar */}
       <Sidebar activeSection={activeSection} />
 
       {/* Contenu */}
-      <main className="flex-1 ml-64 p-6">
+      <main className="flex-1 min-w-0 ml-64 p-6">
         {children}
       </main>
     </div>

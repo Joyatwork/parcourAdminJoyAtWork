@@ -127,17 +127,17 @@ export function QVCTOverview() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="p-2 bg-gradient-primary rounded-lg">
             <Shield className="w-6 h-6 text-white" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="text-xl font-semibold text-foreground">QVCT - Qualité de Vie au Travail</h3>
             <p className="text-muted-foreground">Suivi des conditions de travail</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2">
           <Download className="w-4 h-4" />
           Export PDF
         </Button>
@@ -147,7 +147,7 @@ export function QVCTOverview() {
       <div className="space-y-6 mb-6">
         <div className="text-center">
           <h4 className="text-lg font-semibold text-foreground mb-2">3 THÉMATIQUES CLÉS</h4>
-          <div className="flex justify-center gap-2 text-xs text-muted-foreground mb-4">
+          <div className="flex flex-wrap justify-center gap-2 text-xs text-muted-foreground mb-4">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-destructive rounded"></div>
               <span>Basic</span>

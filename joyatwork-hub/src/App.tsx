@@ -11,6 +11,7 @@ import PractitionersDashboardFixed from "./pages/PractitionersDashboardFixed";
 import Companies from "./pages/Companies";
 import ContractsDashboard from "./pages/ContractsDashboard";
 import ChallengesDashboardNew from "./pages/ChallengesDashboardNew";
+import ContentLibraryPage from "./pages/ContentLibraryPage";
 import SanteDiagnosticDashboard from "./pages/SanteDiagnosticDashboard";
 import TestNavigation from "./pages/TestNavigation";
 import BillingDashboard from "./pages/BillingDashboard";
@@ -57,6 +58,7 @@ const App = () => {
               <Route path="/companies" element={<Companies />} />
               <Route path="/contracts" element={<ContractsDashboard />} />
               <Route path="/challenges" element={<ChallengesDashboardNew />} />
+              <Route path="/contents" element={<ContentLibraryPage />} />
               <Route path="/sante-diagnostic" element={<SanteDiagnosticDashboard />} />
               <Route path="/qvct" element={<QVCTOverview />} />
               <Route path="/analytics" element={<PredictiveAnalytics />} />

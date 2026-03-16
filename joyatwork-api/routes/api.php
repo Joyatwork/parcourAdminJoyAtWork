@@ -24,6 +24,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\KpiCompanyHealthController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\AdminAnalyticsController;
+use App\Http\Controllers\LibraryContentController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -124,6 +125,11 @@ Route::get('/challenges/{id}/participants', [ChallengeController::class, 'partic
 Route::apiResource('challenge-packs', ChallengePackController::class);
 Route::apiResource('challenge-citations', ChallengeCitationController::class);
 Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
+
+// ==========================================
+// CONTENT LIBRARY
+// ==========================================
+Route::apiResource('contents', LibraryContentController::class);
 
 // ==========================================
 // KPI & DIAGNOSTICS

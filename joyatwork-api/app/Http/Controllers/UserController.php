@@ -156,6 +156,7 @@ class UserController extends Controller
             'entreprise_id',
             'email',
             'phone',
+            'password',
             'first_name',
             'last_name',
             'is_active',
@@ -180,6 +181,24 @@ class UserController extends Controller
         }
 
         $payload = $request->only($updatableColumns);
+
+        if (array_key_exists('password', $payload)) {
+            $rawPassword = trim((string) $payload['password']);
+
+            if ($rawPassword === '') {
+                return response()->json([
+                    'message' => 'Le mot de passe ne peut pas être vide.',
+                ], 422);
+            }
+
+            if (mb_strlen($rawPassword) < 8) {
+                return response()->json([
+                    'message' => 'Le mot de passe doit contenir au moins 8 caractères.',
+                ], 422);
+            }
+
+            $payload['password'] = $rawPassword;
+        }
 
         if (array_key_exists('email', $payload) && !empty($payload['email'])) {
             $isUsed = User::query()

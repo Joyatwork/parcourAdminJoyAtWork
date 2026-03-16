@@ -173,12 +173,12 @@ export function EmployeeVerbatims() {
     <Card className="p-6 shadow-soft">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <div className={`p-2 rounded-lg ${config.bgClass}`}>
               <MessageSquare className={`w-5 h-5 ${config.colorClass}`} />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-lg font-semibold">Verbatims Collaborateurs</h3>
               <p className="text-sm text-muted-foreground">Retours terrain classés par thématique</p>
             </div>
@@ -280,7 +280,7 @@ export function EmployeeVerbatims() {
         </div>
 
         {/* Category insights */}
-        <div className="grid grid-cols-3 gap-4 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
           {Object.entries(categoryConfig).map(([key, cat]) => {
             const categoryStats = stats[key as keyof typeof stats];
             const TrendIcon = categoryStats.trend >= 0 ? TrendingUp : TrendingDown;
