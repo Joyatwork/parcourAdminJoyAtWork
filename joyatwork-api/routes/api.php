@@ -24,6 +24,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\KpiCompanyHealthController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\AdminAnalyticsController;
+use App\Http\Controllers\Admin\ConsentController;
+use App\Http\Controllers\Admin\RgpdAuditController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -145,4 +147,38 @@ Route::prefix('admin')->group(function () {
         ->withoutMiddleware(['auth:sanctum']);
     Route::get('/churn-risk', [AdminAnalyticsController::class, 'churnRisk'])
         ->withoutMiddleware(['auth:sanctum']);
+});
+
+// ==========================================
+// ADMIN — RGPD
+// ==========================================
+Route::prefix('admin')->group(function () {
+
+    // Voir tous les consentements
+    Route::get('/consents', [ConsentController::class, 'index']);
+
+    // Créer un consentement
+    Route::post('/consents', [ConsentController::class, 'store']);
+
+    // Révoquer un consentement
+    Route::patch('/consents/{id}/revoke', [ConsentController::class, 'revoke']);
+
+    // DELETE utilisateur — Droit à l’oubli / Anonymisation
+    Route::delete('/users/{id}', [ConsentController::class, 'anonymize']);
+
+    // Export RGPD d’un utilisateur
+    Route::get('/users/{id}/export', [ConsentController::class, 'exportUserData']);
+});
+use App\Http\Controllers\AdminComplianceController;
+
+Route::prefix('admin')->group(function () {
+    Route::get('/compliance', [AdminComplianceController::class, 'index']);
+    Route::post('/compliance', [AdminComplianceController::class, 'store']);
+});
+
+// ==========================================
+// ADMIN — RGPD AUDIT
+// ==========================================
+Route::prefix('admin')->group(function () {
+    Route::get('/rgpd-audit', [RgpdAuditController::class, 'index']);
 });

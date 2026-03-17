@@ -19,6 +19,7 @@ import {
   Stethoscope,
   Target,
   Shield,
+   ShieldCheck,
   TrendingUp,
   Building2,
   DollarSign,
@@ -72,6 +73,8 @@ export function Sidebar({ activeSection }: SidebarProps) {
     { path: "/challenges", key: "challenges", label: "Challenges", icon: Target },
     { path: "/billing", key: "billing", label: "Billing & Wallet", icon: DollarSign },
     { path: "/users", key: "users", label: "Utilisateurs", icon: Users },
+    { path: "/admin/rgpd", key: "rgpd", label: "RGPD", icon: ShieldCheck },
+  
   ];
 
   return (

@@ -24,13 +24,12 @@ import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
 import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
+import AdminRGPD from "./pages/AdminRGPD";
 
 const App = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-      },
+      queries: { refetchOnWindowFocus: false },
     },
   });
 
@@ -61,6 +60,9 @@ const App = () => {
               <Route path="/qvct" element={<QVCTOverview />} />
               <Route path="/analytics" element={<PredictiveAnalytics />} />
               <Route path="/users" element={<UsersPage />} />
+
+              {/* RGPD */}
+              <Route path="/admin/rgpd" element={<AdminRGPD />} />
 
               {/* Billing */}
               <Route path="/billing" element={<BillingDashboard />} />

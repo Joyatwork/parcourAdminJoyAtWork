@@ -72,4 +72,8 @@ class User extends Authenticatable
                 ->withPivot('score', 'rate', 'completed_at')
                 ->withTimestamps();
     }
+    public function consents()
+    {
+        return $this->hasMany(UserConsent::class);
+    }
 }
