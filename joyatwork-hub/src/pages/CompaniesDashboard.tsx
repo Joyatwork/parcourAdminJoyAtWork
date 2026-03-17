@@ -674,7 +674,7 @@ const CompaniesDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header avec statistiques */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Entreprises</h1>
             <p className="text-sm text-gray-600">
@@ -682,7 +682,7 @@ const CompaniesDashboard = () => {
             </p>
           </div>
           <Button
-            className="bg-green-600 hover:bg-green-700"
+            className="w-full md:w-auto bg-green-600 hover:bg-green-700"
             onClick={() => setIsCreateOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -735,9 +735,9 @@ const CompaniesDashboard = () => {
 
       {/* Filtres et recherche */}
       <div className="px-6 py-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center flex-1">
+            <div className="relative w-full min-w-0 flex-1 lg:max-w-md">
               <Input
                 type="search"
                 placeholder="Rechercher par nom, secteur ou localisation..."
@@ -751,7 +751,7 @@ const CompaniesDashboard = () => {
             </div>
 
             <Select value={sectorFilter} onValueChange={setSectorFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full lg:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -768,7 +768,7 @@ const CompaniesDashboard = () => {
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full lg:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -781,7 +781,7 @@ const CompaniesDashboard = () => {
             </Select>
 
             <Select value={contractTypeFilter} onValueChange={setContractTypeFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full lg:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -796,7 +796,7 @@ const CompaniesDashboard = () => {
             </Select>
           </div>
 
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 xl:text-right">
             {filteredCompanies.length} entreprise
             {filteredCompanies.length > 1 ? "s" : ""}
           </div>
@@ -904,9 +904,9 @@ const CompaniesDashboard = () => {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        className="w-full sm:flex-1 bg-green-600 hover:bg-green-700"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -920,7 +920,7 @@ const CompaniesDashboard = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                        className="w-full sm:w-auto border-blue-200 text-blue-600 hover:bg-blue-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditClick(company);
@@ -931,7 +931,7 @@ const CompaniesDashboard = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        className="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteClick(company);

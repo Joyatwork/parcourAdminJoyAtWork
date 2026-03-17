@@ -147,12 +147,12 @@ export function ROICalculator() {
   return (
     <Card className="border shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
             <Calculator className="w-6 h-6 text-primary" />
-            <CardTitle>Calculateur ROI - Retour sur Investissement</CardTitle>
+            <CardTitle className="min-w-0">Calculateur ROI - Retour sur Investissement</CardTitle>
           </div>
-          <Badge variant="secondary" className="bg-gradient-wellness text-white">
+          <Badge variant="secondary" className="w-fit bg-gradient-wellness text-white whitespace-normal">
             <Euro className="w-4 h-4 mr-1" />
             {totalROI.toLocaleString()}€ économisés
           </Badge>
@@ -160,10 +160,10 @@ export function ROICalculator() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="metrics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="metrics">Métriques ROI</TabsTrigger>
-            <TabsTrigger value="cases">Études de cas</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-1 gap-2 sm:grid-cols-3">
+            <TabsTrigger value="metrics" className="whitespace-normal px-3 py-2 text-center">Métriques ROI</TabsTrigger>
+            <TabsTrigger value="cases" className="whitespace-normal px-3 py-2 text-center">Études de cas</TabsTrigger>
+            <TabsTrigger value="notifications" className="whitespace-normal px-3 py-2 text-center">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="metrics" className="space-y-6">

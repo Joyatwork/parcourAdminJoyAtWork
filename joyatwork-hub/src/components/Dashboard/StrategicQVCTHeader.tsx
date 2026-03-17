@@ -63,30 +63,30 @@ export function StrategicQVCTHeader() {
   return (
     <div className="space-y-6">
       {/* Strategic Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start">
           <div className="p-3 bg-gradient-primary rounded-lg">
             <Award className="w-8 h-8 text-white" />
           </div>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
+          <div className="min-w-0">
+            <div className="flex flex-col gap-3 mb-2 lg:flex-row lg:items-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground break-words">
                 Tableau de bord Joyatwork
               </h1>
-              <Badge className="bg-gradient-wellness text-white px-3 py-1">
+              <Badge className="max-w-full w-fit bg-gradient-wellness text-white px-3 py-1 whitespace-normal break-words">
                 <Star className="w-4 h-4 mr-1" />
                 Outil N°1 Pilotage Stratégique QVCT
               </Badge>
             </div>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-base md:text-lg">
               Plateforme référence de santé préventive et bien-être au travail
             </p>
-            <div className="flex items-center gap-4 mt-2">
-              <Badge variant="outline" className="border-green-500 text-green-700 bg-green-50">
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              <Badge variant="outline" className="max-w-full whitespace-normal border-green-500 text-green-700 bg-green-50">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Certifié Référence Sectorielle
               </Badge>
-              <Badge variant="outline" className="border-blue-500 text-blue-700 bg-blue-50">
+              <Badge variant="outline" className="max-w-full whitespace-normal border-blue-500 text-blue-700 bg-blue-50">
                 <Shield className="w-3 h-3 mr-1" />
                 Conformité Réglementaire 100%
               </Badge>
@@ -94,8 +94,8 @@ export function StrategicQVCTHeader() {
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
-          <Badge variant="secondary" className="bg-gradient-wellness text-white px-4 py-2">
+        <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+          <Badge variant="secondary" className="bg-gradient-wellness text-white px-4 py-2 whitespace-normal">
             <Activity className="w-4 h-4 mr-1" />
             Système Actif
           </Badge>
@@ -111,7 +111,7 @@ export function StrategicQVCTHeader() {
             
             {/* Panel de notifications */}
             {showNotifications && (
-              <div className="absolute right-0 top-12 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <div className="absolute right-0 top-12 z-50 w-[min(20rem,calc(100vw-2rem))] bg-white border border-gray-200 rounded-lg shadow-lg">
                 <div className="flex items-center justify-between p-4 border-b">
                   <h3 className="font-semibold text-foreground">Notifications</h3>
                   <div className="flex items-center gap-2">
@@ -172,12 +172,12 @@ export function StrategicQVCTHeader() {
 
       {/* Strategic Compliance Metrics */}
       <Card className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-4">
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 min-w-0">
             <Shield className="w-5 h-5 text-blue-600" />
             Indicateurs Stratégiques de Conformité QVCT
           </h3>
-          <Badge className="bg-gradient-primary text-white">
+          <Badge className="w-fit bg-gradient-primary text-white">
             Audit 2024 ✓
           </Badge>
         </div>
@@ -215,14 +215,14 @@ export function StrategicQVCTHeader() {
         </div>
 
         <div className="mt-6 pt-4 border-t border-blue-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2 min-w-0">
               <Award className="w-5 h-5 text-amber-600" />
               <span className="font-semibold text-foreground">
                 Reconnaissance Sectorielle
               </span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end text-sm text-muted-foreground">
               <span>• Label Qualité QVCT Référence</span>
               <span>• Benchmark Top 5% du secteur</span>
               <span>• Certification ISO 45001 renouvelée</span>

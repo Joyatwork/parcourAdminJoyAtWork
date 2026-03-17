@@ -54,9 +54,9 @@ export function WellnessInsights() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h3 className="text-xl font-semibold text-foreground">Bien-être</h3>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2">
           <TrendingUp className="w-4 h-4" />
           Voir plus
         </Button>
@@ -66,8 +66,8 @@ export function WellnessInsights() {
       <div className="space-y-4 mb-6">
         {insights.map((insight, index) => (
           <div key={index} className={`p-4 rounded-lg text-white ${insight.color}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="min-w-0">
                 <h4 className="font-semibold">{insight.title}</h4>
                 <p className="text-sm opacity-90">{insight.description}</p>
               </div>
@@ -80,7 +80,7 @@ export function WellnessInsights() {
                 <span className="font-medium">{insight.progress}%</span>
               </div>
               <Progress value={insight.progress} className="bg-white/20" />
-              <div className="flex items-center justify-between text-xs opacity-90">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-xs opacity-90">
                 <span>{insight.status}</span>
                 <span>
                   {insight.daysLeft ? `${insight.daysLeft} jours restants` : `${insight.participants} participants`}
@@ -102,7 +102,7 @@ export function WellnessInsights() {
           {recommendations.map((rec, index) => {
             const Icon = rec.icon;
             return (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-gradient-to-r from-background to-muted/30 hover:shadow-soft transition-all group cursor-pointer">
+              <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-gradient-to-r from-background to-muted/30 hover:shadow-soft transition-all group cursor-pointer min-w-0">
                 <div className={`p-2 rounded-full flex-shrink-0 ${
                   rec.priority === "high" ? "bg-warning/10" :
                   rec.priority === "medium" ? "bg-primary/10" : "bg-muted"
@@ -113,8 +113,8 @@ export function WellnessInsights() {
                   }`} />
                 </div>
                 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h5 className="font-medium text-foreground text-sm">{rec.title}</h5>
                     <Badge 
                       variant={rec.priority === "high" ? "destructive" : "secondary"}

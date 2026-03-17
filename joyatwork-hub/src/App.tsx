@@ -11,6 +11,7 @@ import PractitionersDashboardFixed from "./pages/PractitionersDashboardFixed";
 import Companies from "./pages/Companies";
 import ContractsDashboard from "./pages/ContractsDashboard";
 import ChallengesDashboardNew from "./pages/ChallengesDashboardNew";
+import ContentLibraryPage from "./pages/ContentLibraryPage";
 import SanteDiagnosticDashboard from "./pages/SanteDiagnosticDashboard";
 import TestNavigation from "./pages/TestNavigation";
 import BillingDashboard from "./pages/BillingDashboard";
@@ -23,8 +24,11 @@ import Login from "./pages/Login";
 import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
+<<<<<<< HEAD
 import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
 import AdminRGPD from "./pages/AdminRGPD";
+=======
+>>>>>>> 06aa0dd93145dd2523f5baf8c6392f3290df3721
 
 const App = () => {
   const queryClient = new QueryClient({
@@ -56,6 +60,7 @@ const App = () => {
               <Route path="/companies" element={<Companies />} />
               <Route path="/contracts" element={<ContractsDashboard />} />
               <Route path="/challenges" element={<ChallengesDashboardNew />} />
+              <Route path="/contents" element={<ContentLibraryPage />} />
               <Route path="/sante-diagnostic" element={<SanteDiagnosticDashboard />} />
               <Route path="/qvct" element={<QVCTOverview />} />
               <Route path="/analytics" element={<PredictiveAnalytics />} />
@@ -73,7 +78,7 @@ const App = () => {
               <Route path="/billing/payouts" element={<BillingPayoutsPage />} />
 
               {/* Churn */}
-              <Route path="/churn" element={<AdoptionChurnWidget />} />
+              <Route path="/churn" element={<Navigate to="/analytics" replace />} />
 
               {/* Test */}
               <Route path="/test" element={<TestNavigation />} />

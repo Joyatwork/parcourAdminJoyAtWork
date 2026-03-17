@@ -84,6 +84,7 @@ const UsersPage = () => {
     last_name: "",
     email: "",
     phone: "",
+    password: "",
     role: "",
     status: "",
     birth_date: "",
@@ -196,6 +197,7 @@ const UsersPage = () => {
       last_name: String(user.last_name ?? ""),
       email: String(user.email ?? ""),
       phone: String(user.phone ?? ""),
+      password: "",
       role: String(user.role ?? ""),
       status: String(user.status ?? ""),
       birth_date: String(user.birth_date ?? ""),
@@ -219,6 +221,7 @@ const UsersPage = () => {
         name: `${editForm.first_name} ${editForm.last_name}`.trim() || null,
         email: editForm.email || null,
         phone: editForm.phone || null,
+        password: editForm.password.trim() ? editForm.password : undefined,
         role: (editForm.role as UserAccount["role"]) || null,
         status: (editForm.status as UserAccount["status"]) || null,
         birth_date: editForm.birth_date || null,
@@ -358,6 +361,15 @@ const UsersPage = () => {
                   placeholder="Ex: El Idrissi"
                 />
               </div>
+
+              <div>
+                <Label>Téléphone</Label>
+                <Input
+                  value={createAdminForm.phone}
+                  onChange={(e) => setCreateAdminForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Ex: 0612345678"
+                />
+              </div>
               <div>
                 <Label>Email *</Label>
                 <Input
@@ -365,14 +377,6 @@ const UsersPage = () => {
                   value={createAdminForm.email}
                   onChange={(e) => setCreateAdminForm((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="admin@joyatwork.com"
-                />
-              </div>
-              <div>
-                <Label>Téléphone</Label>
-                <Input
-                  value={createAdminForm.phone}
-                  onChange={(e) => setCreateAdminForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Ex: 0612345678"
                 />
               </div>
               <div>
@@ -527,6 +531,15 @@ const UsersPage = () => {
             <div>
               <Label>Téléphone</Label>
               <Input value={editForm.phone} onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Nouveau mot de passe</Label>
+              <Input
+                type="password"
+                value={editForm.password}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Laisser vide pour ne pas changer"
+              />
             </div>
             <div>
               <Label>Rôle</Label>

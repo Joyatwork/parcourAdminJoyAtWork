@@ -24,6 +24,7 @@ import {
   Building2,
   DollarSign,
   Users,
+  Library,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -65,12 +66,12 @@ export function Sidebar({ activeSection }: SidebarProps) {
     { path: "/dashboard", key: "overview", label: "Vue d'ensemble", icon: LayoutDashboard },
     { path: "/sante-diagnostic", key: "health", label: "Santé & Diagnostic", icon: Heart },
     { path: "/qvct", key: "qvct", label: "QVCT", icon: Shield },
-    { path: "/analytics", key: "analytics", label: "Analyses", icon: TrendingUp },
-    { path: "/churn", key: "churn", label: "Churn Risk", icon: TrendingUp },
+    { path: "/analytics", key: "analytics", label: "Analytics", icon: TrendingUp },
     { path: "/companies", key: "companies", label: "Entreprises", icon: Building2 },
     { path: "/contracts", key: "contracts", label: "Contrats", icon: FileText },
     { path: "/practitioners", key: "practitioners", label: "Praticiens", icon: Stethoscope },
     { path: "/challenges", key: "challenges", label: "Challenges", icon: Target },
+    { path: "/contents", key: "contents", label: "Contenus", icon: Library },
     { path: "/billing", key: "billing", label: "Billing & Wallet", icon: DollarSign },
     { path: "/users", key: "users", label: "Utilisateurs", icon: Users },
     { path: "/admin/rgpd", key: "rgpd", label: "RGPD", icon: ShieldCheck },

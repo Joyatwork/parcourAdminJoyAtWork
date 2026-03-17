@@ -865,12 +865,12 @@ const filteredAppointments = appointments.filter(appointment => {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <div className="px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestion des Praticiens</h1>
               <p className="text-gray-600 mt-2">Gérez votre équipe de praticiens</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <div className="bg-blue-50 px-4 py-3 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{practitioners.length}</div>
                 <div className="text-sm text-blue-600">Praticiens</div>
@@ -899,16 +899,16 @@ const filteredAppointments = appointments.filter(appointment => {
 
           {/* Praticiens ALL*/}
           <TabsContent value="practitioners" className="space-y-4">
-            <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col gap-4 bg-white p-4 rounded-lg shadow-sm xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center flex-1">
                 <Input
                   placeholder="Rechercher un praticien..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-md"
+                  className="w-full sm:max-w-md"
                 />
                 <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Toutes les spécialités" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1038,8 +1038,8 @@ const filteredAppointments = appointments.filter(appointment => {
                     {filteredPractitioners.map((practitioner) => (
                       <Card key={practitioner.id} className="hover:shadow-lg transition-shadow duration-200">
                         <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex-1 min-w-0">
                               <CardTitle className="text-lg font-semibold mb-1">
                                 {practitioner.first_name && practitioner.last_name 
                                   ? `${practitioner.first_name} ${practitioner.last_name}`
@@ -1061,7 +1061,7 @@ const filteredAppointments = appointments.filter(appointment => {
                               )}
 
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap gap-1 sm:justify-end">
                               <Button 
                                 size="sm" 
                                 variant="ghost"
@@ -1085,7 +1085,7 @@ const filteredAppointments = appointments.filter(appointment => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleReactivatePractitioner(practitioner)}
-                                className="text-green-600 hover:text-green-700"
+                                className="w-full sm:w-auto text-green-600 hover:text-green-700"
                                 title="Réactiver ce praticien"
                               >
                                 Activer
@@ -1112,6 +1112,7 @@ const filteredAppointments = appointments.filter(appointment => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => handleVerifyPractitioner(practitioner)}
+                                className="w-full sm:w-auto"
                               >
                                 Vérifier
                               </Button>
@@ -1139,7 +1140,7 @@ const filteredAppointments = appointments.filter(appointment => {
                           
                           </div>
 
-                          <div className="flex justify-between gap-2 mt-4">
+                          <div className="flex flex-col gap-2 mt-4 sm:flex-row">
                             <Button
                               size="sm"
                               variant="outline"
@@ -1147,7 +1148,7 @@ const filteredAppointments = appointments.filter(appointment => {
                                 loadDiplomesAndCertifications(practitioner.id);
                                 setDetailsPractitioner(practitioner)
                               }}
-                              className="flex items-center gap-1 flex-1"
+                              className="w-full sm:flex-1 flex items-center gap-1"
                             >
                               <span>📋</span>
                               Détails
@@ -1156,7 +1157,7 @@ const filteredAppointments = appointments.filter(appointment => {
                               size="sm"
                               variant="outline"
                               onClick={() => openAgenda(practitioner)}
-                              className="flex items-center gap-1 flex-1"
+                              className="w-full sm:flex-1 flex items-center gap-1"
                             >
                               <Calendar className="w-4 h-4" />
                               Agenda
@@ -1190,12 +1191,12 @@ const filteredAppointments = appointments.filter(appointment => {
                   placeholder="Rechercher par nom..."
                   value={appointmentSearchTerm}
                   onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                  className="w-48"
+                  className="w-full sm:w-48"
                 />
                 
                 {/* Filtre par statut */}
                 <Select value={appointmentStatusFilter} onValueChange={setAppointmentStatusFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Statut" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1208,7 +1209,7 @@ const filteredAppointments = appointments.filter(appointment => {
                 
                 {/* Filtre par mode */}
                 <Select value={appointmentModeFilter} onValueChange={setAppointmentModeFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1220,7 +1221,7 @@ const filteredAppointments = appointments.filter(appointment => {
                 
                 {/* Filtre par période */}
                 <Select value={appointmentPeriodFilter} onValueChange={setAppointmentPeriodFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Période" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1239,13 +1240,13 @@ const filteredAppointments = appointments.filter(appointment => {
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                     <Input
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                   </>
                 )}
@@ -1254,7 +1255,7 @@ const filteredAppointments = appointments.filter(appointment => {
                 <Button 
                   variant="outline" 
                   onClick={resetAppointmentFilters}
-                  className="ml-auto"
+                  className="w-full sm:w-auto sm:ml-auto"
                 >
                   Réinitialiser
                 </Button>
@@ -2303,12 +2304,12 @@ const filteredAppointments = appointments.filter(appointment => {
               </div>
 
               {/* Boutons d'action */}
-              <div className="flex justify-between pt-6 border-t">
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-3 pt-6 border-t lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Button
                     variant="outline"
                     onClick={() => openAgenda(detailsPractitioner)}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center gap-2"
                   >
                     <Calendar className="w-4 h-4" />
                     Voir l'agenda
@@ -2319,7 +2320,7 @@ const filteredAppointments = appointments.filter(appointment => {
                       handleEditPractitioner(detailsPractitioner);
                       setDetailsPractitioner(null);
                     }}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center gap-2"
                   >
                     <Edit className="w-4 h-4" />
                     Modifier
@@ -2328,7 +2329,7 @@ const filteredAppointments = appointments.filter(appointment => {
                     <Button
                       variant="outline"
                       onClick={() => handleVerifyPractitioner(detailsPractitioner)}
-                      className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                      className="w-full sm:w-auto flex items-center gap-2 text-green-600 hover:text-green-700"
                       disabled={isSubmitting}
                     >
                       <span className="text-green-600">✓</span>
@@ -2336,8 +2337,8 @@ const filteredAppointments = appointments.filter(appointment => {
                     </Button>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setDetailsPractitioner(null)}>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDetailsPractitioner(null)}>
                     Fermer
                   </Button>
                 </div>

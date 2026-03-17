@@ -24,8 +24,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\KpiCompanyHealthController;
 use App\Http\Controllers\DiagnosticController;
 use App\Http\Controllers\AdminAnalyticsController;
+use App\Http\Controllers\AdminComplianceController;
 use App\Http\Controllers\Admin\ConsentController;
 use App\Http\Controllers\Admin\RgpdAuditController;
+use App\Http\Controllers\LibraryContentController;
+use App\Http\Controllers\QuestionnaireTemplateController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -128,16 +131,33 @@ Route::apiResource('challenge-citations', ChallengeCitationController::class);
 Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
 
 // ==========================================
+// CONTENT LIBRARY
+// ==========================================
+Route::apiResource('contents', LibraryContentController::class);
+
+// ==========================================
 // KPI & DIAGNOSTICS
 // ==========================================
 Route::get('/kpi-company-health/global-health', [KpiCompanyHealthController::class, 'get_global_health']);
 
 Route::get('/diagnostics/user-health', [DiagnosticController::class, 'get_users_health_per_month']);
 Route::get('/diagnostics/company-health', [DiagnosticController::class, 'get_company_health_per_month']);
+Route::delete('/diagnostics/user-health', [DiagnosticController::class, 'delete_user_health_entry']);
+Route::delete('/diagnostics/company-health', [DiagnosticController::class, 'delete_company_health_entry']);
+Route::post('/diagnostics', [DiagnosticController::class, 'store']);
 Route::get('/diagnostics', function() {
     return \App\Models\Diagnostic::latest()->get();
 });
 Route::get('/diagnostics/global-stats', [DiagnosticController::class, 'get_global_stats']);
+
+// ==========================================
+// QUESTIONNAIRE TEMPLATES
+// ==========================================
+Route::get('/questionnaire-templates', [QuestionnaireTemplateController::class, 'index']);
+Route::post('/questionnaire-templates', [QuestionnaireTemplateController::class, 'store']);
+Route::put('/questionnaire-templates/{id}', [QuestionnaireTemplateController::class, 'update']);
+Route::delete('/questionnaire-templates/{id}', [QuestionnaireTemplateController::class, 'destroy']);
+Route::post('/questionnaire-templates/{id}/duplicate', [QuestionnaireTemplateController::class, 'duplicate']);
 
 // ==========================================
 // ADMIN ANALYTICS — ADOPTION & CHURN
@@ -154,23 +174,16 @@ Route::prefix('admin')->group(function () {
 // ==========================================
 Route::prefix('admin')->group(function () {
 
-    // Voir tous les consentements
     Route::get('/consents', [ConsentController::class, 'index']);
-
-    // Créer un consentement
     Route::post('/consents', [ConsentController::class, 'store']);
-
-    // Révoquer un consentement
     Route::patch('/consents/{id}/revoke', [ConsentController::class, 'revoke']);
-
-    // DELETE utilisateur — Droit à l’oubli / Anonymisation
     Route::delete('/users/{id}', [ConsentController::class, 'anonymize']);
-
-    // Export RGPD d’un utilisateur
     Route::get('/users/{id}/export', [ConsentController::class, 'exportUserData']);
 });
-use App\Http\Controllers\AdminComplianceController;
 
+// ==========================================
+// ADMIN — COMPLIANCE
+// ==========================================
 Route::prefix('admin')->group(function () {
     Route::get('/compliance', [AdminComplianceController::class, 'index']);
     Route::post('/compliance', [AdminComplianceController::class, 'store']);

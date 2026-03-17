@@ -43,9 +43,9 @@ export function UpcomingAppointments() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <h3 className="text-xl font-semibold text-foreground">Rendez-vous</h3>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2">
           <Plus className="w-4 h-4" />
           Nouveau
         </Button>
@@ -62,11 +62,11 @@ export function UpcomingAppointments() {
               </Avatar>
               
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-foreground">{appointment.practitioner}</h4>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-1">
+                  <h4 className="font-medium text-foreground break-words">{appointment.practitioner}</h4>
                   <Badge 
                     variant={appointment.status === "confirmed" ? "secondary" : "outline"}
-                    className="text-xs"
+                    className="w-fit text-xs"
                   >
                     {appointment.status === "confirmed" ? "Confirmé" : "En attente"}
                   </Badge>
@@ -74,7 +74,7 @@ export function UpcomingAppointments() {
                 
                 <p className="text-sm text-muted-foreground mb-2">{appointment.specialty}</p>
                 
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {appointment.date}
