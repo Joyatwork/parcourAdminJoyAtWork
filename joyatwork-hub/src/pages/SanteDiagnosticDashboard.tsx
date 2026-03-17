@@ -798,21 +798,21 @@ const SanteDiagnosticDashboard = () => {
         cursorY += lines.length * lineHeight + extraGap;
       };
 
-      const drawTextField = (x: number, y: number, width: number, height: number, multiline = false) => {
-        const field = new AcroFormTextField();
-        field.fieldName = `question_${fieldIndex++}`;
-        field.x = x;
-        field.y = y;
-        field.width = width;
-        field.height = height;
-        field.fontSize = 10;
-        field.textAlign = 'left';
-        field.borderStyle = 'solid';
-        field.multiline = multiline;
-        field.hasAppearanceStream = true;
-        field.color = '#1f2937';
-        doc.addField(field);
-      };
+    const drawTextField = (x: number, y: number, width: number, height: number, multiline = false) => {
+  const field = new AcroFormTextField();
+  field.fieldName = `question_${fieldIndex++}`;
+  field.x = x;
+  field.y = y;
+  field.width = width;
+  field.height = height;
+  field.fontSize = 10;
+  field.textAlign = 'left';
+  // field.borderStyle = 'solid';  <-- supprimé
+  field.multiline = multiline;
+  field.hasAppearanceStream = true;
+  field.color = '#1f2937';
+  doc.addField(field);
+};
 
       const getQuestionTypeLabel = (type: QuestionnaireQuestionType) => {
         if (type === 'rating') return 'Note';

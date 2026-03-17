@@ -204,17 +204,7 @@ const AdminRGPD: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold mb-6">Registre RGPD (Compliance)</h2>
 
-        <select
-          value={complianceFilter}
-          onChange={(e) => setComplianceFilter(e.target.value)}
-          className="mb-4 px-3 py-1 border rounded"
-        >
-          <option value="">Tous les types</option>
-          <option value="email">Email</option>
-          <option value="health">Santé</option>
-          <option value="rh">Ressources Humaines</option>
-        </select>
-
+        
         {loadingCompliance ? (
           <p className="text-muted-foreground">Chargement...</p>
         ) : complianceData.length === 0 ? (

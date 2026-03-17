@@ -74,7 +74,7 @@ export function Sidebar({ activeSection }: SidebarProps) {
     { path: "/contents", key: "contents", label: "Contenus", icon: Library },
     { path: "/billing", key: "billing", label: "Billing & Wallet", icon: DollarSign },
     { path: "/users", key: "users", label: "Utilisateurs", icon: Users },
-    { path: "/admin/rgpd", key: "rgpd", label: "RGPD", icon: ShieldCheck },
+    { path: "/admin/rgpd", key: "rgpd", label: "Gouvernance ", icon: ShieldCheck },
   
   ];
 
