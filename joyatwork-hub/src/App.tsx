@@ -24,11 +24,7 @@ import Login from "./pages/Login";
 import UsersPage from "./pages/UsersPage";
 import { QVCTOverview } from "./components/Dashboard/QVCTOverview";
 import { PredictiveAnalytics } from "./components/Dashboard/PredictiveAnalytics";
-<<<<<<< HEAD
-import { AdoptionChurnWidget } from "./components/Dashboard/AdoptionChurnWidget";
 import AdminRGPD from "./pages/AdminRGPD";
-=======
->>>>>>> 06aa0dd93145dd2523f5baf8c6392f3290df3721
 
 const App = () => {
   const queryClient = new QueryClient({
