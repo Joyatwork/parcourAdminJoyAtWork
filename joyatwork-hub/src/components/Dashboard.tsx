@@ -18,11 +18,11 @@ import { PredictiveAnalytics } from "@/components/Dashboard/PredictiveAnalytics"
 import { PerformanceEngagementChart } from "@/components/Dashboard/PerformanceEngagementChart";
 import { AbsenteeismCostBreakdown } from "@/components/Dashboard/AbsenteeismCostBreakdown";
 import { StrategicQVCTHeader } from "@/components/Dashboard/StrategicQVCTHeader";
-import { AdoptionChurnWidget } from "@/components/Dashboard/AdoptionChurnWidget"; // ✅ widget utilisé
+import { AdoptionChurnWidget } from "@/components/Dashboard/AdoptionChurnWidget";
 
-import PractitionersDashboard from "@/pages/PractitionersDashboard";
+import PractitionersDashboard from "@/pages/Practitioners";
 import Companies from "@/pages/Companies";
-import ChallengesDashboard from "@/pages/ChallengesDashboard";
+import ChallengesDashboard from "@/pages/Challenges";
 import SanteDiagnosticDashboard from "@/pages/SanteDiagnosticDashboard";
 
 import { Heart, TrendingUp, Users, Zap } from "lucide-react";
@@ -33,44 +33,29 @@ export function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    switch (location.pathname) {
-      case "/": setActiveSection("overview"); break;
-      case "/practitioners": setActiveSection("practitioners"); break;
-      case "/companies": setActiveSection("companies"); break;
-      case "/challenges": setActiveSection("challenges"); break;
-      case "/sante-diagnostic": setActiveSection("health"); break;
-      case "/rendez-vous": setActiveSection("appointments"); break;
-      case "/churn": setActiveSection("churn"); break;
-      default: setActiveSection("overview");
-    }
+    if (location.pathname.startsWith("/practitioners")) setActiveSection("practitioners");
+    else if (location.pathname.startsWith("/companies")) setActiveSection("companies");
+    else if (location.pathname.startsWith("/challenges")) setActiveSection("challenges");
+    else if (location.pathname.startsWith("/sante-diagnostic")) setActiveSection("health");
+    else if (location.pathname.startsWith("/churn")) setActiveSection("churn");
+    else setActiveSection("overview");
   }, [location.pathname]);
-
-  const handleSectionChange = (section: string) => {
-    switch (section) {
-      case "practitioners": navigate("/practitioners"); break;
-      case "companies": navigate("/companies"); break;
-      case "challenges": navigate("/challenges"); break;
-      case "health": navigate("/sante-diagnostic"); break;
-      case "appointments": navigate("/rendez-vous"); break;
-      case "overview": navigate("/"); break;
-      case "churn": navigate("/churn"); break;
-      default: setActiveSection(section);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <div className="flex">
-        <Sidebar activeSection={activeSection} onSectionChange={handleSectionChange} />
+        {/* Sidebar */}
+        <Sidebar activeSection={activeSection} />
 
-        <main className="flex-1">
-          {/* PAGES */}
+        {/* Main content */}
+        <main className="flex-1 ml-64">
+          {/* Pages */}
           {activeSection === "practitioners" && <PractitionersDashboard />}
           {activeSection === "companies" && <Companies />}
           {activeSection === "challenges" && <ChallengesDashboard />}
           {activeSection === "health" && <SanteDiagnosticDashboard />}
 
-          {/* CHURN directement avec le widget */}
+          {/* CHURN */}
           {activeSection === "churn" && (
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-4">Alertes Adoption & Churn</h2>
@@ -83,7 +68,6 @@ export function Dashboard() {
             <div className="p-6 space-y-6">
               <StrategicQVCTHeader />
 
-              {/* KPI ROW */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card className="p-6 bg-gradient-primary text-white border-0 shadow-soft">
                   <div className="flex justify-between">
@@ -118,8 +102,10 @@ export function Dashboard() {
                   <div className="mt-3 text-sm text-orange-100">+12% ce mois</div>
                 </Card>
 
-                {/* KPI CHURN GLOBAL */}
-                <Card className="p-6 border shadow-soft cursor-pointer" onClick={() => navigate("/churn")}>
+                <Card
+                  className="p-6 border shadow-soft cursor-pointer"
+                  onClick={() => navigate("/churn")}
+                >
                   <div className="flex justify-between">
                     <div>
                       <p className="text-muted-foreground">Alertes Churn globales</p>
@@ -140,7 +126,7 @@ export function Dashboard() {
                   <QVCTOverview />
                   <ROICalculator />
                   <AdvancedKPIs />
-                  <AdoptionChurnWidget /> {/* Widget aussi visible dans overview */}
+                  <AdoptionChurnWidget />
                   <PredictiveAnalytics />
                   <WellnessInsights />
                   <EmployeeVerbatims />

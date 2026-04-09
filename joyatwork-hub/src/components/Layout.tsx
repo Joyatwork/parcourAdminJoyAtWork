@@ -24,6 +24,8 @@ export function Layout({ children }: LayoutProps) {
       setActiveSection("contracts");
     } else if (location.pathname === "/challenges") {
       setActiveSection("challenges");
+    } else if (location.pathname.startsWith("/admin/rgpd")) {
+      setActiveSection("rgpd");
     } else if (location.pathname === "/sante-diagnostic") {
       setActiveSection("health");
     } else if (location.pathname === "/billing" || location.pathname.startsWith("/billing/")) {

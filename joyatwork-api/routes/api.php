@@ -179,6 +179,8 @@ Route::prefix('admin')->group(function () {
     Route::patch('/consents/{id}/revoke', [ConsentController::class, 'revoke']);
     Route::delete('/users/{id}', [ConsentController::class, 'anonymize']);
     Route::get('/users/{id}/export', [ConsentController::class, 'exportUserData']);
+    Route::post('/rgpd/upload-docs', [\App\Http\Controllers\Admin\RgpdDocsController::class, 'uploadDocs']);
+    Route::get('/rgpd/export-pdf', [\App\Http\Controllers\Admin\RgpdDocsController::class, 'exportPdf']);
 });
 
 // ==========================================
