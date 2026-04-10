@@ -1,0 +1,10 @@
+[phases.setup]
+nixpkgs = ["php82", "composer", "nodejs"]
+
+[phases.build]
+cmds = [
+  "cd joyatwork-api && composer install --no-dev --optimize-autoloader"
+]
+
+[phases.start]
+cmd = "cd joyatwork-api && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
