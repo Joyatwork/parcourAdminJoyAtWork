@@ -1,18 +1,40 @@
 #!/bin/bash
-# Setup script for GitLab CI/CD deployment on Ubuntu VPS
-# Usage: curl https://raw.githubusercontent.com/Joyatwork/parcourAdminJoyAtWork/dev/deploy/setup-vps.sh | bash
+# 🚀 ALL-IN-ONE VPS SETUP SCRIPT - Parcour Admin GitLab CI/CD
+# 
+# USAGE:
+#   curl -fsSL https://raw.githubusercontent.com/Joyatwork/parcourAdminJoyAtWork/dev/deploy/setup-vps.sh | bash
+#   OR
+#   wget -O - https://raw.githubusercontent.com/Joyatwork/parcourAdminJoyAtWork/dev/deploy/setup-vps.sh | bash
+#
+# Cette script va :
+# 1. Mettre à jour le système
+# 2. Installer Nginx, PHP, Node.js, GitLab Runner
+# 3. Configurer SSH et les permissions
+# 4. Créer la structure d'application
+# 5. Configuration SSL ready (tu dois lancer certbot après)
+# ==========================================
 
 set -e
 
-echo "🚀 Démarrage du setup VPS pour Parcour Admin..."
+# COLORS
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}🚀 PARCOUR ADMIN - ALL-IN-ONE VPS SETUP${NC}"
+echo -e "${BLUE}════════════════════════════════════════════════════════════${NC}"
+echo ""
 
 # ==========================================
 # 1. SYSTEM UPDATE
 # ==========================================
-echo "📦 Mise à jour du système..."
+echo -e "${YELLOW}[1/10] 📦 Mise à jour du système...${NC}"
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt-get install -y curl wget git htop build-essential
+sudo apt-get install -y curl wget git htop build-essential dnsutils net-tools
 
 # ==========================================
 # 2. INSTALLATION NGINX

@@ -1,0 +1,167 @@
+🚀 QUICK START - PARCOUR ADMIN DEPLOYMENT
+==========================================
+
+⏱️ TEMPS TOTAL: 2-3 heures
+
+STEP 1: VPS SETUP (30-45 min)
+────────────────────────────
+1. SSH vers le VPS:
+   ssh root@<VPS_IP>
+
+2. Cloner et lancer setup:
+   cd /tmp
+   git clone https://github.com/Joyatwork/parcourAdminJoyAtWork.git
+   cd parcourAdminJoyAtWork
+   chmod +x deploy/setup-vps.sh
+   ./deploy/setup-vps.sh
+
+3. ⏳ ATTENDRE 30-45 MIN
+
+
+STEP 2: SSH KEYS (5 min - ta machine locale)
+─────────────────────────────────────────────
+1. Ouvre Git Bash sur Windows
+
+2. Clone le repo:
+   cd ~
+   git clone https://github.com/Joyatwork/parcourAdminJoyAtWork.git
+   cd parcourAdminJoyAtWork
+
+3. Setup SSH:
+   bash deploy/setup-local.sh <VPS_IP> deploy
+   
+   Exemple:
+   bash deploy/setup-local.sh 192.168.1.100 deploy
+
+4. COPIE TON CLÉS PRIVÉE SSH (affichée à la fin)
+
+
+STEP 3: GITLAB VARIABLES (5 min - sur gitlab.com)
+──────────────────────────────────────────────────
+Va sur: https://gitlab.com/Joyatwork/parcourAdminJoyAtWork
+
+Clique: Settings → CI/CD → Variables
+
+Crée 3 variables:
+
+1. SSH_PRIVATE_KEY (Type: File, Masked: ✅)
+   → Colle ta clé privée SSH d'étape 2
+
+2. VPS_HOST (Type: Variable)
+   → <ton-ip-vps> ou <domaine-vps>
+
+3. VPS_USER (Type: Variable)
+   → deploy
+
+
+STEP 4: NGINX & SSL (20 min - sur VPS)
+──────────────────────────────────────
+1. SSH vers VPS:
+   ssh root@<VPS_IP>
+
+2. Setup Nginx:
+   sudo cp /tmp/parcourAdminJoyAtWork/deploy/nginx-parcour-admin.conf /etc/nginx/sites-available/parcour-admin
+   sudo ln -sf /etc/nginx/sites-available/parcour-admin /etc/nginx/sites-enabled/
+   sudo rm -f /etc/nginx/sites-enabled/default
+   sudo nginx -t
+   sudo systemctl reload nginx
+
+3. Setup SSL:
+   sudo certbot --nginx -d parcouadmin.joyatwork.com -d www.parcouadmin.joyatwork.com
+   
+   (Réponds OUI à tout)
+
+
+STEP 5: GITLAB RUNNER (10 min - sur VPS)
+─────────────────────────────────────────
+1. SSH vers VPS:
+   ssh root@<VPS_IP>
+
+2. Enregistrer:
+   sudo gitlab-runner register
+
+   Réponds:
+   - URL: https://gitlab.com/
+   - Token: [Va copier depuis GitLab Settings → CI/CD → Runners]
+   - Description: VPS Production
+   - Tags: production,vps
+   - Executor: shell
+
+3. Setup permissions:
+   echo "deploy ALL=(ALL) NOPASSWD: /bin/systemctl reload nginx" | sudo tee -a /etc/sudoers.d/deploy
+   sudo chmod 440 /etc/sudoers.d/deploy
+
+
+STEP 6: DATABASE & .ENV (10 min - sur VPS)
+───────────────────────────────────────────
+1. SSH vers VPS:
+   ssh root@<VPS_IP>
+
+2. Créer la BD:
+   sudo mysql -u root -p
+   
+   CREATE DATABASE parcour_admin;
+   CREATE USER 'parcour_user'@'localhost' IDENTIFIED BY 'PASSWORD123!';
+   GRANT ALL PRIVILEGES ON parcour_admin.* TO 'parcour_user'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+
+3. Créer .env:
+   sudo nano /var/www/parcour-admin/api/.env
+   
+   Colle (remplace PASSWORD123! par ton vrai password):
+   ────────────────────────────────────────────────────
+   APP_NAME="Parcour Admin"
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://parcouadmin.joyatwork.com
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=parcour_admin
+   DB_USERNAME=parcour_user
+   DB_PASSWORD=PASSWORD123!
+   CACHE_DRIVER=file
+   QUEUE_CONNECTION=database
+   LOG_CHANNEL=single
+   LOG_LEVEL=error
+   ────────────────────────────────────────────────────
+   
+   Sauvegarde: Ctrl+X → Y → Entrée
+
+
+STEP 7: FIRST DEPLOY (2 min - ta machine locale)
+──────────────────────────────────────────────────
+1. Git push:
+   cd ~/parcourAdminJoyAtWork
+   git checkout dev
+   git add .
+   git commit -m "Deploy to VPS with GitLab CI/CD"
+   git push origin dev
+
+2. Observer le pipeline:
+   Va sur: https://gitlab.com/Joyatwork/parcourAdminJoyAtWork/pipelines
+   
+   Attends que tout soit 🟢
+
+
+STEP 8: VALIDATION (2 min)
+──────────────────────────
+1. Navigateur: https://parcouadmin.joyatwork.com
+   → Doit afficher le site avec 🔒
+
+2. Terminal:
+   curl https://parcouadmin.joyatwork.com/health
+   → Doit afficher: healthy
+
+
+✅ C'EST BON!
+
+Si erreur → lire deploy/DEPLOYMENT-GUIDE.md
+
+
+TIPS:
+═════
+• Pour revert un déploiement: git reset --hard <commit-hash>
+• Voir les logs API: ssh deploy@<VPS_IP> "tail -f /var/www/parcour-admin/api/storage/logs/laravel.log"
+• Redémarrer manuellement: ssh deploy@<VPS_IP> "sudo systemctl reload nginx"
