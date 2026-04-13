@@ -1,0 +1,2 @@
+# Nixpacks configuration
+# This file tells Render to use Docker instead of Nixpacks build detection
