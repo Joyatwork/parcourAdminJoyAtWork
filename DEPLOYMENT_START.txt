@@ -1,0 +1,90 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║        🚀 PARCOUR ADMIN - GITLAB CI/CD DEPLOYMENT                         ║
+║        Complete setup for VPS + Nginx + SSL                               ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+✅ FICHIERS CRÉÉS & PUSHÉS ✅
+
+deploy/
+├── .gitlab-ci.yml ......................... Pipeline CI/CD automatisé
+├── nginx-parcour-admin.conf ............... Config Nginx reverse proxy
+├── setup-vps.sh ........................... Script VPS setup (45 min)
+├── setup-local.sh ......................... Script SSH keys (5 min)
+├── setup-gitlab-vars.sh ................... Guide variables GitLab
+├── DEPLOYMENT-GUIDE.md .................... Guide complet (8 phases)
+├── QUICK-START.txt ........................ Résumé rapide
+├── CHECKLIST.md ........................... Checklist détaillée
+├── deploy-manual.sh ....................... Déploiement manuel
+└── README.md .............................. Documentation technique
+
+────────────────────────────────────────────────────────────────────────────
+
+📋 COMMENCER LE DÉPLOIEMENT EN 3 CLICS:
+
+1️⃣  LIRE LE QUICK START
+    👉 deploy/QUICK-START.txt
+
+2️⃣  SUIVRE LE GUIDE COMPLET
+    👉 deploy/DEPLOYMENT-GUIDE.md
+
+3️⃣  OU UTILISER LA CHECKLIST
+    👉 deploy/CHECKLIST.md
+
+────────────────────────────────────────────────────────────────────────────
+
+⏱️  TIMING ESTIMÉ:
+
+Phase 1 : VPS Setup ........................ 45 min
+Phase 2 : SSH Keys ......................... 5 min
+Phase 3 : GitLab Variables ................. 5 min
+Phase 4 : Nginx & SSL ...................... 20 min
+Phase 5 : GitLab Runner .................... 10 min
+Phase 6 : Database & .env .................. 10 min
+Phase 7 : First Deployment ................. 5 min
+Phase 8 : Validation & Testing ............. 5 min
+                                    ─────────────
+                        TOTAL: 2-3 heures
+
+────────────────────────────────────────────────────────────────────────────
+
+🔗 LIENS IMPORTANTS:
+
+Repo GitHub:
+  https://github.com/Joyatwork/parcourAdminJoyAtWork
+
+GitLab Settings (CI/CD Variables):
+  https://gitlab.com/Joyatwork/parcourAdminJoyAtWork/-/settings/ci_cd
+
+GitLab Pipelines:
+  https://gitlab.com/Joyatwork/parcourAdminJoyAtWork/-/pipelines
+
+────────────────────────────────────────────────────────────────────────────
+
+📱 WORKFLOW APRÈS LE SETUP:
+
+1. code + commit
+2. git push origin dev
+3. Auto-deploy via GitLab CI/CD pipeline
+4. https://parcouadmin.joyatwork.com live ✅
+
+────────────────────────────────────────────────────────────────────────────
+
+🆘 BESOIN D'AIDE ?
+
+Quick questions:
+  Lire: deploy/QUICK-START.txt
+
+Stepped walkthrough:
+  Lire: deploy/DEPLOYMENT-GUIDE.md
+
+Technical details:
+  Lire: deploy/README.md
+
+Issues & troubleshooting:
+  Voir: deploy/DEPLOYMENT-GUIDE.md → Troubleshooting section
+
+────────────────────────────────────────────────────────────────────────────
+
+✨ READY? START WITH: deploy/QUICK-START.txt ✨
