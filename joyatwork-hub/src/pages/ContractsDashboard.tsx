@@ -47,6 +47,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  ChevronUp,
 } from "lucide-react";
 import {
   useContracts,
@@ -70,6 +71,7 @@ const ContractsDashboard = () => {
   const [newContractEntrepriseId, setNewContractEntrepriseId] = useState<
     number | null
   >(null);
+  const [newContractNumero, setNewContractNumero] = useState("");
   const [newContractType, setNewContractType] = useState<
     "Standard" | "Premium" | "Enterprise"
   >("Standard");
@@ -78,15 +80,21 @@ const ContractsDashboard = () => {
   >("En négociation");
   const [newContractDateDebut, setNewContractDateDebut] = useState("");
   const [newContractDateFin, setNewContractDateFin] = useState("");
+  const [newContractDateSignature, setNewContractDateSignature] = useState("");
+  const [newContractDateRenouvellement, setNewContractDateRenouvellement] = useState("");
   const [newContractMontantAnnuel, setNewContractMontantAnnuel] = useState("");
+  const [newContractMontantMensuel, setNewContractMontantMensuel] = useState("");
+  const [newContractDevise, setNewContractDevise] = useState("EUR");
   const [newContractEmployeesCovered, setNewContractEmployeesCovered] = useState("");
   const [newContractDescription, setNewContractDescription] = useState("");
+  const [newContractConditionsParticulieres, setNewContractConditionsParticulieres] = useState("");
 
   // États pour l'édition
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingContractId, setEditingContractId] = useState<number | null>(
     null
   );
+  const [editContractNumero, setEditContractNumero] = useState("");
   const [editContractType, setEditContractType] = useState<
     "Standard" | "Premium" | "Enterprise"
   >("Standard");
@@ -95,10 +103,15 @@ const ContractsDashboard = () => {
   >("En négociation");
   const [editContractDateDebut, setEditContractDateDebut] = useState("");
   const [editContractDateFin, setEditContractDateFin] = useState("");
+  const [editContractDateSignature, setEditContractDateSignature] = useState("");
+  const [editContractDateRenouvellement, setEditContractDateRenouvellement] = useState("");
   const [editContractMontantAnnuel, setEditContractMontantAnnuel] =
     useState("");
+  const [editContractMontantMensuel, setEditContractMontantMensuel] = useState("");
+  const [editContractDevise, setEditContractDevise] = useState("EUR");
   const [editContractEmployeesCovered, setEditContractEmployeesCovered] = useState("");
   const [editContractDescription, setEditContractDescription] = useState("");
+  const [editContractConditionsParticulieres, setEditContractConditionsParticulieres] = useState("");
 
   // États pour la suppression
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -106,6 +119,10 @@ const ContractsDashboard = () => {
     null
   );
   const [deletingContractNumero, setDeletingContractNumero] = useState("");
+
+  // États pour afficher les détails complets d'un contrat
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedContractDetails, setSelectedContractDetails] = useState<Contract | null>(null);
 
   // Hooks
   const { data: companies } = useCompanies();
@@ -122,6 +139,15 @@ const ContractsDashboard = () => {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
+
+  const scrollToTop = () => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   // Données de fallback
   const fallbackContracts: Contract[] = [];
@@ -145,8 +171,10 @@ const ContractsDashboard = () => {
   const handleCreateContract = () => {
     if (
       !newContractEntrepriseId ||
+      !newContractNumero.trim() ||
       !newContractDateDebut ||
-      !newContractMontantAnnuel
+      !newContractMontantAnnuel ||
+      !newContractDevise.trim()
     ) {
       toast({
         title: "Erreur",
@@ -158,26 +186,38 @@ const ContractsDashboard = () => {
 
     createContract.mutate(
       {
+        numero_contrat: newContractNumero.trim(),
         entreprise_id: newContractEntrepriseId,
         type_contrat: newContractType,
         statut: newContractStatut,
         date_debut: newContractDateDebut,
         date_fin: newContractDateFin || null,
+        date_signature: newContractDateSignature || null,
+        date_renouvellement: newContractDateRenouvellement || null,
         montant_annuel: parseFloat(newContractMontantAnnuel),
+        montant_mensuel: newContractMontantMensuel ? parseFloat(newContractMontantMensuel) : null,
+        devise: newContractDevise.trim(),
         nombre_employes_couverts: newContractEmployeesCovered ? parseInt(newContractEmployeesCovered, 10) : 0,
         description: newContractDescription || null,
+        conditions_particulieres: newContractConditionsParticulieres || null,
       },
       {
         onSuccess: () => {
           setIsCreateOpen(false);
           setNewContractEntrepriseId(null);
+          setNewContractNumero("");
           setNewContractType("Standard");
           setNewContractStatut("En négociation");
           setNewContractDateDebut("");
           setNewContractDateFin("");
+          setNewContractDateSignature("");
+          setNewContractDateRenouvellement("");
           setNewContractMontantAnnuel("");
+          setNewContractMontantMensuel("");
+          setNewContractDevise("EUR");
           setNewContractEmployeesCovered("");
           setNewContractDescription("");
+          setNewContractConditionsParticulieres("");
           toast({
             title: "Contrat créé",
             description: "Le nouveau contrat a été créé avec succès.",
@@ -189,13 +229,19 @@ const ContractsDashboard = () => {
 
   const handleEditClick = (contract: Contract) => {
     setEditingContractId(contract.id);
+    setEditContractNumero(contract.numero_contrat || "");
     setEditContractType(contract.type_contrat);
     setEditContractStatut(contract.statut);
     setEditContractDateDebut(contract.date_debut);
     setEditContractDateFin(contract.date_fin || "");
+    setEditContractDateSignature(contract.date_signature || "");
+    setEditContractDateRenouvellement(contract.date_renouvellement || "");
     setEditContractMontantAnnuel(contract.montant_annuel.toString());
+    setEditContractMontantMensuel(contract.montant_mensuel?.toString() || "");
+    setEditContractDevise(contract.devise || "EUR");
     setEditContractEmployeesCovered(contract.nombre_employes_couverts?.toString() || "0");
     setEditContractDescription(contract.description || "");
+    setEditContractConditionsParticulieres(contract.conditions_particulieres || "");
     setIsEditOpen(true);
   };
 
@@ -212,13 +258,19 @@ const ContractsDashboard = () => {
       {
         id: editingContractId,
         data: {
+          numero_contrat: editContractNumero.trim() || undefined,
           type_contrat: editContractType,
           statut: editContractStatut,
           date_debut: editContractDateDebut,
           date_fin: editContractDateFin || null,
+          date_signature: editContractDateSignature || null,
+          date_renouvellement: editContractDateRenouvellement || null,
           montant_annuel: parseFloat(editContractMontantAnnuel),
+          montant_mensuel: editContractMontantMensuel ? parseFloat(editContractMontantMensuel) : null,
+          devise: editContractDevise.trim() || undefined,
           nombre_employes_couverts: editContractEmployeesCovered ? parseInt(editContractEmployeesCovered, 10) : 0,
           description: editContractDescription || null,
+          conditions_particulieres: editContractConditionsParticulieres || null,
         },
       },
       {
@@ -484,7 +536,11 @@ const ContractsDashboard = () => {
           {displayedContracts.map((contract) => (
             <Card
               key={contract.id}
-              className="hover:shadow-lg transition-shadow duration-200"
+              className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+              onClick={() => {
+                setSelectedContractDetails(contract);
+                setIsDetailsOpen(true);
+              }}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -555,13 +611,20 @@ const ContractsDashboard = () => {
                     </p>
                   )}
 
+                  <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-blue-600 hover:text-blue-800 font-medium">
+                    Cliquez pour voir tous les details →
+                  </div>
+
                   <div className="pt-4 space-y-2">
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50"
-                        onClick={() => handleEditClick(contract)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleEditClick(contract);
+                        }}
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Modifier
@@ -570,7 +633,10 @@ const ContractsDashboard = () => {
                         variant="outline"
                         size="sm"
                         className="border-red-200 text-red-600 hover:bg-red-50"
-                        onClick={() => handleDeleteClick(contract)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteClick(contract);
+                        }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -592,6 +658,139 @@ const ContractsDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Dialog pour afficher tous les details d'un contrat */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Details du contrat</DialogTitle>
+            <DialogDescription>
+              Informations completes du contrat selectionne
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedContractDetails && (
+            <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {selectedContractDetails.numero_contrat}
+                  </h2>
+                  <p className="text-sm text-blue-600 font-medium">
+                    {selectedContractDetails.entreprise?.name || "Entreprise inconnue"}
+                  </p>
+                </div>
+                <Badge className={`text-xs ${getStatutBadgeColor(selectedContractDetails.statut)}`}>
+                  <span className="flex items-center gap-1">
+                    {getStatutIcon(selectedContractDetails.statut)}
+                    {selectedContractDetails.statut}
+                  </span>
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Type</p>
+                  <p className="text-sm text-gray-900">{selectedContractDetails.type_contrat}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Devise</p>
+                  <p className="text-sm text-gray-900">{selectedContractDetails.devise}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Date de debut</p>
+                  <p className="text-sm text-gray-900">
+                    {new Date(selectedContractDetails.date_debut).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Date de fin</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.date_fin
+                      ? new Date(selectedContractDetails.date_fin).toLocaleDateString("fr-FR")
+                      : "Non renseignee"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Date de signature</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.date_signature
+                      ? new Date(selectedContractDetails.date_signature).toLocaleDateString("fr-FR")
+                      : "Non renseignee"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Date de renouvellement</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.date_renouvellement
+                      ? new Date(selectedContractDetails.date_renouvellement).toLocaleDateString("fr-FR")
+                      : "Non renseignee"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Montant annuel</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.montant_annuel.toLocaleString("fr-FR")} {selectedContractDetails.devise}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Montant mensuel</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.montant_mensuel
+                      ? `${selectedContractDetails.montant_mensuel.toLocaleString("fr-FR")} ${selectedContractDetails.devise}`
+                      : "Non renseigne"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Employes couverts</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedContractDetails.nombre_employes_couverts ?? 0}
+                  </p>
+                </div>
+              </div>
+
+              {selectedContractDetails.description && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                      {selectedContractDetails.description}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedContractDetails.conditions_particulieres && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Conditions particulieres</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                      {selectedContractDetails.conditions_particulieres}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
+              Fermer
+            </Button>
+            {selectedContractDetails && (
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => {
+                  setIsDetailsOpen(false);
+                  handleEditClick(selectedContractDetails);
+                }}
+              >
+                Modifier
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de création */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -631,6 +830,17 @@ const ContractsDashboard = () => {
                   )}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Numero de contrat *
+              </label>
+              <Input
+                placeholder="Ex: CTR-2026-001"
+                value={newContractNumero}
+                onChange={(e) => setNewContractNumero(e.target.value)}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -712,6 +922,30 @@ const ContractsDashboard = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Date de signature
+                </label>
+                <Input
+                  type="date"
+                  value={newContractDateSignature}
+                  onChange={(e) => setNewContractDateSignature(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Date de renouvellement
+                </label>
+                <Input
+                  type="date"
+                  value={newContractDateRenouvellement}
+                  onChange={(e) => setNewContractDateRenouvellement(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
                 Montant annuel (€) *
@@ -722,6 +956,18 @@ const ContractsDashboard = () => {
                 placeholder="Ex: 45000"
                 value={newContractMontantAnnuel}
                 onChange={(e) => setNewContractMontantAnnuel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Devise *
+              </label>
+              <Input
+                placeholder="EUR"
+                maxLength={3}
+                value={newContractDevise}
+                onChange={(e) => setNewContractDevise(e.target.value.toUpperCase())}
               />
             </div>
 
@@ -747,6 +993,18 @@ const ContractsDashboard = () => {
                 placeholder="Description du contrat..."
                 value={newContractDescription}
                 onChange={(e) => setNewContractDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Conditions particulieres
+              </label>
+              <textarea
+                className="w-full min-h-[100px] px-3 py-2 text-sm border border-gray-300 rounded-md"
+                placeholder="Conditions particulieres..."
+                value={newContractConditionsParticulieres}
+                onChange={(e) => setNewContractConditionsParticulieres(e.target.value)}
               />
             </div>
           </div>
@@ -782,6 +1040,17 @@ const ContractsDashboard = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Numero de contrat
+              </label>
+              <Input
+                placeholder="Ex: CTR-2026-001"
+                value={editContractNumero}
+                onChange={(e) => setEditContractNumero(e.target.value)}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
@@ -861,6 +1130,30 @@ const ContractsDashboard = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Date de signature
+                </label>
+                <Input
+                  type="date"
+                  value={editContractDateSignature}
+                  onChange={(e) => setEditContractDateSignature(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Date de renouvellement
+                </label>
+                <Input
+                  type="date"
+                  value={editContractDateRenouvellement}
+                  onChange={(e) => setEditContractDateRenouvellement(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
                 Montant annuel (€) *
@@ -871,6 +1164,31 @@ const ContractsDashboard = () => {
                 placeholder="Ex: 45000"
                 value={editContractMontantAnnuel}
                 onChange={(e) => setEditContractMontantAnnuel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Montant mensuel (€)
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Ex: 3750"
+                value={editContractMontantMensuel}
+                onChange={(e) => setEditContractMontantMensuel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Devise
+              </label>
+              <Input
+                placeholder="EUR"
+                maxLength={3}
+                value={editContractDevise}
+                onChange={(e) => setEditContractDevise(e.target.value.toUpperCase())}
               />
             </div>
 
@@ -896,6 +1214,18 @@ const ContractsDashboard = () => {
                 placeholder="Description du contrat..."
                 value={editContractDescription}
                 onChange={(e) => setEditContractDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Conditions particulieres
+              </label>
+              <textarea
+                className="w-full min-h-[100px] px-3 py-2 text-sm border border-gray-300 rounded-md"
+                placeholder="Conditions particulieres..."
+                value={editContractConditionsParticulieres}
+                onChange={(e) => setEditContractConditionsParticulieres(e.target.value)}
               />
             </div>
           </div>
@@ -943,6 +1273,32 @@ const ContractsDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <button
+        onClick={scrollToTop}
+        style={{
+          position: "fixed",
+          bottom: "2rem",
+          right: "2rem",
+          backgroundColor: "#16a34a",
+          color: "white",
+          padding: "0.75rem",
+          borderRadius: "50%",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+          zIndex: 9999,
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background-color 0.2s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#15803d")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#16a34a")}
+        title="Retour au haut"
+      >
+        <ChevronUp style={{ width: "24px", height: "24px" }} />
+      </button>
     </div>
   );
 };

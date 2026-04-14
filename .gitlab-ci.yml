@@ -1,0 +1,126 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  APP_DIR: /var/www/parcour-admin
+  VPS_USER: deploy
+  VPS_HOST: ${VPS_HOST}  # Défini dans GitLab Variables
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
+# Build backend (Laravel)
+build:api:
+  stage: build
+  image: php:8.2
+  script:
+    - apt-get update && apt-get install -y git unzip libzip-dev
+    - docker-php-ext-install zip pdo_mysql
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - cd joyatwork-api
+    - composer install --no-dev --optimize-autoloader
+  artifacts:
+    paths:
+      - joyatwork-api/vendor/
+      - joyatwork-api/.env
+    expire_in: 1 day
+  cache:
+    paths:
+      - joyatwork-api/vendor/
+
+# Build frontend (React)
+build:hub:
+  stage: build
+  image: node:20
+  script:
+    - cd joyatwork-hub
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - joyatwork-hub/dist/
+    expire_in: 1 day
+  cache:
+    paths:
+      - joyatwork-hub/node_modules/
+
+# Tests (optionnel - ajouter si tu as des tests)
+test:api:
+  stage: test
+  image: php:8.2
+  dependencies:
+    - build:api
+  script:
+    - apt-get update && apt-get install -y git unzip libzip-dev
+    - docker-php-ext-install zip pdo_mysql
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - cd joyatwork-api
+    - composer install --no-dev --optimize-autoloader
+    - php artisan config:cache
+    # - ./vendor/bin/phpunit  # Activer si tu as des tests
+  allow_failure: true
+
+# Deploy sur VPS
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  only:
+    - dev  # Déployer seulement sur la branche dev (change en main pour prod)
+  before_script:
+    # Installer les outils nécessaires
+    - apk add --no-cache openssh rsync
+    # Configurer SSH
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null
+    - chmod 600 ~/.ssh/known_hosts
+  script:
+    # Déployer les fichiers
+    - echo "Deploying to $VPS_USER@$VPS_HOST:$APP_DIR..."
+    
+    # Backend API
+    - rsync -avz --delete --exclude='.git' --exclude='node_modules' --exclude='.env.local' 
+      joyatwork-api/ $VPS_USER@$VPS_HOST:$APP_DIR/api/
+    
+    # Frontend Hub
+    - rsync -avz --delete joyatwork-hub/dist/ $VPS_USER@$VPS_HOST:$APP_DIR/hub/
+    
+    # Exécuter les migrations et démarrer l'app
+    - ssh $VPS_USER@$VPS_HOST "cd $APP_DIR/api && php artisan migrate --force"
+    
+    # Recharger Nginx
+    - ssh $VPS_USER@$VPS_HOST "sudo systemctl reload nginx"
+    
+    - echo "✅ Deployment successful!"
+  after_script:
+    - ssh-agent -k
+  environment:
+    name: production
+    url: https://$VPS_HOST
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+# Variante avec Docker (optionnel - décommenter pour utiliser)
+# deploy:docker:
+#   stage: deploy
+#   image: docker:24
+#   services:
+#     - docker:dind
+#   only:
+#     - dev
+#   script:
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+#     - eval $(ssh-agent -s)
+#     - echo "$SSH_PRIVATE_KEY" | ssh-add -
+#     - ssh -oStrictHostKeyChecking=no $VPS_USER@$VPS_HOST "'
+#       docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA &&
+#       docker stop parcour-api || true &&
+#       docker run -d --name parcour-api --rm -p 8000:8000 
+#       $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA'"

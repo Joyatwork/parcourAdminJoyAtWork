@@ -10,14 +10,8 @@ class Company extends Model
 {
     use HasFactory;
 
-    /**
-     * Utiliser la table existante 'entreprises'
-     */
     protected $table = 'entreprises';
 
-    /**
-     * Colonnes modifiables adaptées à la structure réelle de la table 'entreprises'
-     */
     protected $fillable = [
         'name',
         'domain',
@@ -52,5 +46,13 @@ class Company extends Model
     public function contrats(): HasMany
     {
         return $this->hasMany(Contract::class, 'entreprise_id');
+    }
+
+    /**
+     * Usages liés à cette entreprise
+     */
+    public function usages(): HasMany
+    {
+        return $this->hasMany(Usage::class, 'entreprise_id');
     }
 }

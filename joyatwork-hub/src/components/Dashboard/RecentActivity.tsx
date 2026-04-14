@@ -66,9 +66,9 @@ export function RecentActivity() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <h3 className="text-xl font-semibold text-foreground">Activité récente</h3>
-        <Badge variant="secondary" className="bg-gradient-primary text-white">
+        <Badge variant="secondary" className="w-fit bg-gradient-primary text-white">
           <TrendingUp className="w-3 h-3 mr-1" />
           Actif
         </Badge>

@@ -39,8 +39,12 @@ class AppointmentController extends Controller
 
                     
 
-                    'client_name' => $appointment->employee->user->name,
-                    'client_email' => $appointment->employee->user->email,
+                    'client_name' => $appointment->employee && $appointment->employee->user
+                        ? $appointment->employee->user->name
+                        : 'Client inconnu',
+                    'client_email' => $appointment->employee && $appointment->employee->user
+                        ? $appointment->employee->user->email
+                        : 'Email inconnu',
                     
                     'scheduled_at' => $appointment->scheduled_at,
                     'duration' => $appointment->duration,

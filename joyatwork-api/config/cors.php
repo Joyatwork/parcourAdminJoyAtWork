@@ -22,8 +22,10 @@ return [
     'allowed_origins' => [
         'http://localhost:3001',
         'http://localhost:3000',
+        'http://localhost:3002',
         'http://127.0.0.1:3001',
         'http://127.0.0.1:3000',
+        'http://127.0.0.1:3002',
         'http://10.5.0.2:3001',
         'http://10.192.153.237:3001', // ajout pour front sur réseau local
     ],
@@ -35,8 +37,8 @@ return [
     'exposed_headers' => [],
 
     'max_age' => 0,
+    'supports_credentials' => true,
 
-    'supports_credentials' => false,
-
+    
 ];
 

@@ -5,11 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { Brain, Battery, Calendar, CheckCircle2, AlertCircle, AlertTriangle, Smile, Moon, Briefcase } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const metricConfigs = {
-  'Stress': { icon: Brain, displayName: 'Stress' },
-  'Énergie': { icon: Battery, displayName: 'Énergie' },
-};
-
 const months = [
   { value: 1, label: 'Janvier' },
   { value: 2, label: 'Février' },
@@ -51,7 +46,7 @@ export function HealthMetrics() {
         setHealthData([]);
         setError(`Aucune donnée disponible pour ${months.find(m => m.value === month)?.label || month}/${year}`);
       } else {
-        // Map only Stress and Énergie
+        
         const formattedData = [
           {
             category: 'Stress',
@@ -102,7 +97,7 @@ export function HealthMetrics() {
     switch(status) {
       case 'good': return { icon: CheckCircle2, text: 'Bon', className: 'bg-green-100 text-green-800' };
       case 'medium': return { icon: AlertCircle, text: 'Moyen', className: 'bg-yellow-100 text-yellow-800' };
-      case 'warning': return { icon: AlertTriangle, text: 'Attention', className: 'bg-red-100 text-red-800' };
+      case 'warning': return { icon: AlertTriangle, text: 'Attention', className: 'bg-orange-100 text-orange-800' };
       default: return { icon: AlertCircle, text: 'Moyen', className: 'bg-gray-100 text-gray-700' };
     }
   };
@@ -110,11 +105,11 @@ export function HealthMetrics() {
   const getProgressColor = (status) => {
   switch(status) {
     case 'good': 
-      return 'bg-emerald-400';    // Un vert plus doux
+      return 'bg-gradient-to-r from-green-100 to-emerald-100';    // Un vert plus doux
     case 'medium': 
-      return 'bg-yellow-200';     // Orange clair (pêche)
+      return 'bg-gradient-to-r from-orange-100 to-yellow-100';     // Orange clair (pêche)
     case 'warning': 
-      return 'bg-red-200';        // Rouge clair (corail/rose)
+      return 'bg-orange-200'; 
     default: 
       return 'bg-blue-300';
   }
@@ -124,17 +119,17 @@ export function HealthMetrics() {
 
   return (
     <Card className="p-6 shadow-soft">
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-6">
+        <div className="min-w-0">
           <h3 className="text-xl font-semibold">Santé & Diagnostic</h3>
           <p className="text-muted-foreground">Suivi des indicateurs globaux</p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="border rounded px-3 py-1"
+            className="w-full sm:w-auto border rounded px-3 py-1"
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -142,12 +137,12 @@ export function HealthMetrics() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="border rounded px-3 py-1"
+            className="w-full sm:w-auto border rounded px-3 py-1"
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
 
-          <Button onClick={handleFilterChange} variant="outline" size="sm" className="gap-2">
+          <Button onClick={handleFilterChange} variant="outline" size="sm" className="w-full sm:w-auto gap-2">
             <Calendar className="w-4 h-4" /> Appliquer
           </Button>
         </div>
@@ -160,15 +155,15 @@ export function HealthMetrics() {
           const BadgeConfig = getBadge(metric.status);
           const Icon = metric.icon;
           return (
-            <div key={metric.category} className="flex items-center gap-4 p-4 rounded-lg border bg-white">
-              <div className={`p-3 rounded-full ${metric.status === 'good' ? 'bg-green-100' : metric.status === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}>
-                <Icon className={`w-6 h-6 ${metric.status === 'good' ? 'text-green-500' : metric.status === 'medium' ? 'text-yellow-500' : 'text-red-500'}`} />
+            <div key={metric.category} className="flex items-start gap-4 p-4 rounded-lg border bg-white">
+              <div className={`p-3 rounded-full ${metric.status === 'good' ? 'bg-gradient-to-r from-green-100 to-emerald-100' : metric.status === 'medium' ? 'bg-gradient-to-r from-orange-100 to-yellow-100' : 'bg-orange-200'}`}>
+                <Icon className={`w-6 h-6 ${metric.status === 'good' ? 'text-green-500' : metric.status === 'medium' ? 'text-yellow-500' : 'text-orange-500'}`} />
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
                   <span className="font-medium">{metric.category}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold">{metric.value}</span>
                     <Badge className={`text-xs border ${BadgeConfig.className}`}>
                       <BadgeConfig.icon className="w-3 h-3 mr-1" />

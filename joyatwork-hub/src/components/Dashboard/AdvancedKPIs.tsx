@@ -87,12 +87,12 @@ export function AdvancedKPIs() {
   return (
     <Card className="shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
             <CardTitle className="text-xl">KPIs Avancés Admin/RH</CardTitle>
             <p className="text-muted-foreground">Indicateurs stratégiques et prédictifs</p>
           </div>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2">
             <FileText className="w-4 h-4" />
             Rapport complet
           </Button>
@@ -101,12 +101,12 @@ export function AdvancedKPIs() {
 
       <CardContent>
         <Tabs defaultValue="absenteeism" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="absenteeism">Absentéisme</TabsTrigger>
-            <TabsTrigger value="turnover">Turnover</TabsTrigger>
-            <TabsTrigger value="risks">Risques</TabsTrigger>
-            <TabsTrigger value="productivity">Productivité</TabsTrigger>
-            <TabsTrigger value="demographics">Démographique</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-2 lg:grid-cols-5">
+            <TabsTrigger value="absenteeism" className="whitespace-normal px-3 py-2 text-center">Absentéisme</TabsTrigger>
+            <TabsTrigger value="turnover" className="whitespace-normal px-3 py-2 text-center">Turnover</TabsTrigger>
+            <TabsTrigger value="risks" className="whitespace-normal px-3 py-2 text-center">Risques</TabsTrigger>
+            <TabsTrigger value="productivity" className="whitespace-normal px-3 py-2 text-center">Productivité</TabsTrigger>
+            <TabsTrigger value="demographics" className="whitespace-normal px-3 py-2 text-center">Démographique</TabsTrigger>
           </TabsList>
 
           <TabsContent value="absenteeism" className="space-y-6">

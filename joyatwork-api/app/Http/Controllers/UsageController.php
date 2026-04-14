@@ -17,9 +17,15 @@ class UsageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Usage::query()
-            ->when($request->filled('entreprise_id'), fn($q) => $q->where('entreprise_id', $request->entreprise_id))
-            ->when($request->filled('practitioner_id'), fn($q) => $q->where('practitioner_id', $request->practitioner_id))
-            ->when($request->filled('statut'), fn($q) => $q->where('statut', $request->statut))
+            ->when($request->filled('entreprise_id'), fn ($q) =>
+                $q->where('entreprise_id', $request->entreprise_id)
+            )
+            ->when($request->filled('practitioner_id'), fn ($q) =>
+                $q->where('practitioner_id', $request->practitioner_id)
+            )
+            ->when($request->filled('statut'), fn ($q) =>
+                $q->where('statut', $request->statut)
+            )
             ->orderByDesc('id');
 
         return response()->json($query->paginate(50));
@@ -27,16 +33,6 @@ class UsageController extends Controller
 
     /**
      * Créer un usage et tenter la validation automatique.
-     * Payload attendu :
-     * - entreprise_id
-     * - practitioner_id (optionnel)
-     * - employee_id (optionnel)
-     * - type_service
-     * - date_prestation
-     * - prix_ht
-     * - part_joyatwork_pct (optionnel, si non fourni on peut utiliser la part de la ligne de commande liée)
-     * - part_praticien_pct (optionnel)
-     * - order_line_id (optionnel, aide à retrouver les parts)
      */
     public function store(Request $request): JsonResponse
     {
@@ -53,6 +49,7 @@ class UsageController extends Controller
         ]);
 
         $usage = DB::transaction(function () use ($data) {
+
             $orderLine = null;
             if (!empty($data['order_line_id'])) {
                 $orderLine = OrderLine::find($data['order_line_id']);
@@ -68,6 +65,7 @@ class UsageController extends Controller
             // Détermination des parts
             $partJawPct = $data['part_joyatwork_pct'] ?? ($orderLine->part_joyatwork_pct ?? 0);
             $partPratPct = $data['part_praticien_pct'] ?? ($orderLine->part_praticien_pct ?? 0);
+
             $partJaw = round(($data['prix_ht'] * $partJawPct) / 100, 2);
             $partPrat = round(($data['prix_ht'] * $partPratPct) / 100, 2);
 
@@ -75,14 +73,14 @@ class UsageController extends Controller
             $creditId = null;
 
             if ($credit) {
-                // Consommer un crédit
-                $credit->quantite_restante = $credit->quantite_restante - 1;
+                $credit->quantite_restante -= 1;
                 $credit->save();
+
                 $statut = 'valide_auto';
                 $creditId = $credit->id;
             }
 
-            $usage = Usage::create([
+            return Usage::create([
                 'entreprise_id' => $data['entreprise_id'],
                 'employee_id' => $data['employee_id'] ?? null,
                 'practitioner_id' => $data['practitioner_id'] ?? null,
@@ -96,11 +94,32 @@ class UsageController extends Controller
                 'statut' => $statut,
                 'validated_at' => $statut === 'valide_auto' ? now() : null,
             ]);
-
-            return $usage;
         });
 
         return response()->json($usage, 201);
     }
-}
 
+    /**
+     * 🔥 TENDANCES D'USAGE (Sprint Admin 2)
+     * Lecture macro, anonymisée, par mois
+     */
+    public function tendances(): JsonResponse
+    {
+        $tendances = Usage::select(
+                DB::raw('YEAR(date_prestation) as annee'),
+                DB::raw('MONTH(date_prestation) as mois'),
+                DB::raw('COUNT(*) as total_usage'),
+                DB::raw('COUNT(DISTINCT entreprise_id) as entreprises_actives')
+            )
+            ->where('statut', 'valide_auto')
+            ->groupBy(
+                DB::raw('YEAR(date_prestation)'),
+                DB::raw('MONTH(date_prestation)')
+            )
+            ->orderBy('annee')
+            ->orderBy('mois')
+            ->get();
+
+        return response()->json($tendances);
+    }
+}

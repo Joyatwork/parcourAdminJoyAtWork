@@ -14,56 +14,49 @@ interface Practitioner {
   id: number;
   first_name: string;
   last_name: string;
-  email: string | null;
+  speciality: string;
+  user_id: number;
   phone: string | null;
-  specialty: string;
-  certifications: string;
-  experience_years: string;
-  rating: string;
-  availability: string;
-  is_verified: number,
-  bio: string;
-  status: null;
-  suspended_at: string;
-  suspension_reason: string;
-
-  // new infos
   country: string;
   city: string;
-  consultation_mode: string;
+  postal_code: string;
   address: string;
+  consultation_mode: string;
   min_price: number;
   max_price: number;
   website: string;
   linkedin: string;
-  rpps_number: number;
-  siret_number: number;
-  payment_methods: string;
-  languages: string;
-  certif_iprp_path: string;
-
-  // Nouvelles colonnes de la base
-  certif_iprp_verified: number;
-  master_psy_travail_path: string;
-  master_psy_travail_verified: number;
+  rpps_number: string;
+  siret_number: string;
+  payment_methods: string[];
   accepts_new_patients: number;
   emergency_consultations: number;
-  location: string;
-  postal_code: string;
-  specializations: string;
-
+  availability: string;
+  languages: string[];
+  specializations: string[];
+  bio: string;
+  avatar_url: string;
+  is_verified: number;
+  verified_at: string | null;
+  verified_by: number | null;
+  status: string;
+  suspended_at: string;
+  suspension_reason: string;
   created_at: string;
   updated_at: string;
+  certif_iprp_path: string;
+  certif_iprp_verified: number;
 }
+
 interface NewPractitioner {
   first_name: string;
   last_name: string;
   phone: string;
   email: string;
-  specialty: string;
-  experience_years: string;
-  rating: string;
-  certifications: string;
+  speciality: string;
+  country: string;
+  city: string;
+  postal_code: string;
   availability: string;
   bio: string;
 }
@@ -153,18 +146,18 @@ export default function PractitionersDashboard() {
   const [agendaLoading, setAgendaLoading] = useState(false);
 
   const [newPractitioner, setNewPractitioner] = useState<NewPractitioner>({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    email: '',
-    specialty: '',
-    experience_years: '',
-    rating: '',
-    certifications: '',
-    availability: '',
-    bio: ''
-  });
-
+  first_name: '',
+  last_name: '',
+  phone: '',
+  email: '',
+  speciality: '',
+  country: 'France',
+  city: '',
+  postal_code: '',
+  availability: '',
+  bio: ''
+});
+ 
   // États pour les filtres des rendez-vous
 const [appointmentSearchTerm, setAppointmentSearchTerm] = useState('');
 const [appointmentStatusFilter, setAppointmentStatusFilter] = useState('all');
@@ -223,7 +216,9 @@ const resetAppointmentFilters = () => {
   };
 
   // Fonction pour sauvegarder les modifications
-  const handleUpdatePractitioner = async () => {
+// In PractitionersDashboardFixed.tsx, replace handleUpdatePractitioner with:
+
+const handleUpdatePractitioner = async () => {
     if (!editingPractitioner) return;
     
     try {
@@ -236,21 +231,30 @@ const resetAppointmentFilters = () => {
         body: JSON.stringify({
           first_name: editingPractitioner.first_name,
           last_name: editingPractitioner.last_name,
-          email: editingPractitioner.email,
           phone: editingPractitioner.phone,
-          specialty: editingPractitioner.specialty,
+          speciality: editingPractitioner.speciality,
           bio: editingPractitioner.bio,
           availability: editingPractitioner.availability,
-          certifications: editingPractitioner.certifications,
-          experience_years: editingPractitioner.experience_years,
-          rating: editingPractitioner.rating,
-        })
+          country: editingPractitioner.country,
+          city: editingPractitioner.city,
+          postal_code: editingPractitioner.postal_code,
+          address: editingPractitioner.address,
+          consultation_mode: editingPractitioner.consultation_mode,
+          min_price: editingPractitioner.min_price,
+          max_price: editingPractitioner.max_price,
+          website: editingPractitioner.website,
+          linkedin: editingPractitioner.linkedin,
+          rpps_number: editingPractitioner.rpps_number,
+          siret_number: editingPractitioner.siret_number,
+          payment_methods: editingPractitioner.payment_methods,
+          languages: editingPractitioner.languages,
+          specializations: editingPractitioner.specializations,
+        }),
       });
 
       const data = await response.json();
       
       if (data.success) {
-        //alert('Praticien modifié avec succès !');
         setIsEditDialogOpen(false);
         setEditingPractitioner(null);
         
@@ -585,18 +589,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
       
       if (data.success) {
         //alert('Praticien ajouté avec succès!');
-        setNewPractitioner({
-          first_name: '',
-          last_name: '',
-          phone: '',
-          email: '',
-          specialty:'',
-          experience_years: '',
-          rating: '',
-          certifications: '',
-          availability: '',
-          bio: ''
-        });
+        
         setIsDialogOpen(false);
         
         // Recharger la liste
@@ -765,22 +758,21 @@ const getStatusBadge = (status: string): { label: string; variant: 'default' | '
   const filteredPractitioners = practitioners.filter(practitioner => {
     const fullName = `${practitioner.first_name || ''} ${practitioner.last_name || ''}`.trim() || practitioner.first_name || '';
     // Gestion des deux variantes : specialty et speciality
-    const speciality = practitioner.specialty || practitioner.specialty || '';
-    const email = practitioner.email || '';
-    const certifications = practitioner.certifications || '';
+    const speciality = practitioner.speciality || practitioner.speciality || '';
+    const email ='';
     
     const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         certifications.toLowerCase().includes(searchTerm.toLowerCase());
+                         email.toLowerCase().includes(searchTerm.toLowerCase());
+                         
                          
     // Gestion des deux variantes pour le filtre de spécialité
-    const practitionerSpecialty = practitioner.specialty || practitioner.specialty || '';
+    const practitionerSpecialty = practitioner.speciality || practitioner.speciality || '';
     const matchesSpecialty = selectedSpecialty === 'all' || practitionerSpecialty === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
 
-  const uniqueSpecialties = [...new Set(practitioners.map(p => p.specialty || p.specialty || 'Non spécifié').filter(s => s))];
+  const uniqueSpecialties = [...new Set(practitioners.map(p => p.speciality || p.speciality || 'Non spécifié').filter(s => s))];
 
   // Filtrage des rendez-vous
 const filteredAppointments = appointments.filter(appointment => {
@@ -833,38 +825,6 @@ const filteredAppointments = appointments.filter(appointment => {
   return matchesSearch && matchesStatus && matchesMode && matchesPeriod;
 });
 
-// Fonction pour vérifier le certificat IPRP
-const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
-  if (!practitioner) return;
-  
-  try {
-    setIsSubmitting(true);
-    const response = await fetch(`http://localhost:8001/api/practitioners/${practitioner.id}/verify-certif-iprp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // Mettre à jour le praticien dans la liste
-      setPractitioners(prev => prev.map(p => p.id === practitioner.id ? data.data : p));
-      // Mettre à jour le praticien dans detailsPractitioner s'il est ouvert
-      if (detailsPractitioner?.id === practitioner.id) {
-        setDetailsPractitioner(data.data);
-      }
-    } else {
-      alert(`Erreur lors de la vérification : ${data.error || data.message || 'Erreur inconnue'}`);
-    }
-  } catch (error) {
-    console.error('Erreur lors de la vérification:', error);
-    alert('Erreur de connexion lors de la vérification');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -905,12 +865,12 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm border-b">
         <div className="px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Gestion des Praticiens</h1>
               <p className="text-gray-600 mt-2">Gérez votre équipe de praticiens</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <div className="bg-blue-50 px-4 py-3 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{practitioners.length}</div>
                 <div className="text-sm text-blue-600">Praticiens</div>
@@ -939,16 +899,16 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
 
           {/* Praticiens ALL*/}
           <TabsContent value="practitioners" className="space-y-4">
-            <div className="flex items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col gap-4 bg-white p-4 rounded-lg shadow-sm xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center flex-1">
                 <Input
                   placeholder="Rechercher un praticien..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="max-w-md"
+                  className="w-full sm:max-w-md"
                 />
                 <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Toutes les spécialités" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1017,48 +977,18 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
 
                     {/*Speciality: 'specialty' */}
                     <div>
-                      <Label htmlFor="Specialité">Specialité *</Label>
-                      <Input
-                        id="specialty"
-                        type="specialty"
-                        value={newPractitioner.specialty}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, specialty: e.target.value }))}
-                        placeholder="Santé"
-                      />
-                    </div>
+                    <Label htmlFor="speciality">Spécialité</Label>
+                    <Input
+                      id="speciality"
+                      type="text"
+                      value={newPractitioner.speciality}
+                      onChange={(e) => setNewPractitioner(prev => ({ ...prev, speciality: e.target.value }))}
+                      placeholder="Psychologue du travail"
+                    />
+                  </div>
 
-                    <div>
-                      <Label htmlFor="experience_years">Années d'expérience</Label>
-                      <Input
-                        id="experience_years"
-                        type="number"
-                        value={newPractitioner.experience_years}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, experience_years: e.target.value }))}
-                        placeholder="5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="rating">Note (1-5)</Label>
-                      <Input
-                        id="rating"
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        value={newPractitioner.rating}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, rating: e.target.value }))}
-                        placeholder="4.5"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="certifications">Certifications</Label>
-                      <Input
-                        id="certifications"
-                        value={newPractitioner.certifications}
-                        onChange={(e) => setNewPractitioner(prev => ({ ...prev, certifications: e.target.value }))}
-                        placeholder="Psychologue clinicien, Thérapeute cognitivo-comportemental"
-                      />
-                    </div>
+                    
+                    
                     <div>
                       <Label htmlFor="availability">Disponibilité</Label>
                       <Input
@@ -1108,21 +1038,15 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     {filteredPractitioners.map((practitioner) => (
                       <Card key={practitioner.id} className="hover:shadow-lg transition-shadow duration-200">
                         <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="flex-1 min-w-0">
                               <CardTitle className="text-lg font-semibold mb-1">
                                 {practitioner.first_name && practitioner.last_name 
                                   ? `${practitioner.first_name} ${practitioner.last_name}`
                                   : practitioner.first_name || 'Nom non spécifié'
                                 }
                               </CardTitle>
-                              <div className="flex gap-2 mb-3">
-                                {practitioner.rating && (
-                                  <Badge variant="outline">
-                                    ⭐ {practitioner.rating}
-                                  </Badge>
-                                )}
-                              </div>
+                              
                               {/* Nouveau badge pour le statut */}
                               <Badge 
                                 variant={practitioner.status === 'suspended' ? 'destructive' : 'default'}
@@ -1137,7 +1061,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               )}
 
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex flex-wrap gap-1 sm:justify-end">
                               <Button 
                                 size="sm" 
                                 variant="ghost"
@@ -1161,7 +1085,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleReactivatePractitioner(practitioner)}
-                                className="text-green-600 hover:text-green-700"
+                                className="w-full sm:w-auto text-green-600 hover:text-green-700"
                                 title="Réactiver ce praticien"
                               >
                                 Activer
@@ -1188,6 +1112,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => handleVerifyPractitioner(practitioner)}
+                                className="w-full sm:w-auto"
                               >
                                 Vérifier
                               </Button>
@@ -1198,12 +1123,12 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-2 text-sm">
-                            {practitioner.email && (
+                            {/* {practitioner.email && (
                               <div className="flex items-center gap-2 text-gray-600">
                                 <Mail className="w-4 h-4" />
                                 <span>{practitioner.email}</span>
                               </div>
-                            )}
+                            )} */}
                             {practitioner.phone && (
                               <div className="flex items-center gap-2 text-gray-600">
                                 <Phone className="w-4 h-4" />
@@ -1211,19 +1136,11 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               </div>
                             )}
                             
-                            {practitioner.certifications && (
-                              <div className="flex items-center gap-2 text-gray-600">
-                                <span className="text-green-600">🏆</span>
-                                <span className="truncate" title={practitioner.certifications}>
-                                  {practitioner.certifications}
-                                </span>
-                              </div>
-                            )}
                             
                           
                           </div>
 
-                          <div className="flex justify-between gap-2 mt-4">
+                          <div className="flex flex-col gap-2 mt-4 sm:flex-row">
                             <Button
                               size="sm"
                               variant="outline"
@@ -1231,7 +1148,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                                 loadDiplomesAndCertifications(practitioner.id);
                                 setDetailsPractitioner(practitioner)
                               }}
-                              className="flex items-center gap-1 flex-1"
+                              className="w-full sm:flex-1 flex items-center gap-1"
                             >
                               <span>📋</span>
                               Détails
@@ -1240,7 +1157,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                               size="sm"
                               variant="outline"
                               onClick={() => openAgenda(practitioner)}
-                              className="flex items-center gap-1 flex-1"
+                              className="w-full sm:flex-1 flex items-center gap-1"
                             >
                               <Calendar className="w-4 h-4" />
                               Agenda
@@ -1274,12 +1191,12 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                   placeholder="Rechercher par nom..."
                   value={appointmentSearchTerm}
                   onChange={(e) => setAppointmentSearchTerm(e.target.value)}
-                  className="w-48"
+                  className="w-full sm:w-48"
                 />
                 
                 {/* Filtre par statut */}
                 <Select value={appointmentStatusFilter} onValueChange={setAppointmentStatusFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Statut" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1292,7 +1209,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                 
                 {/* Filtre par mode */}
                 <Select value={appointmentModeFilter} onValueChange={setAppointmentModeFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1304,7 +1221,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                 
                 {/* Filtre par période */}
                 <Select value={appointmentPeriodFilter} onValueChange={setAppointmentPeriodFilter}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Période" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1323,13 +1240,13 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                     <Input
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="w-40"
+                      className="w-full sm:w-40"
                     />
                   </>
                 )}
@@ -1338,7 +1255,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                 <Button 
                   variant="outline" 
                   onClick={resetAppointmentFilters}
-                  className="ml-auto"
+                  className="w-full sm:w-auto sm:ml-auto"
                 >
                   Réinitialiser
                 </Button>
@@ -1546,58 +1463,157 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                   placeholder="01 23 45 67 89"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="edit-email">Email <span className="text-red-500">*</span></Label>
+                <Label htmlFor="edit-country">Pays</Label>
                 <Input
-                  id="edit-email"
-                  type="email"
-                  value={editingPractitioner.email || ''}
+                  id="edit-country"
+                  value={editingPractitioner.country || ''}
                   onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, email: e.target.value } : null
+                    prev ? { ...prev, country: e.target.value } : null
                   )}
-                  placeholder="marie.dupont@example.com"
+                  placeholder="Lundi-Vendredi 9h-17h"
                 />
               </div>
-              
               <div>
-                <Label htmlFor="edit-experience-years">Années d'expérience</Label>
+                <Label htmlFor="edit-city">Ville</Label>
                 <Input
-                  id="edit-experience-years"
-                  type="number"
-                  value={editingPractitioner.experience_years || ''}
+                  id="edit-city"
+                  value={editingPractitioner.city || ''}
                   onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, experience_years: e.target.value } : null
+                    prev ? { ...prev, city: e.target.value } : null
                   )}
-                  placeholder="5"
+                  placeholder="France"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="edit-rating">Note (1-5)</Label>
+                <Label htmlFor="edit-postal-code">Code Postal</Label>
                 <Input
-                  id="edit-rating"
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  value={editingPractitioner.rating || ''}
+                  id="edit-postal-code"
+                  value={editingPractitioner.postal_code || ''}
                   onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, rating: e.target.value } : null
+                    prev ? { ...prev, postal_code: e.target.value } : null
                   )}
-                  placeholder="4.5"
+                  placeholder="00000"
                 />
               </div>
-              
+
               <div>
-                <Label htmlFor="edit-certifications">Certifications</Label>
+                <Label htmlFor="edit-adress">Adresse</Label>
                 <Input
-                  id="edit-certifications"
-                  value={editingPractitioner.certifications || ''}
+                  id="edit-adress"
+                  value={editingPractitioner.address || ''}
                   onChange={(e) => setEditingPractitioner(prev => 
-                    prev ? { ...prev, certifications: e.target.value } : null
+                    prev ? { ...prev, address: e.target.value } : null
                   )}
-                  placeholder="Psychologue clinicien, Thérapeute cognitivo-comportemental"
+                  placeholder="123 Rue Exemple"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-consultation-mode">Mode Consultation</Label>
+                <Input
+                  id="edit-consultation-mode"
+                  value={editingPractitioner.consultation_mode || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, consultation_mode: e.target.value } : null
+                  )}
+                  placeholder="both"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-min-price">Prix Min</Label>
+                <Input
+                  id="edit-min-price"
+                  value={editingPractitioner.min_price || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, min_price: Number(e.target.value) } : null
+                  )}
+                  placeholder="1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-max-price">Prix Max</Label>
+                <Input
+                  id="edit-max-price"
+                  value={editingPractitioner.max_price || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, max_price: Number(e.target.value) } : null
+                  )}
+                  placeholder="1000"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-website">Site Web</Label>
+                <Input
+                  id="edit-website"
+                  value={editingPractitioner.website || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, website: e.target.value } : null
+                  )}
+                  placeholder="https://monpraticien.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-linkedin">LinkedIn</Label>
+                <Input
+                  id="edit-linkedin"
+                  value={editingPractitioner.linkedin || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, linkedin: e.target.value } : null
+                  )}
+                  placeholder="https://linkedin.com/in/monprofil"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-rpps-number">RPPS Numéro</Label>
+                <Input
+                  id="edit-rpps-number"
+                  value={editingPractitioner.rpps_number || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, rpps_number: e.target.value } : null
+                  )}
+                  placeholder="12345678901"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-siret-number">Siret Numéro</Label>
+                <Input
+                  id="edit-siret-number"
+                  value={editingPractitioner.siret_number || ''}
+                  onChange={(e) => setEditingPractitioner(prev => 
+                    prev ? { ...prev, siret_number: e.target.value } : null
+                  )}
+                  placeholder="12345678900010"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-payment-methods">Methodes de payement</Label>
+                <Input
+                  id="edit-payment-methods"
+                  value={
+                    Array.isArray(editingPractitioner.payment_methods)
+                      ? editingPractitioner.payment_methods.join(', ')
+                      : editingPractitioner.payment_methods || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            payment_methods: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Carte, Espèces, Virement"
                 />
               </div>
               
@@ -1612,7 +1628,53 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                   placeholder="Lundi-Vendredi 9h-17h"
                 />
               </div>
-              
+
+              <div>
+                <Label htmlFor="edit-languages">Langues</Label>
+                <Input
+                  id="edit-languages"
+                  value={
+                    Array.isArray(editingPractitioner.languages)
+                      ? editingPractitioner.languages.join(', ')
+                      : editingPractitioner.languages || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            languages: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Francais, Anglais, Espagnol"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-specializations">Specialisations</Label>
+                <Input
+                  id="edit-specializations"
+                  value={
+                    Array.isArray(editingPractitioner.specializations)
+                      ? editingPractitioner.specializations.join(', ')
+                      : editingPractitioner.specializations || ''
+                  }
+                  onChange={(e) =>
+                    setEditingPractitioner((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            specializations: e.target.value.split(',').map((method) => method.trim()),
+                          }
+                        : null
+                    )
+                  }
+                  placeholder="Cardiologie, Neurologie"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="edit-bio">Biographie</Label>
                 <textarea
@@ -1788,11 +1850,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                           ⚠ Non vérifié
                         </Badge>
                       )}
-                      {detailsPractitioner.rating && (
-                        <Badge variant="outline" className="bg-yellow-50">
-                          ⭐ {detailsPractitioner.rating}/5
-                        </Badge>
-                      )}
+                      
                     </div>
                   </div>
                 </div>
@@ -1818,7 +1876,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                       <p className="text-sm font-medium text-gray-500">Email</p>
                       <p className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-gray-400" />
-                        {detailsPractitioner.email || 'Non renseigné'}
+                        {'Non renseigné'}
                       </p>
                     </div>
                     <div>
@@ -1840,15 +1898,10 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Spécialité</p>
                       <Badge variant="outline" className="mt-1">
-                        {detailsPractitioner.specialty || 'Non spécifié'}
+                        {detailsPractitioner.speciality || 'Non spécifié'}
                       </Badge>
                     </div>
-                    {detailsPractitioner.experience_years && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Expérience</p>
-                        <p className="font-medium">{detailsPractitioner.experience_years} ans</p>
-                      </div>
-                    )}
+                   
                     {detailsPractitioner.consultation_mode && (
                       <div>
                         <p className="text-sm font-medium text-gray-500">Mode de consultation</p>
@@ -1881,12 +1934,6 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Code postal</p>
                       <p>{detailsPractitioner.postal_code}</p>
-                    </div>
-                  )}
-                  {detailsPractitioner.location && (
-                    <div className="md:col-span-3">
-                      <p className="text-sm font-medium text-gray-500">Localisation</p>
-                      <p>{detailsPractitioner.location}</p>
                     </div>
                   )}
                   {detailsPractitioner.address && (
@@ -2132,18 +2179,6 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                 )}
               </div>
 
-              {/* Certifications */}
-              {detailsPractitioner.certifications && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-lg flex items-center gap-2">
-                    <span>🏆</span> Certifications
-                  </h4>
-                  <p className="p-4 bg-gray-50 rounded-md border">
-                    {detailsPractitioner.certifications}
-                  </p>
-                </div>
-              )}
-
               {/* Spécialisations */}
               {detailsPractitioner.specializations && (
                 <div className="space-y-3">
@@ -2269,12 +2304,12 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
               </div>
 
               {/* Boutons d'action */}
-              <div className="flex justify-between pt-6 border-t">
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-3 pt-6 border-t lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Button
                     variant="outline"
                     onClick={() => openAgenda(detailsPractitioner)}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center gap-2"
                   >
                     <Calendar className="w-4 h-4" />
                     Voir l'agenda
@@ -2285,7 +2320,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                       handleEditPractitioner(detailsPractitioner);
                       setDetailsPractitioner(null);
                     }}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center gap-2"
                   >
                     <Edit className="w-4 h-4" />
                     Modifier
@@ -2294,7 +2329,7 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     <Button
                       variant="outline"
                       onClick={() => handleVerifyPractitioner(detailsPractitioner)}
-                      className="flex items-center gap-2 text-green-600 hover:text-green-700"
+                      className="w-full sm:w-auto flex items-center gap-2 text-green-600 hover:text-green-700"
                       disabled={isSubmitting}
                     >
                       <span className="text-green-600">✓</span>
@@ -2302,8 +2337,8 @@ const handleVerifyCertifIprp = async (practitioner: Practitioner) => {
                     </Button>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setDetailsPractitioner(null)}>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button className="w-full sm:w-auto" variant="outline" onClick={() => setDetailsPractitioner(null)}>
                     Fermer
                   </Button>
                 </div>

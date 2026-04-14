@@ -73,8 +73,8 @@ export function AbsenteeismCostBreakdown() {
   return (
     <Card className="border shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-destructive" />
               Coûts d'Absentéisme
@@ -83,7 +83,7 @@ export function AbsenteeismCostBreakdown() {
               Répartition détaillée et économies potentielles
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right">
             <Badge variant="destructive" className="mb-1">
               Coût Total
             </Badge>
@@ -204,14 +204,14 @@ export function AbsenteeismCostBreakdown() {
 
         {/* Total Savings Potential */}
         <div className="mt-6 p-4 bg-gradient-primary text-white rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <h4 className="font-bold text-lg">Potentiel d'Économies Total</h4>
               <p className="text-blue-100 text-sm">
                 Réduction ciblée de 30% de l'absentéisme
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="text-3xl font-bold">€259,700</p>
               <p className="text-blue-100 text-sm">par an</p>
             </div>

@@ -745,10 +745,10 @@ const AdminContentPanel = () => {
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header Admin */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 text-white p-6 rounded-lg shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Panneau d'Administration</h1>
+              <h1 className="text-3xl font-bold">Defis</h1>
               <p className="text-purple-100 mt-1">Gestion du catalogue de contenus bien-être</p>
             </div>
             <div className="flex items-center gap-2">

@@ -1,102 +1,63 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { HealthMetrics } from "@/components/Dashboard/HealthMetrics";
-import { QuickActions } from "@/components/Dashboard/QuickActions";
-import { RecentActivity } from "@/components/Dashboard/RecentActivity";
-import { UpcomingAppointments } from "@/components/Dashboard/UpcomingAppointments";
-import { WellnessInsights } from "@/components/Dashboard/WellnessInsights";
-import { QVCTOverview } from "@/components/Dashboard/QVCTOverview";
 import { ROICalculator } from "@/components/Dashboard/ROICalculator";
 import { EmployeeVerbatims } from "@/components/Dashboard/EmployeeVerbatims";
 import { AdvancedKPIs } from "@/components/Dashboard/AdvancedKPIs";
-import { RealTimeAlerts } from "@/components/Dashboard/RealTimeAlerts";
-import { PredictiveAnalytics } from "@/components/Dashboard/PredictiveAnalytics";
 import { PerformanceEngagementChart } from "@/components/Dashboard/PerformanceEngagementChart";
 import { AbsenteeismCostBreakdown } from "@/components/Dashboard/AbsenteeismCostBreakdown";
 import { StrategicQVCTHeader } from "@/components/Dashboard/StrategicQVCTHeader";
-import { 
-  Activity, 
-  Heart, 
-  TrendingUp, 
-  Bell,
-  Calendar,
-  Users,
-  BarChart3,
-  Zap
-} from "lucide-react";
-import { BenchmarkCharts } from "@/components/Dashboard/BenchmarkCharts";
 
 const Index = () => {
   return (
-    <div className="p-6 space-y-6">
-      {/* Strategic QVCT Header */}
-      <StrategicQVCTHeader />
-      
-      {/* Performance & Engagement Chart */}
-      <PerformanceEngagementChart />
-      
-      {/* Main Dashboard Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Primary Metrics */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Health Metrics Overview */}
-          <HealthMetrics />
-          
-          {/* Absenteeism Cost Breakdown */}
-          <AbsenteeismCostBreakdown />
+    <div className="min-w-0 overflow-x-hidden px-4 py-5 md:px-6 md:py-6 xl:px-10">
+      <div className="mx-auto w-full max-w-[1760px] space-y-10 2xl:space-y-12">
+        {/* Strategic QVCT Header */}
+        <StrategicQVCTHeader />
+        
+        {/* Performance & Engagement Chart */}
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg md:text-xl xl:text-2xl font-semibold text-gray-900">Vue de pilotage</h2>
+            <p className="mt-1 text-sm md:text-base text-gray-500">
+              Lecture globale des indicateurs de performance et d'engagement.
+            </p>
+          </div>
+          <PerformanceEngagementChart />
+        </section>
 
-          {/* ROI Calculator */}
-          <ROICalculator />
-          
-          {/* Wellness Insights */}
-          <WellnessInsights />
-          
-          {/* Advanced KPIs Admin*/}
-          <AdvancedKPIs />
-          
-          {/* QVCT Strategic Overview */}
-          <QVCTOverview />
- 
-        </div>
+        <section className="space-y-5">
+          <div>
+            <h2 className="text-lg md:text-xl xl:text-2xl font-semibold text-gray-900">Indicateurs principaux</h2>
+            <p className="mt-1 text-sm md:text-base text-gray-500">
+              Organisation plus large des blocs pour améliorer la lisibilité selon la taille d'écran et le zoom.
+            </p>
+          </div>
 
-        {/* Right Column - Secondary Info */}
-        <div className="space-y-6">
+          <div className="grid grid-cols-1 2xl:grid-cols-12 gap-6 xl:gap-8 items-start">
+            <div className="2xl:col-span-7">
+              <AbsenteeismCostBreakdown />
+            </div>
+            <div className="2xl:col-span-5">
+              <ROICalculator />
+            </div>
+          </div>
 
-          {/* Quick Actions */}
-          <QuickActions />
-          
-          {/* Real-time Alerts */}
-          <RealTimeAlerts />
-          
-          {/* Upcoming Appointments */}
-          <UpcomingAppointments />
-          
-          {/* Recent Activity */}
-          <RecentActivity />
-        </div>
+          <div className="w-full">
+            <AdvancedKPIs />
+          </div>
+        </section>
+
+        {/* Bottom Row - Extended Analytics */}
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-lg md:text-xl xl:text-2xl font-semibold text-gray-900">Retours collaborateurs</h2>
+            <p className="mt-1 text-sm md:text-base text-gray-500">
+              Verbatims affichés en pleine largeur pour une lecture plus confortable.
+            </p>
+          </div>
+
+          {/* Employee Verbatims */}
+          <EmployeeVerbatims />
+        </section>
       </div>
-
-      {/* Bottom Row - Extended Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols gap-6">
-        {/* Predictive Analytics */}
-          <PredictiveAnalytics />
-        {/* Employee Verbatims */}
-        <EmployeeVerbatims />
-
-        
-      </div>
-
-      {/* Advanced Analytics Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        
-        
-      </div>
-
-      
     </div>
   );
 };

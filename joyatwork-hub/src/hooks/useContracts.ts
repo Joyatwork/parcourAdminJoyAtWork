@@ -112,6 +112,7 @@ export function useCreateContract() {
 
   // Données attendues par l'API pour la table `contrats`
   type CreateContractInput = {
+    numero_contrat?: string;
     entreprise_id: number;
     type_contrat?: "Standard" | "Premium" | "Enterprise";
     statut?:
@@ -163,6 +164,7 @@ export function useUpdateContract() {
   // Données attendues par l'API pour la table `contrats`
   // Tous les champs sont optionnels car on peut mettre à jour partiellement
   type UpdateContractInput = {
+    numero_contrat?: string;
     type_contrat?: "Standard" | "Premium" | "Enterprise";
     statut?:
       | "En négociation"

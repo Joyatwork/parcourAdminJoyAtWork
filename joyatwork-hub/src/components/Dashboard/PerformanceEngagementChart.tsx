@@ -55,8 +55,8 @@ export function PerformanceEngagementChart() {
   return (
     <Card className="border shadow-soft">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
             <CardTitle className="text-xl font-bold text-foreground">
               Performance vs Engagement
             </CardTitle>
@@ -64,7 +64,7 @@ export function PerformanceEngagementChart() {
               Analyse de corrélation et points d'inflexion critiques
             </p>
           </div>
-          <Badge variant="secondary" className="bg-gradient-primary text-white">
+          <Badge variant="secondary" className="w-fit bg-gradient-primary text-white whitespace-normal">
             Outil Stratégique
           </Badge>
         </div>
@@ -89,7 +89,7 @@ export function PerformanceEngagementChart() {
                   borderRadius: '8px'
                 }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line
                 type="monotone"
                 dataKey="performance"
@@ -131,11 +131,11 @@ export function PerformanceEngagementChart() {
                     : 'bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   <Icon className={`w-5 h-5 ${
                     insight.type === 'positive' ? 'text-green-600' : 'text-orange-600'
                   }`} />
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-sm text-foreground">
                       {insight.title}
                     </p>
