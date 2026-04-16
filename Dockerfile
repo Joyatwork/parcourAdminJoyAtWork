@@ -1,36 +1,66 @@
-FROM php:8.2-fpm
+# =========================
+# 1. Image PHP
+# =========================
+FROM php:8.2-cli
 
-# Install system dependencies
+# =========================
+# 2. Dépendances système
+# =========================
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    curl \
     libzip-dev \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    zip \
-    curl
+    zip
 
-# Install PHP extensions
+# =========================
+# 3. Extensions PHP
+# =========================
 RUN docker-php-ext-install pdo pdo_mysql zip
 
-# Install Composer
+# =========================
+# 4. Composer
+# =========================
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# =========================
+# 5. Dossier app
+# =========================
 WORKDIR /app
 
-# Copy project files
+# =========================
+# 6. Copier projet
+# =========================
 COPY . .
 
-# Install PHP dependencies
+# =========================
+# 7. Permissions Laravel (IMPORTANT)
+# =========================
+RUN mkdir -p storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# =========================
+# 8. Installer dépendances Laravel
+# =========================
 RUN composer install --no-dev --optimize-autoloader
 
-# Fix permissions
-RUN chmod -R 775 storage bootstrap/cache
+# =========================
+# 9. Optimisation Laravel
+# =========================
+RUN php artisan config:clear \
+    && php artisan cache:clear || true
 
-# Expose port
-EXPOSE 8000
+# =========================
+# 10. Port Railway
+# =========================
+ENV PORT=8080
 
-# Start Laravel server
-CMD php artisan serve --host=0.0.0.0 --port=8000
+EXPOSE 8080
+
+# =========================
+# 11. Start serveur Laravel
+# =========================
+CMD php artisan serve --host=0.0.0.0 --port=${PORT}
