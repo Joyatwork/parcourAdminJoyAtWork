@@ -1,32 +1,36 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm
 
-# Installer dépendances
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev zip curl \
-    && docker-php-ext-install zip pdo pdo_mysql
+    git \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    curl
 
-# Installer Composer
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_mysql zip
+
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /app
 
-# Copier backend
-COPY joyatwork-api /app
+# Copy project files
+COPY . .
 
-# Installer Laravel
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# 🔥 CRÉER dossiers manquants
-RUN mkdir -p storage bootstrap/cache
-
-# 🔥 DONNER PERMISSIONS
+# Fix permissions
 RUN chmod -R 775 storage bootstrap/cache
 
-# Exposer port Railway
-EXPOSE 8080
+# Expose port
+EXPOSE 8000
 
-# Lancer Laravel
-CMD php artisan config:clear && \
-    php artisan cache:clear && \
-    php artisan migrate --force && \
-    php artisan serve --host=0.0.0.0 --port=8080
+# Start Laravel server
+CMD php artisan serve --host=0.0.0.0 --port=8000
