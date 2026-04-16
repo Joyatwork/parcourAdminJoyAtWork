@@ -1,7 +1,7 @@
 FROM php:8.2-cli
 
 # --------------------------------------------------
-# Dépendances système nécessaires à Laravel
+# Dépendances système pour Laravel
 # --------------------------------------------------
 RUN apt-get update && apt-get install -y \
     git unzip zip libzip-dev libonig-dev libxml2-dev \
@@ -13,41 +13,49 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # --------------------------------------------------
-# Aller dans le backend Laravel (monorepo)
+# Dossier de travail (monorepo)
 # --------------------------------------------------
 WORKDIR /app/joyatwork-api
 
 # --------------------------------------------------
-# Copier UNIQUEMENT le backend Laravel
+# Copier le code Laravel
 # --------------------------------------------------
 COPY joyatwork-api/ /app/joyatwork-api/
 
 # --------------------------------------------------
-# Installer les dépendances PHP
+# ✅ CRÉER dossiers requis AVANT composer
 # --------------------------------------------------
-RUN composer install --no-dev --optimize-autoloader
+RUN mkdir -p storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache
 
 # --------------------------------------------------
-# Nettoyer le cache Laravel
-# --------------------------------------------------
-RUN php artisan optimize:clear
-
-# --------------------------------------------------
-# ✅ Lancer les migrations en production (safe)
-# --------------------------------------------------
-RUN php artisan migrate --force || true
-
-# --------------------------------------------------
-# ✅ Permissions CRITIQUES pour éviter l'erreur 500
+# ✅ Permissions AVANT composer (CRITIQUE)
 # --------------------------------------------------
 RUN chmod -R 777 storage bootstrap/cache
 
 # --------------------------------------------------
-# Railway utilise UNIQUEMENT le port 8080
+# Installer dépendances PHP
+# --------------------------------------------------
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# --------------------------------------------------
+# Nettoyage cache Laravel
+# --------------------------------------------------
+RUN php artisan optimize:clear
+
+# --------------------------------------------------
+# Migrations (sécurisé)
+# --------------------------------------------------
+RUN php artisan migrate --force || true
+
+# --------------------------------------------------
+# Port Railway
 # --------------------------------------------------
 EXPOSE 8080
 
 # --------------------------------------------------
-# Démarrage de Laravel
+# Démarrage Laravel
 # --------------------------------------------------
 CMD php artisan serve --host=0.0.0.0 --port=8080
