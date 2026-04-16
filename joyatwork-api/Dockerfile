@@ -17,11 +17,17 @@ COPY joyatwork-api /app
 # Installer dépendances Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Permissions Laravel
-RUN chmod -R 775 storage bootstrap/cache
+# Create storage directories and set permissions
+RUN mkdir -p /app/storage/logs \
+    && mkdir -p /app/storage/app/public \
+    && mkdir -p /app/storage/framework/cache \
+    && mkdir -p /app/storage/framework/sessions \
+    && mkdir -p /app/storage/framework/views \
+    && chmod -R 775 /app/storage \
+    && chmod -R 775 /app/bootstrap/cache
 
 # Exposer port
-EXPOSE 8000
+EXPOSE 8080
 
 # Lancer Laravel
-CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+CMD ["/bin/bash", "/app/bootstrap-app.sh"]
