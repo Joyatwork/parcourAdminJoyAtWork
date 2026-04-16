@@ -1,61 +1,34 @@
 FROM php:8.2-cli
 
-# --------------------------------------------------
-# Dépendances système pour Laravel
-# --------------------------------------------------
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip zip libzip-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip
+    git curl unzip libzip-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_mysql zip mbstring xml bcmath
 
-# --------------------------------------------------
-# Installer Composer
-# --------------------------------------------------
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# --------------------------------------------------
-# Dossier de travail (monorepo)
-# --------------------------------------------------
+WORKDIR /app
+
+# Copy project
+COPY . .
+
+# Move into Laravel project
 WORKDIR /app/joyatwork-api
 
-# --------------------------------------------------
-# Copier le code Laravel
-# --------------------------------------------------
-COPY joyatwork-api/ /app/joyatwork-api/
+# 1. Create .env if missing
+RUN cp .env.example .env || true
 
-# --------------------------------------------------
-# ✅ CRÉER dossiers requis AVANT composer
-# --------------------------------------------------
-RUN mkdir -p storage/framework/cache \
-    storage/framework/sessions \
-    storage/framework/views \
-    bootstrap/cache
+# 2. Install dependencies WITHOUT scripts (IMPORTANT)
+RUN composer install --no-dev --no-interaction --no-scripts --optimize-autoloader
 
-# --------------------------------------------------
-# ✅ Permissions AVANT composer (CRITIQUE)
-# --------------------------------------------------
-RUN chmod -R 777 storage bootstrap/cache
+# 3. Generate key (safe even if fails)
+RUN php artisan key:generate || true
 
-# --------------------------------------------------
-# Installer dépendances PHP
-# --------------------------------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# 4. Fix cache issues
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true
 
-# --------------------------------------------------
-# Nettoyage cache Laravel
-# --------------------------------------------------
-RUN php artisan optimize:clear
+EXPOSE 8001
 
-# --------------------------------------------------
-# Migrations (sécurisé)
-# --------------------------------------------------
-RUN php artisan migrate --force || true
-
-# --------------------------------------------------
-# Port Railway
-# --------------------------------------------------
-EXPOSE 8080
-
-# --------------------------------------------------
-# Démarrage Laravel
-# --------------------------------------------------
-CMD php artisan serve --host=0.0.0.0 --port=8080
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8001}
