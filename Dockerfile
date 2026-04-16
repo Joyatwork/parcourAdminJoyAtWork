@@ -1,34 +1,27 @@
 FROM php:8.2-cli
 
-# Install dependencies
+# Dépendances système
 RUN apt-get update && apt-get install -y \
-    git curl unzip libzip-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip mbstring xml bcmath
+    git unzip zip libzip-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring zip
 
 # Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /app
-
-# Copy project
-COPY . .
-
-# Move into Laravel project
+# Aller DIRECTEMENT dans le backend Laravel
 WORKDIR /app/joyatwork-api
 
-# 1. Create .env if missing
-RUN cp .env.example .env || true
+# Copier UNIQUEMENT le backend Laravel
+COPY joyatwork-api/ /app/joyatwork-api/
 
-# 2. Install dependencies WITHOUT scripts (IMPORTANT)
-RUN composer install --no-dev --no-interaction --no-scripts --optimize-autoloader
+# Installer dépendances PHP
+RUN composer install --no-dev --optimize-autoloader
 
-# 3. Generate key (safe even if fails)
-RUN php artisan key:generate || true
+# Nettoyage cache Laravel (CRUCIAL)
+RUN php artisan optimize:clear
 
-# 4. Fix cache issues
-RUN php artisan config:clear || true
-RUN php artisan cache:clear || true
+# Railway utilise 8080
+EXPOSE 8080
 
-EXPOSE 8001
-
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8001}
+# Démarrage Laravel
+CMD php artisan serve --host=0.0.0.0 --port=8080
