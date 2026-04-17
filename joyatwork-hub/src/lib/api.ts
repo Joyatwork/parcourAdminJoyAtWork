@@ -1,21 +1,25 @@
 import axios from "axios";
 
 const isProd = import.meta.env.PROD;
-const rawApiBaseUrl = isProd
-  ? "https://parcouradminjoyatwork-production.up.railway.app/api"
-  : (import.meta.env.VITE_API_URL || "http://localhost:8001/api");
 
-export const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, "");
+const API_BASE_URL = String(
+  isProd
+    ? "https://parcouradminjoyatwork-production.up.railway.app/api"
+    : import.meta.env.VITE_API_URL || "http://localhost:8001/api"
+).replace(/\/+$/, "");
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json",
+    Accept: "application/json",
   },
   withCredentials: true,
 });
 
+// ----------------------------
+// AUTH TOKEN
+// ----------------------------
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -24,32 +28,74 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// SERVICES
+// ----------------------------
+// GLOBAL ERROR HANDLING (IMPORTANT)
+// ----------------------------
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API ERROR:", {
+      url: error?.config?.url,
+      status: error?.response?.status,
+      data: error?.response?.data,
+    });
+
+    return Promise.reject(error);
+  }
+);
+
+// ----------------------------
+// SAFE WRAPPER (ANTI PAGE BLANCHE)
+// ----------------------------
+const safeGet = async (url: string) => {
+  try {
+    const res = await api.get(url);
+    return { data: res.data, error: null };
+  } catch (err: any) {
+    return {
+      data: null,
+      error: err?.response?.data || "API error",
+    };
+  }
+};
+
+// ----------------------------
+// AUTH
+// ----------------------------
 export const authApi = {
-    login: (credentials: any) => api.post("/login", credentials),
+  login: (credentials: any) => api.post("/login", credentials),
 };
 
-export const adoptionChurnApi = {
-  getAll: async () => {
-    const res = await api.get("/admin/churn-risk");
-    return res.data;
-  },
-  getUsage: () => api.get("/admin/usage-by-company"),
-};
-
-export const diagnosticApi = {
-  getGlobalStats: () => api.get("/diagnostics/global-stats"),
-  getUserHealth: () => api.get("/diagnostics/user-health"),
-  getCompanyHealth: () => api.get("/diagnostics/company-health"),
-};
-
-export const challengesApi = {
-  getAll: () => api.get("/challenges"),
-  create: (data: any) => api.post("/challenges", data),
-};
-
+// ----------------------------
+// USERS
+// ----------------------------
 export const usersApi = {
-  getAll: () => api.get("/users"),
+  getAll: () => safeGet("/users"),
+};
+
+// ----------------------------
+// ADMIN ANALYTICS (CHURN + USAGE)
+// ----------------------------
+export const adminApi = {
+  churnRisk: () => safeGet("/admin/churn-risk"),
+  usageByCompany: () => safeGet("/admin/usage-by-company"),
+};
+
+// ----------------------------
+// DIAGNOSTICS (TON PROBLÈME ICI)
+// ----------------------------
+export const diagnosticApi = {
+  globalStats: () => safeGet("/diagnostics/global-stats"),
+  userHealth: () => safeGet("/diagnostics/user-health"),
+  companyHealth: () => safeGet("/diagnostics/company-health"),
+};
+
+// ----------------------------
+// CHALLENGES
+// ----------------------------
+export const challengesApi = {
+  getAll: () => safeGet("/challenges"),
+  create: (data: any) => api.post("/challenges", data),
 };
 
 export default api;
