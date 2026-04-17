@@ -2,10 +2,21 @@
 
 return [
 
-    'paths' => ['*'], // 🔥 IMPORTANT pour Sanctum
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel CORS Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    // ✅ CHEMINS EXPLICITES (OBLIGATOIRE)
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+    ],
 
     'allowed_methods' => ['*'],
 
+    // ✅ ORIGINE FIXE (Vercel)
     'allowed_origins' => [
         'https://parcour-admin-joy-at-work.vercel.app',
     ],
@@ -18,6 +29,7 @@ return [
 
     'max_age' => 0,
 
+    // ✅ OBLIGATOIRE AVEC SANCTUM
     'supports_credentials' => true,
 
 ];
