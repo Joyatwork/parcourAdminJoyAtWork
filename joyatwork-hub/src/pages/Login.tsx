@@ -16,9 +16,10 @@ import {
   LogIn,
   ShieldCheck,
 } from "lucide-react";
-import api from "@/lib/api";
 import axios from "axios";
 import bgImage from "../images/bg-img-login.jpeg";
+
+const API_URL = "https://parcouradminjoyatwork-production.up.railway.app";
 
 const joyColors = {
   primary: "#3B82F6",
@@ -26,7 +27,7 @@ const joyColors = {
   accent: "#7FF8AB",
 };
 
-type RoleType = "employee" | "praticien" | "entreprise" | "admin";
+type RoleType = "admin";
 
 type LoginResponse = {
   token: string;
@@ -41,16 +42,10 @@ type LoginResponse = {
 };
 
 const roleLabels: Record<RoleType, string> = {
-  employee: "Connexion Salarié",
-  praticien: "Connexion Praticien",
-  entreprise: "Connexion Entreprise / DRH",
   admin: "Connexion Administrateur",
 };
 
 const roleDescriptions: Record<RoleType, string> = {
-  employee: "Accédez à votre profil et vos informations personnelles.",
-  praticien: "Accédez à vos rendez-vous et gérez vos suivis.",
-  entreprise: "Accédez aux indicateurs et gérez vos collaborateurs.",
   admin: "Supervisez la plateforme JoyAtWork.",
 };
 
@@ -68,10 +63,21 @@ const Login: React.FC = () => {
     try {
       setLoading(true);
 
-      const response = await api.post<LoginResponse>("/login", {
-        email: email.trim(),
-        password,
-      });
+      // ✅ 1️⃣ Demande du cookie CSRF (OBLIGATOIRE avec Sanctum)
+      await axios.get(
+        `${API_URL}/sanctum/csrf-cookie`,
+        { withCredentials: true }
+      );
+
+      // ✅ 2️⃣ Login administrateur
+      const response = await axios.post<LoginResponse>(
+        `${API_URL}/api/login`,
+        {
+          email: email.trim(),
+          password,
+        },
+        { withCredentials: true }
+      );
 
       const data = response.data;
       const userRoles: string[] = data?.user?.roles ?? [];
@@ -82,15 +88,16 @@ const Login: React.FC = () => {
         return;
       }
 
+      // ✅ Sauvegarde locale
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      // ✅ Redirection
       navigate("/dashboard");
-    } catch (err) {
-      const message = axios.isAxiosError(err)
-        ? String(err.response?.data?.message ?? err.message)
-        : "Erreur serveur";
-      alert(message);
+
+    } catch (error) {
+      console.error(error);
+      alert("Erreur de connexion");
     } finally {
       setLoading(false);
     }
@@ -99,9 +106,7 @@ const Login: React.FC = () => {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center px-4 py-6"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-      }}
+      style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
 
@@ -114,7 +119,9 @@ const Login: React.FC = () => {
               color: "white",
             }}
           >
-            <CardTitle className="text-2xl sm:text-3xl font-bold">{roleLabels[role]}</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl font-bold">
+              {roleLabels[role]}
+            </CardTitle>
             <CardDescription className="text-white/90">
               {roleDescriptions[role]}
             </CardDescription>
@@ -128,33 +135,31 @@ const Login: React.FC = () => {
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <Label htmlFor="email" className="text-sm font-medium">E-mail professionnel</Label>
+                <Label htmlFor="email">E-mail professionnel</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="votre@email.com"
-                  className="mt-2 border-gray-300 focus-visible:border-gray-400"
                   required
                 />
               </div>
 
               <div className="relative">
-                <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="********"
-                  className="mt-2 pr-10 border-gray-300 focus-visible:border-gray-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute right-3 top-9 text-gray-500"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -163,7 +168,7 @@ const Login: React.FC = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full text-white h-11 rounded-md font-medium"
+                className="w-full text-white h-11"
                 style={{
                   background: `linear-gradient(90deg, ${joyColors.primary}, ${joyColors.secondary})`,
                 }}
