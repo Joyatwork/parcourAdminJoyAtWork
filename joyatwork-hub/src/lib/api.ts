@@ -24,32 +24,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// SERVICES
+// SERVICES EXPORTÉS
 export const authApi = {
-    login: (credentials: any) => api.post("/login", credentials),
+  login: (credentials: any) => api.post("/login", credentials),
 };
 
 export const adoptionChurnApi = {
   getAll: async () => {
-    const res = await api.get("/admin/churn-risk");
-    return res.data;
+    try {
+      const res = await api.get("/admin/churn-risk");
+      return res.data || []; // Retourne un tableau vide au minimum
+    } catch (e) { return []; }
   },
-  getUsage: () => api.get("/admin/usage-by-company"),
 };
 
 export const diagnosticApi = {
-  getGlobalStats: () => api.get("/diagnostics/global-stats"),
-  getUserHealth: () => api.get("/diagnostics/user-health"),
-  getCompanyHealth: () => api.get("/diagnostics/company-health"),
+  getGlobalStats: () => api.get("/diagnostics/global-stats").then(res => res.data || {}),
+  getUserHealth: () => api.get("/diagnostics/user-health").then(res => res.data || []),
+  getCompanyHealth: () => api.get("/diagnostics/company-health").then(res => res.data || []),
 };
 
 export const challengesApi = {
-  getAll: () => api.get("/challenges"),
-  create: (data: any) => api.post("/challenges", data),
+  getAll: () => api.get("/challenges").then(res => res.data || []),
 };
 
 export const usersApi = {
-  getAll: () => api.get("/users"),
+  getAll: () => api.get("/users").then(res => res.data || []),
 };
 
 export default api;
