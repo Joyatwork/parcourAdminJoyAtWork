@@ -9,7 +9,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY ./joyatwork-api /app
 
-RUN mkdir -p storage bootstrap/cache storage/logs storage/framework/cache storage/framework/sessions storage/framework/views \
+# Laravel folders + permissions (CRITIQUE)
+RUN mkdir -p storage \
+    storage/logs \
+    storage/framework \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
