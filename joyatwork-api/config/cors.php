@@ -1,23 +1,14 @@
-
 <?php
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Laravel CORS Configuration
-    |--------------------------------------------------------------------------
-    */
-
-    'paths' => [
-        'api/*',
-        'sanctum/csrf-cookie',
-    ],
+    'paths' => ['*'], // 🔥 IMPORTANT pour Sanctum
 
     'allowed_methods' => ['*'],
 
-    // ✅ Domaine Vercel autorisé (obligatoire avec credentials)
-    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS')),
+    'allowed_origins' => [
+        'https://parcour-admin-joy-at-work.vercel.app',
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -27,7 +18,6 @@ return [
 
     'max_age' => 0,
 
-    // ✅ OBLIGATOIRE pour Sanctum
     'supports_credentials' => true,
 
 ];

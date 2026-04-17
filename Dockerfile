@@ -19,11 +19,12 @@ RUN chmod -R 775 storage bootstrap/cache
 # Install deps
 RUN composer install --no-dev --optimize-autoloader
 
-# Clear cache
+# Clear & cache config
 RUN php artisan config:clear || true
 RUN php artisan cache:clear || true
+RUN php artisan config:cache || true
 
-# IMPORTANT Railway port
+# Railway port
 ENV PORT=8080
 EXPOSE 8080
 

@@ -19,14 +19,15 @@ import {
 import axios from "axios";
 import bgImage from "../images/bg-img-login.jpeg";
 
-const API_URL = "https://parcouradminjoyatwork-production.up.railway.app";
+/* ============================= */
+/* 🔥 CONFIG AXIOS GLOBAL */
+/* ============================= */
+axios.defaults.baseURL = "https://parcouradminjoyatwork-production.up.railway.app";
+axios.defaults.withCredentials = true;
 
-const joyColors = {
-  primary: "#3B82F6",
-  secondary: "#4ADE80",
-  accent: "#7FF8AB",
-};
-
+/* ============================= */
+/* TYPES */
+/* ============================= */
 type RoleType = "admin";
 
 type LoginResponse = {
@@ -41,6 +42,15 @@ type LoginResponse = {
   };
 };
 
+/* ============================= */
+/* UI CONFIG */
+/* ============================= */
+const joyColors = {
+  primary: "#3B82F6",
+  secondary: "#4ADE80",
+  accent: "#7FF8AB",
+};
+
 const roleLabels: Record<RoleType, string> = {
   admin: "Connexion Administrateur",
 };
@@ -49,60 +59,64 @@ const roleDescriptions: Record<RoleType, string> = {
   admin: "Supervisez la plateforme JoyAtWork.",
 };
 
+/* ============================= */
+/* COMPONENT */
+/* ============================= */
 const Login: React.FC = () => {
   const role: RoleType = "admin";
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  /* ============================= */
+  /* 🔐 LOGIN */
+  /* ============================= */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      // ✅ 1️⃣ Demande du cookie CSRF (OBLIGATOIRE avec Sanctum)
-      await axios.get(
-        `${API_URL}/sanctum/csrf-cookie`,
-        { withCredentials: true }
-      );
+      // 🔥 1. CSRF COOKIE (Sanctum obligatoire)
+      await axios.get("/sanctum/csrf-cookie");
 
-      // ✅ 2️⃣ Login administrateur
-      const response = await axios.post<LoginResponse>(
-        `${API_URL}/api/login`,
-        {
-          email: email.trim(),
-          password,
-        },
-        { withCredentials: true }
-      );
+      // 🔥 2. LOGIN
+      const response = await axios.post<LoginResponse>("/api/login", {
+        email: email.trim(),
+        password,
+      });
 
       const data = response.data;
+
       const userRoles: string[] = data?.user?.roles ?? [];
       const isAdmin = userRoles.includes("admin");
 
       if (!isAdmin) {
-        alert("Accès refusé : cette interface est réservée aux administrateurs.");
+        alert("Accès refusé : réservé aux administrateurs.");
         return;
       }
 
-      // ✅ Sauvegarde locale
+      // 🔥 3. SAVE USER
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✅ Redirection
+      // 🔥 4. REDIRECT
       navigate("/dashboard");
 
     } catch (error) {
-      console.error(error);
+      console.error("Erreur login :", error);
       alert("Erreur de connexion");
     } finally {
       setLoading(false);
     }
   };
 
+  /* ============================= */
+  /* UI */
+/* ============================= */
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center px-4 py-6"
@@ -112,6 +126,7 @@ const Login: React.FC = () => {
 
       <div className="relative z-10 w-full max-w-lg animate-in fade-in duration-500">
         <Card className="shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-200/90">
+          
           <CardHeader
             className="text-center py-7"
             style={{
@@ -128,12 +143,14 @@ const Login: React.FC = () => {
           </CardHeader>
 
           <CardContent className="p-6 sm:p-8 space-y-6 border-t border-gray-100/80">
+
             <div className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-gray-50 py-2 text-sm font-medium text-gray-700">
               <ShieldCheck size={18} className="text-gray-600" />
               Espace Administrateur
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
+
               <div>
                 <Label htmlFor="email">E-mail professionnel</Label>
                 <Input
@@ -176,7 +193,9 @@ const Login: React.FC = () => {
                 <LogIn size={18} className="mr-2" />
                 {loading ? "Connexion..." : "Se connecter"}
               </Button>
+
             </form>
+
           </CardContent>
         </Card>
       </div>
