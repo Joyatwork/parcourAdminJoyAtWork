@@ -9,7 +9,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY ./joyatwork-api /app
 
-# Laravel folders + permissions (CRITIQUE)
+# Laravel folders + permissions
 RUN mkdir -p storage \
     storage/logs \
     storage/framework \
@@ -21,10 +21,6 @@ RUN mkdir -p storage \
     && chmod -R 775 storage bootstrap/cache
 
 RUN composer install --no-dev --optimize-autoloader
-
-RUN php artisan config:clear || true
-RUN php artisan cache:clear || true
-RUN php artisan config:cache || true
 
 ENV PORT=8080
 EXPOSE 8080
