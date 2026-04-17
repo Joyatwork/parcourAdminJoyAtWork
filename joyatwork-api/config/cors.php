@@ -1,13 +1,23 @@
+
 <?php
 
 return [
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel CORS Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+    ],
 
     'allowed_methods' => ['*'],
 
-    // ✅ Utilise la variable ENV
-    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', '*')),
+    // ✅ Domaine Vercel autorisé (obligatoire avec credentials)
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS')),
 
     'allowed_origins_patterns' => [],
 
@@ -17,6 +27,7 @@ return [
 
     'max_age' => 0,
 
+    // ✅ OBLIGATOIRE pour Sanctum
     'supports_credentials' => true,
 
 ];
