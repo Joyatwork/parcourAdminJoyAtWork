@@ -10,23 +10,18 @@ WORKDIR /app
 
 COPY ./joyatwork-api /app
 
-# Laravel folders
-RUN mkdir -p storage bootstrap/cache storage/logs storage/framework/{cache,sessions,views}
+# Laravel folders + permissions (CRITIQUE)
+RUN mkdir -p storage bootstrap/cache storage/logs storage/framework/cache storage/framework/sessions storage/framework/views \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Permissions
-RUN chmod -R 775 storage bootstrap/cache
-
-# Install deps
 RUN composer install --no-dev --optimize-autoloader
 
-# Clear & cache config
 RUN php artisan config:clear || true
 RUN php artisan cache:clear || true
 RUN php artisan config:cache || true
 
-# Railway port
 ENV PORT=8080
 EXPOSE 8080
 
-# Start server
 CMD php artisan serve --host=0.0.0.0 --port=8080
