@@ -7,10 +7,8 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
-
 COPY ./joyatwork-api /app
 
-# Laravel folders + permissions (CRITIQUE)
 RUN mkdir -p storage bootstrap/cache storage/logs storage/framework/cache storage/framework/sessions storage/framework/views \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
@@ -24,4 +22,4 @@ RUN php artisan config:cache || true
 ENV PORT=8080
 EXPOSE 8080
 
-CMD php artisan serve --host=0.0.0.0 --port=8080
+CMD php -S 0.0.0.0:8080 -t public
