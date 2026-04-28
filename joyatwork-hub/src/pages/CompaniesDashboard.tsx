@@ -63,7 +63,8 @@ import { toast } from "@/components/ui/use-toast";
 
 const COMPANY_API_BASE_URL =
   (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://localhost:8001/api";
+  "http://127.0.0.1:8000/api";
+
 
 const toDateString = (date: Date) => date.toISOString().split("T")[0];
 

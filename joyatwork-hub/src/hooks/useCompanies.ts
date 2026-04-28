@@ -53,7 +53,7 @@ export interface CompanyStats {
 // Utilise la variable d'env VITE_API_BASE_URL pour cibler la bonne API
 const API_BASE_URL =
   (import.meta as any)?.env?.VITE_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://localhost:8001/api";
+  "http://127.0.0.1:8000/api";
 
 // Hook pour récupérer toutes les entreprises
 export function useCompanies(filters?: {

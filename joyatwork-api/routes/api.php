@@ -27,6 +27,7 @@ use App\Http\Controllers\AdminAnalyticsController;
 use App\Http\Controllers\AdminComplianceController;
 use App\Http\Controllers\Admin\ConsentController;
 use App\Http\Controllers\Admin\RgpdAuditController;
+use App\Http\Controllers\Admin\LegalDocumentController; // ⭐ AJOUT ICI
 use App\Http\Controllers\LibraryContentController;
 use App\Http\Controllers\QuestionnaireTemplateController;
 
@@ -196,4 +197,12 @@ Route::prefix('admin')->group(function () {
 // ==========================================
 Route::prefix('admin')->group(function () {
     Route::get('/rgpd-audit', [RgpdAuditController::class, 'index']);
+});
+
+// ==========================================
+// ⭐ ADMIN — LEGAL DOCUMENTS (AJOUT COMPLET)
+// ==========================================
+Route::prefix('admin')->group(function () {
+    Route::get('/legal-documents', [LegalDocumentController::class, 'index']);
+    Route::post('/legal-documents/upload', [LegalDocumentController::class, 'upload']);
 });

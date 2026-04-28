@@ -1,21 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface Consent {
-  id: number;
-  user_id: number;
-  consent_type: string;
-  status: string;
-  granted_at: string;
-  user?: User;
-}
-
 interface Compliance {
   id: number;
   name: string;
@@ -32,104 +17,23 @@ interface AuditLog {
   created_at: string;
 }
 
-const AdminRGPD: React.FC = () => {
-  // Consents
-  const [consents, setConsents] = useState<Consent[]>([]);
-  const [loadingConsents, setLoadingConsents] = useState(true);
+interface LegalDocument {
+  id: number;
+  name: string;
+  file_url: string;
+  uploaded_at: string;
+}
 
-  // Compliance
-  const [complianceData, setComplianceData] = useState<Compliance[]>([]);
-  const [complianceFilter, setComplianceFilter] = useState("");
-  const [loadingCompliance, setLoadingCompliance] = useState(true);
+const API = "http://127.0.0.1:8000/api/admin"; // ✔️ bon port
 
-  // Audit Logs
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(true);
-
-  // Fetch consents
-  const fetchConsents = async () => {
-    try {
-      const res = await fetch("http://localhost:8001/api/admin/consents");
-      const data: Consent[] = await res.json();
-      setConsents(data);
-    } catch (error) {
-      console.error("Erreur fetch consents:", error);
-    } finally {
-      setLoadingConsents(false);
-    }
-  };
-
-  // Fetch compliance
-  const fetchCompliance = async () => {
-    try {
-      let url = "http://localhost:8001/api/admin/compliance";
-      if (complianceFilter) url += `?data_type=${complianceFilter}`;
-
-      const res = await fetch(url, { credentials: "include" });
-      const data: Compliance[] = await res.json();
-      setComplianceData(data);
-    } catch (error) {
-      console.error("Erreur fetch compliance:", error);
-    } finally {
-      setLoadingCompliance(false);
-    }
-  };
-
-  // Fetch RGPD audit logs
-  const fetchAuditLogs = async () => {
-    try {
-      const res = await fetch("http://localhost:8001/api/admin/rgpd-audit");
-      const data: AuditLog[] = await res.json();
-      setLogs(data);
-    } catch (error) {
-      console.error("Erreur fetch audit logs:", error);
-    } finally {
-      setLoadingLogs(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchConsents();
-    fetchAuditLogs();
-  }, []);
-
-  useEffect(() => {
-    fetchCompliance();
-  }, [complianceFilter]);
-
-  // RGPD actions
-  const revokeConsent = async (id: number) => {
-    await fetch(`http://localhost:8001/api/admin/consents/${id}/revoke`, {
-      method: "PATCH",
-    });
-    fetchConsents();
-  };
-
-  const anonymizeUser = async (userId: number) => {
-    if (!confirm("Confirmer l’anonymisation ?")) return;
-
-    await fetch(`http://localhost:8001/api/admin/users/${userId}/anonymize`, {
-      method: "DELETE",
-    });
-
-    fetchConsents();
-  };
-
-  const exportUser = async (userId: number) => {
-    const response = await fetch(
-      `http://localhost:8001/api/admin/users/${userId}/export`
-    );
-    const data = await response.json();
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `export_user_${userId}.json`;
-    a.click();
-  };
+const Accordion = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(false);
 
   const exportGovernancePdf = async () => {
     try {
@@ -373,6 +277,162 @@ const AdminRGPD: React.FC = () => {
         </div>
       )}
 
+    </div>
+  );
+};
+
+const AdminRGPD: React.FC = () => {
+  const [complianceData, setComplianceData] = useState<Compliance[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [documents, setDocuments] = useState<LegalDocument[]>([]);
+  const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+
+  const fetchCompliance = async () => {
+    const res = await fetch(`${API}/compliance`);
+    setComplianceData(await res.json());
+  };
+
+  const fetchAuditLogs = async () => {
+    const res = await fetch(`${API}/rgpd-audit`);
+    setLogs(await res.json());
+  };
+
+  const fetchDocuments = async () => {
+    const res = await fetch(`${API}/legal-documents`);
+    const data = await res.json();
+
+    const origin = "http://127.0.0.1:8000";
+
+    const fixed = data.map((doc: LegalDocument) => ({
+      ...doc,
+      file_url: doc.file_url.startsWith("http")
+        ? doc.file_url
+        : `${origin}/${doc.file_url.replace(/^\/+/, "")}`,
+    }));
+
+    setDocuments(fixed);
+  };
+
+  useEffect(() => {
+    fetchCompliance();
+    fetchAuditLogs();
+    fetchDocuments();
+  }, []);
+
+  const uploadDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("document", file);
+
+    await fetch(`${API}/legal-documents/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    fetchDocuments();
+  };
+
+  return (
+    <div className="p-10 space-y-8">
+
+      {/* PDF PREVIEW */}
+      {selectedDoc && (
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="font-semibold mb-2">Aperçu du document :</h3>
+          <iframe src={selectedDoc} className="w-full h-[600px] border"></iframe>
+        </div>
+      )}
+
+      {/* COMPLIANCE */}
+      <Accordion title="Registre des traitements (obligation RGPD)">
+        <p className="text-sm text-gray-600 mb-4">
+          Le document CGU décrit explicitement les traitements réalisés par JOYATWORK.
+        </p>
+
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-2">Nom</th>
+              <th className="px-4 py-2">Finalité</th>
+              <th className="px-4 py-2">Type de données</th>
+              <th className="px-4 py-2">Durée</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {complianceData.map((item) => (
+              <tr key={item.id}>
+                <td className="px-4 py-2">{item.name}</td>
+                <td className="px-4 py-2">{item.purpose}</td>
+                <td className="px-4 py-2">{item.data_type}</td>
+                <td className="px-4 py-2">{item.retention_period}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Accordion>
+
+      {/* AUDIT LOGS */}
+      <Accordion title="Journal d’audit RGPD (traçabilité obligatoire)">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-2">Action</th>
+              <th className="px-4 py-2">Utilisateur</th>
+              <th className="px-4 py-2">Admin</th>
+              <th className="px-4 py-2">Date</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {logs.map((log) => (
+              <tr key={log.id}>
+                <td className="px-4 py-2">{log.action}</td>
+                <td className="px-4 py-2">{log.user_id}</td>
+                <td className="px-4 py-2">{log.admin_email}</td>
+                <td className="px-4 py-2">
+                  {new Date(log.created_at).toLocaleString("fr-FR")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Accordion>
+
+      {/* LEGAL DOCUMENTS */}
+      <Accordion title="Documents légaux (CGU, Politique de confidentialité)">
+        <div className="space-y-4">
+
+          {/* Upload */}
+          <div className="mb-4">
+            <label className="font-semibold"></label>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={uploadDocument}
+              className="mt-2 block"
+            />
+          </div>
+
+          {/* List */}
+          <ul className="space-y-2">
+            {documents.map((doc) => (
+              <li
+                key={doc.id}
+                className="flex justify-between items-center p-3 border rounded"
+              >
+                <span className="text-black">{doc.name}</span>
+                <button
+                  onClick={() => setSelectedDoc(doc.file_url)}
+                  className="text-blue-600 underline"
+                >
+                  Voir
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Accordion>
     </div>
   );
 };

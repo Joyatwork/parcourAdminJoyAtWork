@@ -8,7 +8,7 @@ import axios from "axios";
 const rawApiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  "http://127.0.0.1:8001/api";
+  "http://127.0.0.1:8000/api";
 
 export const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, "");
 
@@ -23,7 +23,7 @@ const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  withCredentials: false, // CORS Laravel
+  withCredentials: false,
 });
 
 /**
@@ -156,6 +156,22 @@ export const usersApi = {
     api.patch<UserAccount>(`/users/${id}`, data),
   delete: (id: number) => api.delete(`/users/${id}`),
 };
+
+/**
+ * ===============================
+ * PRACTITIONERS API (CORRIGÉ)
+ * ===============================
+ */
+
+export const practitionersApi = {
+  getAll: () => api.get<Practitioner[]>("/practitioners"),
+  getById: (id: number) => api.get<Practitioner>(`/practitioners/${id}`),
+  create: (data: Partial<Practitioner>) =>
+    api.post<Practitioner>("/practitioners", data),
+};
+
+export const createPractitioner = (data: Partial<Practitioner>) =>
+  api.post("/practitioners", data);
 
 /**
  * ===============================
