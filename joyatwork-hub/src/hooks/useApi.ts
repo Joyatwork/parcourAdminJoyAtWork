@@ -1,110 +1,134 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { companiesApi, practitionersApi, challengesApi, Company, Practitioner, Challenge } from '@/lib/api';
+import axios from "axios";
 
-// Companies Hooks
-export const useCompanies = () => {
-  return useQuery({
-    queryKey: ['companies'],
-    queryFn: async () => {
-      const response = await companiesApi.getAll();
-      return response.data;
-    },
-  });
+/**
+ * ===============================
+ * API BASE URL
+ * ===============================
+ */
+const rawApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://127.0.0.1:8000/api";
+
+export const API_BASE_URL = String(rawApiBaseUrl).replace(/\/+$/, "");
+
+/**
+ * ===============================
+ * AXIOS INSTANCE
+ * ===============================
+ */
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+/**
+ * ===============================
+ * TYPES
+ * ===============================
+ */
+
+export interface Company {
+  id: number;
+  name: string;
+  sector?: string;
+  location?: string;
+  employees?: number;
+  status?: string;
+  is_active?: boolean;
+  contract_value?: number;
+  verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Practitioner {
+  id?: number | string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  email: string;
+  experience_years: number;
+  rating: string | number;
+  certifications?: string;
+  availability?: string;
+  bio?: string;
+  verified?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Challenge {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  points: number;
+  duration: string;
+  participants: number;
+  completion_rate: number;
+  status: "Actif" | "Brouillon" | "Terminé";
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * ===============================
+ * COMPANIES API
+ * ===============================
+ */
+export const companiesApi = {
+  getAll: () => api.get<Company[]>("/companies"),
+  getById: (id: number) => api.get<Company>(`/companies/${id}`),
+  create: (data: Partial<Company>) => api.post("/companies", data),
+  update: (id: number, data: Partial<Company>) =>
+    api.put(`/companies/${id}`, data),
+  delete: (id: number) => api.delete(`/companies/${id}`),
 };
 
-export const useCompany = (id: number) => {
-  return useQuery({
-    queryKey: ['companies', id],
-    queryFn: async () => {
-      const response = await companiesApi.getById(id);
-      return response.data;
-    },
-  });
+/**
+ * ===============================
+ * PRACTITIONERS API
+ * ===============================
+ */
+export const practitionersApi = {
+  getAll: () => api.get<Practitioner[]>("/practitioners"),
+  getById: (id: number) => api.get<Practitioner>(`/practitioners/${id}`),
+  create: (data: Partial<Practitioner>) =>
+    api.post<Practitioner>("/practitioners", data),
 };
 
-export const useCreateCompany = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: Partial<Company>) => companiesApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companies'] });
-    },
-  });
+export const createPractitioner = (data: Partial<Practitioner>) =>
+  api.post("/practitioners", data);
+
+/**
+ * ===============================
+ * CHALLENGES API
+ * ===============================
+ */
+export const challengesApi = {
+  getAll: () => api.get<Challenge[]>("/challenges"),
+  getById: (id: number) => api.get<Challenge>(`/challenges/${id}`),
+  create: (data: Partial<Challenge>) => api.post("/challenges", data),
+  update: (id: number, data: Partial<Challenge>) =>
+    api.put(`/challenges/${id}`, data),
+  delete: (id: number) => api.delete(`/challenges/${id}`),
 };
 
-export const useUpdateCompany = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Company> }) => 
-      companiesApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companies'] });
-    },
-  });
-};
+/**
+ * ===============================
+ * AXIOS INTERCEPTOR
+ * ===============================
+ */
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
 
-// Practitioners Hooks
-export const usePractitioners = () => {
-  return useQuery({
-    queryKey: ['practitioners'],
-    queryFn: async () => {
-      const response = await practitionersApi.getAll();
-      return response.data;
-    },
-  });
-};
-
-export const usePractitioner = (id: number) => {
-  return useQuery({
-    queryKey: ['practitioners', id],
-    queryFn: async () => {
-      const response = await practitionersApi.getById(id);
-      return response.data;
-    },
-  });
-};
-
-export const useCreatePractitioner = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: Partial<Practitioner>) => practitionersApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['practitioners'] });
-    },
-  });
-};
-
-// Challenges Hooks
-export const useChallenges = () => {
-  return useQuery({
-    queryKey: ['challenges'],
-    queryFn: async () => {
-      const response = await challengesApi.getAll();
-      return response.data;
-    },
-  });
-};
-
-export const useChallenge = (id: number) => {
-  return useQuery({
-    queryKey: ['challenges', id],
-    queryFn: async () => {
-      const response = await challengesApi.getById(id);
-      return response.data;
-    },
-  });
-};
-
-export const useCreateChallenge = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: Partial<Challenge>) => challengesApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['challenges'] });
-    },
-  });
-};
+export default api;

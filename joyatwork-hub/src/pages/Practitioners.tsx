@@ -1,4 +1,4 @@
-import PractitionersDashboard from './PractitionersDashboard';
+import PractitionersDashboard from '../pages/PractitionersDashboardFixed';
 
 const Practitioners = () => {
   return <PractitionersDashboard />;

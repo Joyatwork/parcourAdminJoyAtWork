@@ -41,7 +41,7 @@ export interface ContractStats {
   contrats_par_type: Record<string, number>;
 }
 
-const API_BASE_URL = "http://localhost:8001/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 // Hook pour récupérer tous les contrats
 export function useContracts(filters?: {
