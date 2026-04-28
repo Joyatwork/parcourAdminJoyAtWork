@@ -24,11 +24,6 @@ RUN mkdir -p bootstrap/cache \
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Clear caches
-RUN php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan route:clear
-
 # Railway uses PORT env variable → default to 8080
 ENV PORT=8080
 
