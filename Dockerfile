@@ -14,13 +14,15 @@ WORKDIR /app
 # Copy ONLY the backend
 COPY joyatwork-api/ .
 
+# Create Laravel required folders BEFORE composer install
+RUN mkdir -p bootstrap/cache \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && chmod -R 777 bootstrap/cache storage
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
-
-# Create Laravel required folders
-RUN mkdir -p bootstrap/cache \
-    && mkdir -p storage/framework/{cache,sessions,views} \
-    && chmod -R 777 storage bootstrap/cache
 
 # Clear caches
 RUN php artisan config:clear \
