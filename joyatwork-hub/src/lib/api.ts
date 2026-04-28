@@ -157,12 +157,6 @@ export const usersApi = {
   delete: (id: number) => api.delete(`/users/${id}`),
 };
 
-/**
- * ===============================
- * PRACTITIONERS API (CORRIGÉ)
- * ===============================
- */
-
 export const practitionersApi = {
   getAll: () => api.get<Practitioner[]>("/practitioners"),
   getById: (id: number) => api.get<Practitioner>(`/practitioners/${id}`),
