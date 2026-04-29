@@ -205,4 +205,7 @@ Route::prefix('admin')->group(function () {
 Route::prefix('admin')->group(function () {
     Route::get('/legal-documents', [LegalDocumentController::class, 'index']);
     Route::post('/legal-documents/upload', [LegalDocumentController::class, 'upload']);
+    Route::delete('/legal-documents/{id}', [LegalDocumentController::class, 'destroy']);
+    Route::post('/legal-documents/{id}/update', [LegalDocumentController::class, 'update']);
 });
+

@@ -23,7 +23,7 @@ interface LegalDocument {
   uploaded_at: string;
 }
 
-const API = "http://127.0.0.1:8000/api/admin"; // ✔️ bon port
+const API = "http://127.0.0.1:8000/api/admin";
 
 const Accordion = ({
   title,
@@ -87,6 +87,7 @@ const AdminRGPD: React.FC = () => {
     fetchDocuments();
   }, []);
 
+  // 🔹 Upload
   const uploadDocument = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
 
@@ -102,14 +103,47 @@ const AdminRGPD: React.FC = () => {
     fetchDocuments();
   };
 
+  // 🔹 Update
+  const updateDocument = async (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append("document", file);
+
+    await fetch(`${API}/legal-documents/${id}/update`, {
+      method: "POST",
+      body: formData,
+    });
+
+    fetchDocuments();
+  };
+
+  // 🔹 Delete
+  const deleteDocument = async (id: number) => {
+    if (!confirm("Supprimer ce document ?")) return;
+
+    await fetch(`${API}/legal-documents/${id}`, {
+      method: "DELETE",
+    });
+
+    fetchDocuments();
+  };
+
   return (
     <div className="p-10 space-y-8">
 
-      {/* PDF PREVIEW */}
+      {/* PDF VIEWER MODAL */}
       {selectedDoc && (
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="font-semibold mb-2">Aperçu du document :</h3>
-          <iframe src={selectedDoc} className="w-full h-[600px] border"></iframe>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-50">
+          <button
+            onClick={() => setSelectedDoc(null)}
+            className="mb-4 px-4 py-2 bg-red-600 text-white rounded"
+          >
+            Fermer
+          </button>
+
+          <iframe
+            src={selectedDoc}
+            className="w-[80%] h-[80%] bg-white rounded shadow-lg"
+          ></iframe>
         </div>
       )}
 
@@ -173,7 +207,6 @@ const AdminRGPD: React.FC = () => {
 
           {/* Upload */}
           <div className="mb-4">
-            <label className="font-semibold"></label>
             <input
               type="file"
               accept="application/pdf"
@@ -190,12 +223,45 @@ const AdminRGPD: React.FC = () => {
                 className="flex justify-between items-center p-3 border rounded"
               >
                 <span className="text-black">{doc.name}</span>
-                <button
-                  onClick={() => setSelectedDoc(doc.file_url)}
-                  className="text-blue-600 underline"
-                >
-                  Voir
-                </button>
+
+                <div className="flex gap-4">
+                  {/* Voir */}
+                  <button
+                    onClick={() => setSelectedDoc(doc.file_url)}
+                    className="text-blue-600 underline"
+                  >
+                    Voir
+                  </button>
+
+                  {/* Modifier */}
+                  <button
+                    onClick={() =>
+                      document.getElementById(`file-${doc.id}`)?.click()
+                    }
+                    className="text-yellow-600 underline"
+                  >
+                    Modifier
+                  </button>
+
+                  <input
+                    id={`file-${doc.id}`}
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (!e.target.files?.length) return;
+                      updateDocument(doc.id, e.target.files[0]);
+                    }}
+                  />
+
+                  {/* Supprimer */}
+                  <button
+                    onClick={() => deleteDocument(doc.id)}
+                    className="text-red-600 underline"
+                  >
+                    Supprimer
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
