@@ -15,8 +15,9 @@ return [
         'http://127.0.0.1:3001',
         'http://127.0.0.1:3002',
 
-        // VERCEL (TON FRONTEND)
-        'https://parcour-admin-joy-at-work-git-dev-joyatwork1.vercel.app',
+        // VERCEL (FRONTEND)
+        'https://parcour-admin-joy-at-work.vercel.app', // ✅ domaine de production
+        'https://parcour-admin-joy-at-work-git-dev-joyatwork1.vercel.app', // ✅ domaine de preview
     ],
 
     'allowed_origins_patterns' => [],
