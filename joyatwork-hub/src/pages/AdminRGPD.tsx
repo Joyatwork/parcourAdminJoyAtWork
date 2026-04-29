@@ -23,7 +23,10 @@ interface LegalDocument {
   uploaded_at: string;
 }
 
-const API = "http://127.0.0.1:8000/api/admin";
+// 🔥 AUTO-SWITCH LOCAL / PROD
+const API =
+  import.meta.env.VITE_API_BASE_URL ||
+  "http://127.0.0.1:8000/api/admin";
 
 const Accordion = ({
   title,
@@ -69,13 +72,13 @@ const AdminRGPD: React.FC = () => {
     const res = await fetch(`${API}/legal-documents`);
     const data = await res.json();
 
-    const origin = "http://127.0.0.1:8000";
-
+    // 🔥 Corrige l’URL PDF en local ET en prod
     const fixed = data.map((doc: LegalDocument) => ({
       ...doc,
       file_url: doc.file_url.startsWith("http")
         ? doc.file_url
-        : `${origin}/${doc.file_url.replace(/^\/+/, "")}`,
+        : `${import.meta.env.VITE_API_BASE_URL?.replace("/api/admin", "") ||
+            "http://127.0.0.1:8000"}/${doc.file_url.replace(/^\/+/, "")}`,
     }));
 
     setDocuments(fixed);
