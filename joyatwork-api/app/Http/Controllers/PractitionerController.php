@@ -14,31 +14,39 @@ class PractitionerController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Practitioner::query();
+        try {
+            $query = Practitioner::query();
 
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('speciality', 'like', "%{$search}%");
-            });
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('speciality', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->has('speciality') && $request->speciality !== 'all') {
+                $query->where('speciality', $request->speciality);
+            }
+
+            $practitionersData = [];
+            foreach ($query->orderBy('created_at', 'desc')->get() as $practitioner) {
+                $practitionersData[] = $this->mapToFrontend($practitioner);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $practitionersData
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error in Practitioner index: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
         }
-
-        if ($request->has('speciality') && $request->speciality !== 'all') {
-            $query->where('speciality', $request->speciality);
-        }
-
-        $practitionersData = [];
-        foreach ($query->orderBy('created_at', 'desc')->get() as $practitioner) {
-            $practitionersData[] = $this->mapToFrontend($practitioner);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $practitionersData
-        ]);
     }
 
     /**
@@ -50,13 +58,27 @@ class PractitionerController extends Controller
             $validated = $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255|unique:praticiens,email',
                 'phone' => 'nullable|string|max:255',
                 'speciality' => 'nullable|string|max:255',  
                 'country' => 'nullable|string|max:255',
                 'city' => 'nullable|string|max:255',
                 'postal_code' => 'nullable|string|max:255',
+                'address' => 'nullable|string|max:255',
+                'consultation_mode' => 'nullable|string|max:30',
+                'min_price' => 'nullable|numeric|min:0',
+                'max_price' => 'nullable|numeric|min:0',
+                'website' => 'nullable|url|max:255',
+                'linkedin' => 'nullable|url|max:255',
+                'rpps_number' => 'nullable|string|max:50',
+                'siret_number' => 'nullable|string|max:50',
+                'payment_methods' => 'nullable|array',
+                'languages' => 'nullable|array',
+                'specializations' => 'nullable|array',
                 'availability' => 'nullable|string',
                 'bio' => 'nullable|string',
+                'experience_years' => 'nullable|integer|min:0|max:80',
+                'certifications' => 'nullable|string',
             ]);
             
             // Add default values for required DB fields
@@ -87,10 +109,18 @@ class PractitionerController extends Controller
      */
     public function show(Practitioner $practitioner): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->mapToFrontend($practitioner)
-        ]);
+        try {
+            return response()->json([
+                'success' => true,
+                'data' => $this->mapToFrontend($practitioner)
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error in Practitioner show: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Praticien non trouvé'
+            ], 404);
+        }
     }
 
     /**

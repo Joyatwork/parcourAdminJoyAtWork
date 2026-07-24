@@ -11,8 +11,16 @@ class ChallengeUser extends Model
     protected $fillable = [
         'challenge_id',
         'user_id',
+        'employee_id',
         'score',
         'rate',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'completed_at' => 'datetime',
+        'score' => 'float',
+        'rate' => 'float',
     ];
     
 }

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Database\Seeders\CGUSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,28 +17,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-<<<<<<< HEAD
-        User::updateOrCreate(
-            ['email' => 'rachid.ouiz@hotmail.com'],
-            [
-                'name' => 'Rachid Ouiz',
-                'first_name' => 'Rachid',
-                'last_name' => 'Ouiz',
-                'password' => Hash::make('rachidouiz'),
-                'email_verified_at' => now(),
-            ]
-        );
-=======
-        // User::factory(10)->create();
+        $adminEmail = env('SEED_ADMIN_EMAIL');
+        $adminPassword = env('SEED_ADMIN_PASSWORD');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        if ($adminEmail && $adminPassword) {
+            User::updateOrCreate(
+                ['email' => $adminEmail],
+                [
+                    'name' => env('SEED_ADMIN_NAME', 'Administrateur'),
+                    'first_name' => env('SEED_ADMIN_FIRST_NAME', 'Admin'),
+                    'last_name' => env('SEED_ADMIN_LAST_NAME', 'JoyAtWork'),
+                    'password' => Hash::make($adminPassword),
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
+        // Seed CGU and RGPD logs
+        $this->call([
+            CGUSeeder::class,
+            \Database\Seeders\CompaniesSeeder::class,
+            \Database\Seeders\ProjectCompaniesSeeder::class,
+            \Database\Seeders\ProjectContractsSeeder::class,
+            \Database\Seeders\HealthDiagnosticSeeder::class,
+            \Database\Seeders\PractitionersSeeder::class,
+            \Database\Seeders\BillingWalletSeeder::class,
+            \Database\Seeders\ChallengesSeeder::class,
+            \Database\Seeders\LibraryContentsSeeder::class,
         ]);
-        // On ajoute l'appel au nouveau seeder pour les filtres du Dashboard
-    $this->call([
-        KpiCompanyHealthSeeder::class,
-    ]);
->>>>>>> 3157de8 (WIP : sauvegarde des modifications avant rebase sur dev)
     }
 }

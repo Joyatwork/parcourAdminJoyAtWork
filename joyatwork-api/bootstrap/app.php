@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(HandleCors::class);
+        $middleware->append(\App\Http\Middleware\ApiErrorResponseMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

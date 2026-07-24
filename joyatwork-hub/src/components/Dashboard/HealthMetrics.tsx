@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Brain, Battery, Calendar, CheckCircle2, AlertCircle, AlertTriangle, Smile, Moon, Briefcase } from "lucide-react";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 const months = [
   { value: 1, label: 'Janvier' },
@@ -35,7 +36,7 @@ export function HealthMetrics() {
       setError(null);
 
       const response = await fetch(
-        `http://localhost:8001/api/kpi-company-health/global-health?year=${year}&month=${month}`
+        `${API_BASE_URL}/kpi-company-health/global-health?year=${year}&month=${month}`
       );
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

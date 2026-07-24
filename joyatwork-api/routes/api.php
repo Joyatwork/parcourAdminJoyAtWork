@@ -33,6 +33,7 @@ use App\Http\Controllers\QuestionnaireTemplateController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 
 // ==========================================
 // AUTH
@@ -42,6 +43,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
+// Alias admin login (compatibilité UI qui appelle /api/admin/login)
+Route::post('/admin/login', [AuthController::class, 'login']);
 Route::get('/users', [UserController::class, 'index']);
 Route::post('/users/admin', [UserController::class, 'storeAdmin']);
 Route::patch('/users/{id}', [UserController::class, 'update']);
@@ -131,6 +134,19 @@ Route::apiResource('challenge-packs', ChallengePackController::class);
 Route::apiResource('challenge-citations', ChallengeCitationController::class);
 Route::apiResource('challenge-citation-themes', ChallengeCitationThemeController::class);
 
+// Simple endpoints for frontend expectations (challenge categories / types / intensities)
+Route::get('/challenge-categories', function () {
+    return DB::table('challenge_category')->get();
+});
+
+Route::get('/challenge-types', function () {
+    return DB::table('challenge_type')->get();
+});
+
+Route::get('/challenge-intensities', function () {
+    return DB::table('challenge_intensity')->get();
+});
+
 // ==========================================
 // CONTENT LIBRARY
 // ==========================================
@@ -178,10 +194,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/consents', [ConsentController::class, 'index']);
     Route::post('/consents', [ConsentController::class, 'store']);
     Route::patch('/consents/{id}/revoke', [ConsentController::class, 'revoke']);
-    Route::delete('/users/{id}', [ConsentController::class, 'anonymize']);
-    Route::get('/users/{id}/export', [ConsentController::class, 'exportUserData']);
+    Route::delete('/users/{id}', [ConsentController::class, 'anonymize'])->whereNumber('id');
+    Route::get('/users/{id}/export', [ConsentController::class, 'exportUserData'])->whereNumber('id');
     Route::post('/rgpd/upload-docs', [\App\Http\Controllers\Admin\RgpdDocsController::class, 'uploadDocs']);
     Route::get('/rgpd/export-pdf', [\App\Http\Controllers\Admin\RgpdDocsController::class, 'exportPdf']);
+    // Alias for frontend: allow creating admin users under /api/admin/users/admin
+    Route::post('/users/admin', [\App\Http\Controllers\UserController::class, 'storeAdmin']);
 });
 
 // ==========================================
@@ -208,4 +226,37 @@ Route::prefix('admin')->group(function () {
     Route::delete('/legal-documents/{id}', [LegalDocumentController::class, 'destroy']);
     Route::post('/legal-documents/{id}/update', [LegalDocumentController::class, 'update']);
 });
+
+// Temporary debug route: returns challenge packs or error details
+Route::get('/debug/challenge-packs', function () {
+    try {
+        return \App\Models\ChallengePack::withCount('challenges')->get();
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
+// Compatibility aliases: some frontend requests hit non-admin paths -> map them to admin controllers
+Route::get('/compliance', [AdminComplianceController::class, 'index']);
+Route::post('/compliance', [AdminComplianceController::class, 'store']);
+
+Route::get('/rgpd-audit', [\App\Http\Controllers\Admin\RgpdAuditController::class, 'index']);
+
+Route::get('/legal-documents', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'index']);
+Route::post('/legal-documents/upload', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'upload']);
+Route::delete('/legal-documents/{id}', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'destroy']);
+Route::post('/legal-documents/{id}/update', [\App\Http\Controllers\Admin\LegalDocumentController::class, 'update']);
+
+// Serve files from storage/public when frontend requests /api/storage/...
+use Illuminate\Support\Facades\Storage;
+Route::get('/storage/{path}', function ($path) {
+    // $path example: "legal-documents/filename.pdf"
+    if (Storage::disk('public')->exists($path)) {
+        return Storage::disk('public')->response($path);
+    }
+    abort(404);
+})->where('path', '.*');
 

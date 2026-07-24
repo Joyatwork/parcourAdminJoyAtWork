@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function Audit() {
   const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    // Appelle l'API Laravel sur le port 8001
-    fetch("http://localhost:8001/api/admin/rgpd-audit")
+    fetch(`${API_BASE_URL}/admin/rgpd-audit`)
       .then((res) => res.json())
       .then((data) => setLogs(data))
       .catch((err) => console.error("Erreur API :", err));

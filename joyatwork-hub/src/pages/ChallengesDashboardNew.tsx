@@ -36,9 +36,7 @@ import {
 } from 'lucide-react';
 // New Components
 import CitationsTab from '@/components/Challenges/tabs/CitationsTab'; 
-
-
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+import { API_BASE_URL } from '@/lib/api';
 
 interface ChallengeCategory {
   id: number;

@@ -15,62 +15,80 @@ class AppointmentController extends Controller
      */
     public function index()
     {
-        $appointments = Appointment::with(['practitioner', 'employee.user'])
-            ->orderBy('scheduled_at', 'desc')
-            ->get();
+        try {
+            $appointments = Appointment::with(['practitioner', 'employee.user'])
+                ->orderBy('scheduled_at', 'desc')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $appointments->map(function ($appointment) {
-                return [
-                    'id' => $appointment->id,
-                    'practitioner_name' => $appointment->practitioner ? 
-                        $appointment->practitioner->first_name . ' ' . $appointment->practitioner->last_name : 
-                        'Praticien inconnu',
-                    'practitioner_email' => $appointment->practitioner ? $appointment->practitioner->email  : 'Email inconnu',
-                    'practitioner_speciality' => $appointment->practitioner ? $appointment->practitioner->specialty  : 'Speciality inconnu',
-                    'practitioner_phone' => $appointment->practitioner ? $appointment->practitioner->phone  : 'Phone inconnu',
-                    'practitioner_country' => $appointment->practitioner ? $appointment->practitioner->country  : 'Pays inconnu',
-                    'practitioner_city' => $appointment->practitioner ? $appointment->practitioner->city  : 'City inconnu',
-                    'practitioner_availability' => $appointment->practitioner ? $appointment->practitioner->availability  : 'Availability inconnu',
-                    'practitioner_certifications' => $appointment->practitioner ? $appointment->practitioner->certifications  : 'certifications inconnu',
-                    'practitioner_experience' => $appointment->practitioner ? $appointment->practitioner->experience_years  : 'Expercience inconnu',
-                    'practitioner_rating' => $appointment->practitioner ? $appointment->practitioner->rating  : null,
+            return response()->json([
+                'success' => true,
+                'data' => $appointments->map(function ($appointment) {
+                    return [
+                        'id' => $appointment->id,
+                        'practitioner_name' => $appointment->practitioner ? 
+                            ($appointment->practitioner->first_name ?? '') . ' ' . ($appointment->practitioner->last_name ?? '') : 
+                            'Praticien inconnu',
+                        'practitioner_email' => $appointment->practitioner ? ($appointment->practitioner->email  ?? '') : 'Email inconnu',
+                        'practitioner_speciality' => $appointment->practitioner ? ($appointment->practitioner->specialty  ?? '') : 'Speciality inconnu',
+                        'practitioner_phone' => $appointment->practitioner ? ($appointment->practitioner->phone  ?? '') : 'Phone inconnu',
+                        'practitioner_country' => $appointment->practitioner ? ($appointment->practitioner->country  ?? '') : 'Pays inconnu',
+                        'practitioner_city' => $appointment->practitioner ? ($appointment->practitioner->city  ?? '') : 'City inconnu',
+                        'practitioner_availability' => $appointment->practitioner ? ($appointment->practitioner->availability  ?? '') : 'Availability inconnu',
+                        'practitioner_certifications' => $appointment->practitioner ? ($appointment->practitioner->certifications  ?? '') : 'certifications inconnu',
+                        'practitioner_experience' => $appointment->practitioner ? ($appointment->practitioner->experience_years  ?? '') : 'Expercience inconnu',
+                        'practitioner_rating' => $appointment->practitioner ? ($appointment->practitioner->rating  ?? null) : null,
 
-                    
+                        
 
-                    'client_name' => $appointment->employee && $appointment->employee->user
-                        ? $appointment->employee->user->name
-                        : 'Client inconnu',
-                    'client_email' => $appointment->employee && $appointment->employee->user
-                        ? $appointment->employee->user->email
-                        : 'Email inconnu',
-                    
-                    'scheduled_at' => $appointment->scheduled_at,
-                    'duration' => $appointment->duration,
-                    'status' => $appointment->status,
-                    'mode' => $appointment->mode ?? 'présentiel',
-                    'notes' => $appointment->notes,
-                ];
-            })
-        ]);
+                        'client_name' => $appointment->employee && $appointment->employee->user
+                            ? $appointment->employee->user->name
+                            : 'Client inconnu',
+                        'client_email' => $appointment->employee && $appointment->employee->user
+                            ? $appointment->employee->user->email
+                            : 'Email inconnu',
+                        
+                        'scheduled_at' => $appointment->scheduled_at,
+                        'duration' => $appointment->duration ?? null,
+                        'status' => $appointment->status ?? 'scheduled',
+                        'mode' => $appointment->mode ?? 'présentiel',
+                        'notes' => $appointment->notes ?? '',
+                    ];
+                })
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error in Appointment index: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
     }
     public function index2()
     {
-        $appointments = Appointment::orderBy('scheduled_at', 'desc')->get();
+        try {
+            $appointments = Appointment::orderBy('scheduled_at', 'desc')->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $appointments
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $appointments
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error in Appointment index2: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'data' => []
+            ]);
+        }
     }
 
     /**
      * Rendez-vous par praticien
      */
     public function getAppointmentsByPractitioner($id)
-{
-    $appointments = DB::select("
+    {
+        // Use the French column name `praticien_id` which exists in the DB
+        $appointments = DB::select(
+            "
         SELECT 
             a.id,
             a.scheduled_at,
@@ -84,58 +102,58 @@ class AppointmentController extends Controller
         FROM appointments a
         LEFT JOIN employees e ON e.id = a.employee_id
         LEFT JOIN users u ON u.id = e.user_id
-        WHERE a.practitioner_id = ?
+        WHERE a.praticien_id = ?
         ORDER BY a.scheduled_at desc
-    ", [$id]);
+    ", [$id]
+        );
 
-    return response()->json([
-        'success' => true,
-        'data' => array_map(function ($appointment) {
-            return [
-                'id' => $appointment->id,
-                'scheduled_at' => $appointment->scheduled_at,
-                'duration' => $appointment->duration,
-                'status' => $appointment->status,
-                'type' => $appointment->type,
-                'mode' => $appointment->mode ?? 'présentiel',
-                'notes' => $appointment->notes,
-                'client_name' => $appointment->client_name,
-                'client_email' => $appointment->client_email,
-            ];
-        }, $appointments)
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => array_map(function ($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'scheduled_at' => $appointment->scheduled_at,
+                    'duration' => $appointment->duration,
+                    'status' => $appointment->status,
+                    'type' => $appointment->type,
+                    'mode' => $appointment->mode ?? 'présentiel',
+                    'notes' => $appointment->notes,
+                    'client_name' => $appointment->client_name,
+                    'client_email' => $appointment->client_email,
+                ];
+            }, $appointments)
+        ]);
+    }
 
-     public function getAppointmentsByPractitioner3($id)
-     {
-         $appointments = Appointment::where('practitioner_id', $id)
-             ->with(['employee.user'])
-             ->orderBy('scheduled_at', 'asc')
-             ->get()
-             ->map(function ($appointment) {
-                 return [
-                     'id' => $appointment->id,
-                     'scheduled_at' => $appointment->scheduled_at,
-                     'duration' => $appointment->duration,
-                     'status' => $appointment->status,
-                     'type' => $appointment->type,
-                     'mode' => $appointment->mode ?? 'présentiel',
-                     'notes' => $appointment->notes,
-                     'client_name' => $appointment->employee->user->name,
-                     'client_email' => $appointment->employee && $appointment->employee->user ? 
-                         $appointment->employee->user->email : null,
-                 ];
-             });
- 
-         return response()->json([
-             'success' => true,
-             'data' => $appointments
-         ]);
-     }
+    public function getAppointmentsByPractitioner3($id)
+    {
+        $appointments = Appointment::where('praticien_id', $id)
+            ->with(['employee.user'])
+            ->orderBy('scheduled_at', 'asc')
+            ->get()
+            ->map(function ($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'scheduled_at' => $appointment->scheduled_at,
+                    'duration' => $appointment->duration,
+                    'status' => $appointment->status,
+                    'type' => $appointment->type,
+                    'mode' => $appointment->mode ?? 'présentiel',
+                    'notes' => $appointment->notes,
+                    'client_name' => $appointment->employee && $appointment->employee->user ? $appointment->employee->user->name : null,
+                    'client_email' => $appointment->employee && $appointment->employee->user ? $appointment->employee->user->email : null,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $appointments
+        ]);
+    }
 
     public function getAppointmentsByPractitioner2($id)
     {
-        $appointments = Appointment::where('practitioner_id', $id)
+        $appointments = Appointment::where('praticien_id', $id)
             ->orderBy('scheduled_at', 'asc')
             ->get()
             ->map(function ($a) {

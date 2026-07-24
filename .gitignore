@@ -12,10 +12,13 @@ joyatwork-hub/dist/
 joyatwork-api/vendor/
 joyatwork-api/storage/
 joyatwork-api/bootstrap/cache/
+joyatwork-api/public/bootstrap/cache/
 
 # Fichiers d'environnement (ne jamais les committer)
 *.env
 *.env.*
+!*.env.example
+!**/.env.example
 
 
 

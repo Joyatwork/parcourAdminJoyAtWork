@@ -33,7 +33,7 @@ class Appointment extends Model
 
     public function practitioner()
     {
-        return $this->belongsTo(Practitioner::class, 'practitioner_id');
+        return $this->belongsTo(Practitioner::class, 'praticien_id');
     }
     
     public function employee()

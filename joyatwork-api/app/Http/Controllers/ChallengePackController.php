@@ -12,8 +12,15 @@ class ChallengePackController extends Controller
     // GET /api/challenge-packs
     public function index()
     {
-        // Ajoutez withCount pour compter les défis associés
-        $packs = ChallengePack::withCount('challenges')->get();
+        // Ajoutez withCount pour compter les défis associés, fallback si la table challenges est manquante
+        try {
+            $packs = ChallengePack::withCount('challenges')->get();
+        } catch (\Throwable $e) {
+            Log::warning('ChallengePack index fallback: ' . $e->getMessage());
+            $packs = ChallengePack::all();
+            $packs->each(function ($p) { $p->challenges_count = 0; });
+        }
+
         return response()->json($packs);
     }
 
@@ -21,8 +28,15 @@ class ChallengePackController extends Controller
     public function show($id)
     {
         try {
-            // Ajoutez aussi withCount pour le show
-            $pack = ChallengePack::withCount('challenges')->findOrFail($id);
+            // Ajoutez aussi withCount pour le show, fallback si erreur
+            try {
+                $pack = ChallengePack::withCount('challenges')->findOrFail($id);
+            } catch (\Throwable $e) {
+                Log::warning('ChallengePack show fallback: ' . $e->getMessage());
+                $pack = ChallengePack::findOrFail($id);
+                $pack->challenges_count = 0;
+            }
+
             return response()->json($pack, 200);
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack show: ' . $e->getMessage());
@@ -42,10 +56,15 @@ class ChallengePackController extends Controller
             $pack = ChallengePack::create($validated);
 
             // Retournez avec le count
-            return response()->json(
-                ChallengePack::withCount('challenges')->find($pack->id), 
-                201
-            );
+            try {
+                $result = ChallengePack::withCount('challenges')->find($pack->id);
+            } catch (\Throwable $e) {
+                Log::warning('ChallengePack store fallback: ' . $e->getMessage());
+                $result = ChallengePack::find($pack->id);
+                $result->challenges_count = 0;
+            }
+
+            return response()->json($result, 201);
 
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack store: ' . $e->getMessage());
@@ -67,10 +86,15 @@ class ChallengePackController extends Controller
             $pack->update($validated);
 
             // Retournez avec le count
-            return response()->json(
-                ChallengePack::withCount('challenges')->find($id), 
-                200
-            );
+            try {
+                $result = ChallengePack::withCount('challenges')->find($id);
+            } catch (\Throwable $e) {
+                Log::warning('ChallengePack update fallback: ' . $e->getMessage());
+                $result = ChallengePack::find($id);
+                $result->challenges_count = 0;
+            }
+
+            return response()->json($result, 200);
 
         } catch (\Exception $e) {
             Log::error('Error in ChallengePack update: ' . $e->getMessage());

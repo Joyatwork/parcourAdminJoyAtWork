@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { MapPin, Phone, Mail, Calendar, Users, Plus, AlertCircle, Edit, Trash2 } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/api';
 
 
 interface Practitioner {
@@ -183,7 +184,7 @@ const resetAppointmentFilters = () => {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/practitioners/${practitionerId}`, {
+      const response = await fetch(`${API_BASE_URL}/practitioners/${practitionerId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -195,7 +196,7 @@ const resetAppointmentFilters = () => {
       if (data.success) {
         alert(`${practitionerName} a été supprimé avec succès !`);
         // Recharger la liste des praticiens
-        const refreshResponse = await fetch('http://127.0.0.1:8000/api/practitioners');
+        const refreshResponse = await fetch(`${API_BASE_URL}/practitioners`);
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -223,7 +224,7 @@ const handleUpdatePractitioner = async () => {
     
     try {
       setIsSubmitting(true);
-      const response = await fetch(`http://127.0.0.1:8000/api/practitioners/${editingPractitioner.id}`, {
+      const response = await fetch(`${API_BASE_URL}/practitioners/${editingPractitioner.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -259,7 +260,7 @@ const handleUpdatePractitioner = async () => {
         setEditingPractitioner(null);
         
         // Recharger la liste
-        const refreshResponse = await fetch('http://127.0.0.1:8000/api/practitioners');
+        const refreshResponse = await fetch(`${API_BASE_URL}/practitioners`);
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -279,7 +280,7 @@ const handleUpdatePractitioner = async () => {
     const loadPractitioners = async () => {
       try {
         console.log('Tentative de connexion à l\'API...');
-        const response = await fetch('http://127.0.0.1:8000/api/practitioners');
+        const response = await fetch(`${API_BASE_URL}/practitioners`);
         console.log('Réponse reçue:', response.status);
         
         if (!response.ok) {
@@ -305,7 +306,7 @@ const handleUpdatePractitioner = async () => {
     const loadAppointments = async () => {
       try {
         setAppointmentsLoading(true);
-        const response = await fetch('http://127.0.0.1:8000/api/appointments');
+        const response = await fetch(`${API_BASE_URL}/appointments`);
         
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
@@ -334,8 +335,8 @@ const handleUpdatePractitioner = async () => {
   const loadDiplomesAndCertifications = async (practitionerId: number) => {
     try {
       const [diplomesRes, certificationsRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/praticien-diplomes/${practitionerId}`),
-        fetch(`http://127.0.0.1:8000/api/praticien-certifications/${practitionerId}`)
+        fetch(`${API_BASE_URL}/praticien-diplomes/${practitionerId}`),
+        fetch(`${API_BASE_URL}/praticien-certifications/${practitionerId}`)
       ]);
       const diplomesData = await diplomesRes.json();
       const certificationsData = await certificationsRes.json();
@@ -349,7 +350,7 @@ const handleUpdatePractitioner = async () => {
   const handleVerifyDiplome = async (diplome: Diplome) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/praticien-diplomes/${diplome.id}/verifier`, {
+    const response = await fetch(`${API_BASE_URL}/praticien-diplomes/${diplome.id}/verifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -371,7 +372,7 @@ const handleUpdatePractitioner = async () => {
       
       // Mettre à jour le praticien dans la liste principale
       if (detailsPractitioner) {
-        const updatedPractitioner = await fetch(`http://127.0.0.1:8000/api/practitioners/${detailsPractitioner.id}`)
+        const updatedPractitioner = await fetch(`${API_BASE_URL}/practitioners/${detailsPractitioner.id}`)
           .then(res => res.json());
         
         if (updatedPractitioner.success) {
@@ -399,7 +400,7 @@ const handleUpdatePractitioner = async () => {
 const handleVerifyCertification = async (certification: Certification) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/praticien-certifications/${certification.id}/verifier`, {
+    const response = await fetch(`${API_BASE_URL}/praticien-certifications/${certification.id}/verifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -421,7 +422,7 @@ const handleVerifyCertification = async (certification: Certification) => {
       
       // Mettre à jour le praticien dans la liste principale
       if (detailsPractitioner) {
-        const updatedPractitioner = await fetch(`http://127.0.0.1:8000/api/practitioners/${detailsPractitioner.id}`)
+        const updatedPractitioner = await fetch(`${API_BASE_URL}/practitioners/${detailsPractitioner.id}`)
           .then(res => res.json());
         
         if (updatedPractitioner.success) {
@@ -449,7 +450,7 @@ const handleVerifyCertification = async (certification: Certification) => {
 const handleUnverifyDiplome = async (diplome: Diplome) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/praticien-diplomes/${diplome.id}/deverifier`, {
+    const response = await fetch(`${API_BASE_URL}/praticien-diplomes/${diplome.id}/deverifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -484,7 +485,7 @@ const handleUnverifyDiplome = async (diplome: Diplome) => {
 
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/praticien-diplomes/${diplomeId}`, {
+    const response = await fetch(`${API_BASE_URL}/praticien-diplomes/${diplomeId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -512,7 +513,7 @@ const handleUnverifyDiplome = async (diplome: Diplome) => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch(`http://127.0.0.1:8000/api/praticien-certifications/${certificationId}`, {
+      const response = await fetch(`${API_BASE_URL}/praticien-certifications/${certificationId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -537,7 +538,7 @@ const handleUnverifyDiplome = async (diplome: Diplome) => {
 const handleUnverifyCertification = async (certification: Certification) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/praticien-certifications/${certification.id}/deverifier`, {
+    const response = await fetch(`${API_BASE_URL}/praticien-certifications/${certification.id}/deverifier`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -575,7 +576,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
     setIsSubmitting(true);
     try {
       console.log('Envoi des données:', newPractitioner);
-      const response = await fetch('http://127.0.0.1:8000/api/practitioners', {
+      const response = await fetch(`${API_BASE_URL}/practitioners`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -593,7 +594,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
         setIsDialogOpen(false);
         
         // Recharger la liste
-        const refreshResponse = await fetch('http://127.0.0.1:8000/api/practitioners');
+        const refreshResponse = await fetch(`${API_BASE_URL}/practitioners`);
         const refreshData = await refreshResponse.json();
         if (refreshData.success) {
           setPractitioners(refreshData.data);
@@ -616,7 +617,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
   
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/practitioners/${suspensionPractitioner.id}/suspendre`, {
+      const response = await fetch(`${API_BASE_URL}/practitioners/${suspensionPractitioner.id}/suspendre`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: suspensionReason })
@@ -631,7 +632,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
         setSuspensionReason('');
   
         // reload practitioners
-        const refreshResponse = await fetch('http://127.0.0.1:8000/api/practitioners');
+        const refreshResponse = await fetch(`${API_BASE_URL}/practitioners`);
         const refreshData = await refreshResponse.json();
         if (refreshData.success) setPractitioners(refreshData.data);
       } else {
@@ -652,7 +653,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
     try {
       setIsSubmitting(true);
   
-      const response = await fetch(`http://127.0.0.1:8000/api/practitioners/${practitioner.id}/reactivate`, {
+      const response = await fetch(`${API_BASE_URL}/practitioners/${practitioner.id}/reactivate`, {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json',
@@ -683,7 +684,7 @@ const handleUnverifyCertification = async (certification: Certification) => {
 const handleVerifyPractitioner = async (practitioner: Practitioner) => {
   try {
     setIsSubmitting(true);
-    const response = await fetch(`http://127.0.0.1:8000/api/practitioners/${practitioner.id}/verify`, {
+    const response = await fetch(`${API_BASE_URL}/practitioners/${practitioner.id}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -712,7 +713,7 @@ const openAgenda = async (practitioner: Practitioner) => {
 
   try {
     const res = await fetch(
-      `http://127.0.0.1:8000/api/practitioners/${practitioner.id}/appointments`
+      `${API_BASE_URL}/practitioners/${practitioner.id}/appointments`
     );
     const data = await res.json();
 

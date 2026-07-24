@@ -22,11 +22,13 @@ RUN mkdir -p bootstrap/cache \
     && chmod -R 777 bootstrap/cache storage
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && php artisan package:discover --ansi \
+    && chmod -R 775 bootstrap/cache storage
 
 # Railway uses PORT env variable → default to 8080
 ENV PORT=8080
 
 EXPOSE 8080
 
-CMD php artisan serve --host=0.0.0.0 --port=$PORT
+CMD ["sh", "-c", "php artisan migrate --force && (php artisan storage:link 2>/dev/null || true) && exec php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]

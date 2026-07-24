@@ -186,6 +186,16 @@ const SanteDiagnosticDashboard = () => {
 
   const buildId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+  const parseJsonSafe = async (res: Response) => {
+    const text = await res.text();
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch (err) {
+      console.error('Invalid JSON response from', (res as any)?.url ?? 'unknown', text);
+      return null;
+    }
+  };
+
   const createDefaultQuestion = (label: string, type: QuestionnaireQuestionType = 'rating'): QuestionnaireQuestion => ({
     id: buildId(),
     label,
@@ -432,11 +442,11 @@ const SanteDiagnosticDashboard = () => {
           fetch(`${API_BASE_URL}/users`),
         ]);
         
-        const companyData = await resCompany.json();
-        const userData = await resUser.json();
-        const globalData = await resGlobal.json();
-        const companiesData = await resCompanies.json();
-        const usersData = await resUsers.json();
+        const companyData = await parseJsonSafe(resCompany) ?? [];
+        const userData = await parseJsonSafe(resUser) ?? [];
+        const globalData = await parseJsonSafe(resGlobal) ?? [];
+        const companiesData = await parseJsonSafe(resCompanies) ?? [];
+        const usersData = await parseJsonSafe(resUsers) ?? [];
         
         setCompanyHealthData(companyData);
         setUsersHealthData(userData);
@@ -448,8 +458,18 @@ const SanteDiagnosticDashboard = () => {
         // Chargement de l'historique des diagnostics
         try {
           const resD = await fetch(`${API_BASE_URL}/diagnostics`);
-          const dData = await resD.json();
-          setDiagnosticResults(Array.isArray(dData) ? dData.map((d: any) => mapApiDiagnostic(d, validCompanies)) : []);
+          const rawText = await resD.text();
+          if (!rawText) {
+            console.warn('Empty response from /diagnostics');
+          }
+          try {
+            // try to parse JSON from the raw text
+            const parsed = rawText ? JSON.parse(rawText) : null;
+            setDiagnosticResults(Array.isArray(parsed) ? parsed.map((d: any) => mapApiDiagnostic(d, validCompanies)) : []);
+          } catch (err) {
+            console.error('/diagnostics returned non-JSON:', rawText);
+            setDiagnosticResults([]);
+          }
         } catch (err) {
           console.error('Erreur chargement historique:', err);
         }
@@ -457,7 +477,7 @@ const SanteDiagnosticDashboard = () => {
         // Chargement des questionnaires
         try {
           const resQ = await fetch(`${API_BASE_URL}/questionnaire-templates`);
-          const qData = await resQ.json();
+          const qData = await parseJsonSafe(resQ);
           setQuestionnaireLibrary(Array.isArray(qData) ? qData.map(mapApiTemplate) : []);
         } catch (err) {
           console.error('Erreur chargement questionnaires:', err);
@@ -479,8 +499,8 @@ const SanteDiagnosticDashboard = () => {
         const res = await fetch(
           `${API_BASE_URL}/kpi-company-health/global-health?year=${globalYear}&month=${globalMonth}`
         );
-        const globalData = await res.json();
-        setGlobalStats(globalData.length > 0 ? globalData[0] : null);
+        const globalData = await parseJsonSafe(res) ?? [];
+        setGlobalStats(Array.isArray(globalData) && globalData.length > 0 ? globalData[0] : null);
       } catch (err) { 
         console.error('Erreur lors de la mise à jour des stats:', err); 
       } finally { 
@@ -1955,39 +1975,50 @@ const SanteDiagnosticDashboard = () => {
                   Dernier diagnostic
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">{diagnosticResults[0].title}</h4>
-                    <Badge className={getStatusColor(diagnosticResults[0].status)}>
-                      {diagnosticResults[0].status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>{diagnosticResults[0].date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">Score:</span>
-                    <div className="flex-1">
-                      <Progress 
-                        value={(diagnosticResults[0].score / diagnosticResults[0].maxScore) * 100} 
-                        className="h-2"
-                      />
-                    </div>
-                    <span className={`text-sm font-medium ${getScoreColor(diagnosticResults[0].score, diagnosticResults[0].maxScore)}`}>
-                      {diagnosticResults[0].score}/{diagnosticResults[0].maxScore}
-                    </span>
-                  </div>
-                  <div className="pt-2">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Recommandations principales:</p>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      {diagnosticResults[0].recommendations.slice(0, 2).map((rec, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <Target className="w-3 h-3 mt-0.5 text-blue-500 flex-shrink-0" />
-                          <span>{rec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {diagnosticResults.length === 0 ? (
+                    <div className="text-sm text-gray-600">Aucun diagnostic disponible.</div>
+                  ) : (
+                    (() => {
+                      const first = diagnosticResults[0];
+                      return (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{first?.title ?? 'Titre indisponible'}</h4>
+                            <Badge className={getStatusColor(first?.status ?? '')}>
+                              {first?.status ?? '—'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span>{first?.date ?? '—'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">Score:</span>
+                            <div className="flex-1">
+                              <Progress
+                                value={first && first.maxScore ? (first.score / first.maxScore) * 100 : 0}
+                                className="h-2"
+                              />
+                            </div>
+                            <span className={`text-sm font-medium ${getScoreColor(first?.score ?? 0, first?.maxScore ?? 100)}`}>
+                              {first?.score ?? 0}/{first?.maxScore ?? 100}
+                            </span>
+                          </div>
+                          <div className="pt-2">
+                            <p className="text-sm font-medium text-gray-700 mb-2">Recommandations principales:</p>
+                            <ul className="text-sm text-gray-600 space-y-1">
+                              {(first?.recommendations ?? []).slice(0, 2).map((rec, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <Target className="w-3 h-3 mt-0.5 text-blue-500 flex-shrink-0" />
+                                  <span>{rec}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </>
+                      );
+                    })()
+                  )}
                 </div>
               </Card>
             </div>

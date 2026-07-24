@@ -55,7 +55,6 @@ class DiagnosticController extends Controller
                 LEFT JOIN users u ON u.id = d.user_id
                 WHERE
                     JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.creation_type')) = 'company_diagnostic'
-                    OR d.scope = 'company'
             ) c
             JOIN entreprises e ON e.id = c.company_id
             GROUP BY c.company_id, e.name, c.month
@@ -117,7 +116,6 @@ class DiagnosticController extends Controller
                 LEFT JOIN users u ON u.id = d.user_id
                 WHERE
                     JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.creation_type')) = 'user_diagnostic'
-                    OR d.scope = 'user'
             ) m
             JOIN users u ON u.id = m.user_id
             LEFT JOIN entreprises e ON e.id = m.company_id
@@ -249,7 +247,6 @@ class DiagnosticController extends Controller
                 WHERE
                     (
                         JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.creation_type')) = 'company_diagnostic'
-                        OR d.scope = 'company'
                     )
                     AND COALESCE(
                         CAST(JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.company_id')) AS UNSIGNED),
@@ -287,7 +284,6 @@ class DiagnosticController extends Controller
                     d.user_id = ?
                     AND (
                         JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.creation_type')) = 'user_diagnostic'
-                        OR d.scope = 'user'
                     )
                     AND COALESCE(
                         NULLIF(JSON_UNQUOTE(JSON_EXTRACT(d.answers, '$.period')), 'null'),

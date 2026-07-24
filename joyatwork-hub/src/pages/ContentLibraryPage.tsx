@@ -435,19 +435,27 @@ const ContentLibraryPage = () => {
   }, []);
 
   const inferAssetKind = (url: string, fallbackFormat?: string): PreviewAsset["kind"] => {
-    const source = (url || fallbackFormat || "").toLowerCase();
-    if (source.match(/\.(png|jpg|jpeg|gif|webp|svg|bmp|avif)$/) || source.includes("image")) {
+    const source = (url || "").toLowerCase().split(/[?#]/)[0];
+    if (source.match(/\.(png|jpg|jpeg|gif|webp|svg|bmp|avif)$/)) {
       return "image";
     }
-    if (source.match(/\.(mp4|webm|mov|mkv)$/) || source.includes("video")) {
+    if (getYouTubeEmbedUrl(url) || source.match(/\.(mp4|webm|mov|mkv)$/)) {
       return "video";
     }
-    if (source.match(/\.(mp3|wav|ogg|m4a|aac)$/) || source.includes("audio")) {
+    if (source.match(/\.(mp3|wav|ogg|m4a|aac)$/)) {
       return "audio";
     }
     if (source.match(/\.pdf$/)) {
       return "pdf";
     }
+    if (/^https?:\/\//i.test(url)) {
+      return "file";
+    }
+    const fallback = (fallbackFormat || "").toLowerCase();
+    if (fallback.includes("image")) return "image";
+    if (fallback.includes("video")) return "video";
+    if (fallback.includes("audio")) return "audio";
+    if (fallback.includes("pdf")) return "pdf";
     return "file";
   };
 
@@ -502,6 +510,18 @@ const ContentLibraryPage = () => {
     }
 
     window.open(normalizeAssetUrl(asset.url), "_blank", "noopener,noreferrer");
+  };
+
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    try {
+      const parsed = new URL(url);
+      const id = parsed.hostname.includes("youtu.be")
+        ? parsed.pathname.slice(1)
+        : parsed.searchParams.get("v") || (parsed.pathname.startsWith("/embed/") ? parsed.pathname.split("/")[2] : null);
+      return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
+    } catch {
+      return null;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -949,6 +969,31 @@ const ContentLibraryPage = () => {
                     Ouvrir
                   </Button>
                 </div>
+
+                {selectedPreviewAsset && (() => {
+                  const youtubeEmbedUrl = getYouTubeEmbedUrl(selectedPreviewAsset.url);
+                  if (youtubeEmbedUrl) {
+                    return (
+                      <iframe
+                        className="aspect-video w-full rounded-lg border"
+                        src={youtubeEmbedUrl}
+                        title={previewContent.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    );
+                  }
+                  if (selectedPreviewAsset.kind === "video") {
+                    return <video className="w-full rounded-lg border" src={normalizeAssetUrl(selectedPreviewAsset.url)} controls />;
+                  }
+                  if (selectedPreviewAsset.kind === "audio") {
+                    return <audio className="w-full" src={normalizeAssetUrl(selectedPreviewAsset.url)} controls />;
+                  }
+                  if (selectedPreviewAsset.kind === "image") {
+                    return <img className="max-h-96 w-full rounded-lg border object-contain" src={normalizeAssetUrl(selectedPreviewAsset.url)} alt={selectedPreviewAsset.label} />;
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           )}

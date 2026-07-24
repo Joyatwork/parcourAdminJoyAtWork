@@ -236,7 +236,7 @@ const ContractsDashboard = () => {
     setEditContractDateFin(contract.date_fin || "");
     setEditContractDateSignature(contract.date_signature || "");
     setEditContractDateRenouvellement(contract.date_renouvellement || "");
-    setEditContractMontantAnnuel(contract.montant_annuel.toString());
+    setEditContractMontantAnnuel(contract.montant_annuel?.toString() || "");
     setEditContractMontantMensuel(contract.montant_mensuel?.toString() || "");
     setEditContractDevise(contract.devise || "EUR");
     setEditContractEmployeesCovered(contract.nombre_employes_couverts?.toString() || "0");
@@ -515,20 +515,7 @@ const ContractsDashboard = () => {
         {isLoading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-            <span className="ml-3 text-gray-600">
-              Chargement des contrats...
-            </span>
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-12">
-            <div className="text-red-500 mb-2">
-              Erreur lors du chargement des contrats
-            </div>
-            <div className="text-sm text-gray-500">
-              Vérifiez que le serveur backend est démarré
-            </div>
+            <span className="ml-3 text-gray-600">Chargement des contrats...</span>
           </div>
         )}
 
@@ -553,9 +540,7 @@ const ContractsDashboard = () => {
                       {contract.entreprise?.name || "Entreprise inconnue"}
                     </CardDescription>
                   </div>
-                  <Badge
-                    className={`text-xs ${getStatutBadgeColor(contract.statut)}`}
-                  >
+                  <Badge className={`text-xs ${getStatutBadgeColor(contract.statut)}`}>
                     <span className="flex items-center gap-1">
                       {getStatutIcon(contract.statut)}
                       {contract.statut}
@@ -585,13 +570,12 @@ const ContractsDashboard = () => {
                   <div className="flex items-center text-sm text-gray-600">
                     <DollarSign className="w-4 h-4 mr-2 flex-shrink-0 text-green-500" />
                     <span>
-                      {contract.montant_annuel.toLocaleString("fr-FR")}{" "}
-                      {contract.devise}/an
+                      {(contract.montant_annuel ?? 0).toLocaleString("fr-FR")} {" "}
+                      {contract.devise || "EUR"}/an
                     </span>
                     {contract.montant_mensuel && (
                       <span className="text-gray-400 ml-2">
-                        ({contract.montant_mensuel.toLocaleString("fr-FR")}{" "}
-                        {contract.devise}/mois)
+                        ({(contract.montant_mensuel ?? 0).toLocaleString("fr-FR")} {contract.devise || "EUR"}/mois)
                       </span>
                     )}
                   </div>
@@ -730,7 +714,7 @@ const ContractsDashboard = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-500">Montant annuel</p>
                   <p className="text-sm text-gray-900">
-                    {selectedContractDetails.montant_annuel.toLocaleString("fr-FR")} {selectedContractDetails.devise}
+                    {(selectedContractDetails.montant_annuel ?? 0).toLocaleString("fr-FR")} {selectedContractDetails.devise || "EUR"}
                   </p>
                 </div>
                 <div>

@@ -13,7 +13,9 @@ class Contract extends Model
     /**
      * Utiliser la table 'contrats'
      */
-    protected $table = 'contrats';
+    // Le schéma de migration crée la table 'contracts' (anglais).
+    // Aligner le modèle sur le schéma existant pour éviter les erreurs SQL.
+    protected $table = 'contracts';
 
     /**
      * Champs modifiables

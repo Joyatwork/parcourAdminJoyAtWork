@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Compliance {
   id: number;
@@ -24,9 +25,7 @@ interface LegalDocument {
 }
 
 // 🔥 AUTO-SWITCH LOCAL / PROD
-const API =
-  import.meta.env.VITE_API_BASE_URL ||
-  "http://127.0.0.1:8000/api/admin";
+const API = `${API_BASE_URL}/admin`;
 
 const Accordion = ({
   title,
@@ -77,8 +76,7 @@ const AdminRGPD: React.FC = () => {
       ...doc,
       file_url: doc.file_url.startsWith("http")
         ? doc.file_url
-        : `${import.meta.env.VITE_API_BASE_URL?.replace("/api/admin", "") ||
-            "http://127.0.0.1:8000"}/${doc.file_url.replace(/^\/+/, "")}`,
+        : `${new URL(API_BASE_URL).origin}/${doc.file_url.replace(/^\/+/, "")}`,
     }));
 
     setDocuments(fixed);

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { API_BASE_URL } from "@/lib/api";
 
 /**
  * Représentation d'un contrat basée sur la table SQL `contrats`
@@ -40,8 +41,6 @@ export interface ContractStats {
   chiffre_affaires_annuel: number;
   contrats_par_type: Record<string, number>;
 }
-
-const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 // Hook pour récupérer tous les contrats
 export function useContracts(filters?: {

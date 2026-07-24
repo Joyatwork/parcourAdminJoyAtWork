@@ -10,24 +10,34 @@ class ChallengeController extends Controller
 {
     public function index()
     {
-        $actives = Challenge::with(['category', 'type', 'intensity'])
-            ->where('is_active', true)
-            ->selectRaw('challenges.*, 
-                        (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
-            ->get();
+        try {
+            $actives = Challenge::with(['category', 'type', 'intensity'])
+                ->where('is_active', true)
+                ->selectRaw('challenges.*, 
+                            (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
+                ->get();
 
-        return response()->json($actives);
+            return response()->json($actives);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json([], 200);
+        }
     }
 
     public function trashed()
     {
-        $archived = Challenge::with(['category', 'type', 'intensity'])
-            ->where('is_active', false)
-            ->selectRaw('challenges.*, 
-                        (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
-            ->get();
+        try {
+            $archived = Challenge::with(['category', 'type', 'intensity'])
+                ->where('is_active', false)
+                ->selectRaw('challenges.*, 
+                            (SELECT COUNT(*) FROM challenge_user WHERE challenge_user.challenge_id = challenges.id) as participants_count')
+                ->get();
 
-        return response()->json($archived);
+            return response()->json($archived);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json([], 200);
+        }
     }
 
     // ARCHIVER

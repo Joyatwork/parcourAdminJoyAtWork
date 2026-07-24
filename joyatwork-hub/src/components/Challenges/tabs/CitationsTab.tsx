@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { API_BASE_URL } from '@/lib/api';
 import {
   Search,
   Plus,
@@ -23,8 +24,6 @@ import {
   AlertTriangle,
   X
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:8001/api';
 
 interface Citation {
   id: number;

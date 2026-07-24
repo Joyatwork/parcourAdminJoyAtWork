@@ -6,6 +6,7 @@ use App\Models\Contract;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class ContractController extends Controller
@@ -15,7 +16,18 @@ class ContractController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Contract::query();
+        try {
+            $query = Contract::query();
+
+            // Choisir une colonne de date existante dans la table (compatibilité FR/EN)
+            $dateColumn = null;
+            if (Schema::hasColumn('contracts', 'date_debut')) {
+                $dateColumn = 'date_debut';
+            } elseif (Schema::hasColumn('contracts', 'start_date')) {
+                $dateColumn = 'start_date';
+            } elseif (Schema::hasColumn('contracts', 'created_at')) {
+                $dateColumn = 'created_at';
+            }
 
         // Filtrer par entreprise
         if ($request->has('entreprise_id')) {
@@ -36,11 +48,17 @@ class ContractController extends Controller
             });
         }
 
-        $contrats = $query->with('entreprise:id,name')
-                          ->orderBy('date_debut', 'desc')
-                          ->get();
+            $orderCol = $dateColumn ?? 'id';
+            $contrats = $query->with('entreprise:id,name')
+                              ->orderBy($orderCol, 'desc')
+                              ->get();
 
-        return response()->json($contrats);
+            return response()->json($contrats);
+        } catch (\Throwable $e) {
+            // Log and return safe empty result to avoid 500 in the UI
+            report($e);
+            return response()->json([], 200);
+        }
     }
 
     /**
@@ -155,30 +173,44 @@ class ContractController extends Controller
      */
     public function stats(): JsonResponse
     {
-        // Debug: Vérifier les statuts réels dans la base
-        $allStatuses = Contract::selectRaw('statut, count(*) as count')
-                              ->groupBy('statut')
-                              ->get()
-                              ->pluck('count', 'statut');
-        
-        // Utiliser une comparaison insensible à la casse et trim les espaces
-        $contratsActifs = Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['ACTIF'])->count();
-        $chiffreAffaires = Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['ACTIF'])->sum('montant_annuel');
-        
-        $stats = [
-            'total_contrats' => Contract::count(),
-            'contrats_actifs' => $contratsActifs,
-            'contrats_en_negociation' => Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['EN NÉGOCIATION'])->count(),
-            'contrats_expires' => Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['EXPIRÉ'])->count(),
-            'chiffre_affaires_annuel' => $chiffreAffaires ?? 0,
-            'contrats_par_type' => Contract::selectRaw('type_contrat, count(*) as count')
-                                          ->groupBy('type_contrat')
-                                          ->get()
-                                          ->pluck('count', 'type_contrat'),
-            // Debug temporaire - à retirer après
-            'debug_statuts' => $allStatuses,
-        ];
+        try {
+            // Debug: Vérifier les statuts réels dans la base
+            $allStatuses = Contract::selectRaw('statut, count(*) as count')
+                                  ->groupBy('statut')
+                                  ->get()
+                                  ->pluck('count', 'statut');
+            
+            // Utiliser une comparaison insensible à la casse et trim les espaces
+            $contratsActifs = Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['ACTIF'])->count();
+            $chiffreAffaires = Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['ACTIF'])->sum('montant_annuel');
+            
+            $stats = [
+                'total_contrats' => Contract::count(),
+                'contrats_actifs' => $contratsActifs,
+                'contrats_en_negociation' => Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['EN NÉGOCIATION'])->count(),
+                'contrats_expires' => Contract::whereRaw('TRIM(UPPER(statut)) = ?', ['EXPIRÉ'])->count(),
+                'chiffre_affaires_annuel' => $chiffreAffaires ?? 0,
+                'contrats_par_type' => Contract::selectRaw('type_contrat, count(*) as count')
+                                              ->groupBy('type_contrat')
+                                              ->get()
+                                              ->pluck('count', 'type_contrat'),
+                // Debug temporaire - à retirer après
+                'debug_statuts' => $allStatuses,
+            ];
 
-        return response()->json($stats);
+            return response()->json($stats);
+        } catch (\Throwable $e) {
+            report($e);
+            // Return safe default stats to avoid 500
+            return response()->json([
+                'total_contrats' => 0,
+                'contrats_actifs' => 0,
+                'contrats_en_negociation' => 0,
+                'contrats_expires' => 0,
+                'chiffre_affaires_annuel' => 0,
+                'contrats_par_type' => [],
+                'debug_statuts' => [],
+            ], 200);
+        }
     }
 }

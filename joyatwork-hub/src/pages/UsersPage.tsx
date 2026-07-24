@@ -62,6 +62,16 @@ const toDisplayValue = (value: unknown) => {
 };
 
 const UsersPage = () => {
+  const getApiErrorMessage = (error: unknown, fallback: string): string => {
+    const responseData = (error as { response?: { data?: unknown } })?.response?.data;
+    if (typeof responseData === "string") return responseData;
+    if (responseData && typeof responseData === "object") {
+      const message = (responseData as { message?: unknown }).message;
+      if (typeof message === "string" && message.trim().length > 0) return message;
+    }
+    if (error instanceof Error && error.message) return error.message;
+    return fallback;
+  };
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +109,19 @@ const UsersPage = () => {
         setLoading(true);
         setError(null);
         const response = await usersApi.getAll();
-        setUsers(response.data ?? []);
-      } catch {
-        setError("Impossible de charger les utilisateurs.");
+        // Backend returns { value: [...], Count } in some endpoints — normalize to an array
+        const payload = response.data;
+        const usersArray = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.value)
+          ? payload.value
+          : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+        setUsers(usersArray);
+      } catch (err) {
+        console.error('Erreur chargement utilisateurs:', err);
+        setError(getApiErrorMessage(err, "Impossible de charger les utilisateurs."));
       } finally {
         setLoading(false);
       }

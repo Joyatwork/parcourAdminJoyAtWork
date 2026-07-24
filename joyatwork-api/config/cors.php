@@ -6,7 +6,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
+    'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', env(
+        'CORS_ALLOWED_ORIGINS',
+        implode(',', [
         // LOCAL
         'http://localhost:3000',
         'http://localhost:3001',
@@ -18,7 +20,8 @@ return [
         // VERCEL (FRONTEND)
         'https://parcour-admin-joy-at-work.vercel.app',
         'https://parcour-admin-joy-at-work-m61u-git-dev-joyatwork1.vercel.app',
-    ],
+        ])
+    ))))),
 
     'allowed_origins_patterns' => [],
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Schema;
 
 class CompanyController extends Controller
 {
@@ -13,29 +14,34 @@ class CompanyController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Company::query();
+        try {
+            $query = Company::query();
 
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('domain', 'like', "%{$search}%")
-                  ->orWhere('ville', 'like', "%{$search}%")
-                  ->orWhere('secteur_activite', 'like', "%{$search}%");
-            });
+            if ($request->has('search') && $request->search) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('domain', 'like', "%{$search}%")
+                      ->orWhere('ville', 'like', "%{$search}%")
+                      ->orWhere('secteur_activite', 'like', "%{$search}%");
+                });
+            }
+
+            if ($request->has('sector') && $request->sector && $request->sector !== 'Tous les secteurs') {
+                $query->where('secteur_activite', $request->sector);
+            }
+
+            $rawCompanies = $query->orderBy('name')->get();
+            $mappedCompanies = [];
+            foreach ($rawCompanies as $company) {
+                $mappedCompanies[] = $this->mapToFrontend($company);
+            }
+
+            return response()->json($mappedCompanies);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json([], 200);
         }
-
-        if ($request->has('sector') && $request->sector && $request->sector !== 'Tous les secteurs') {
-            $query->where('secteur_activite', $request->sector);
-        }
-
-        $rawCompanies = $query->orderBy('name')->get();
-        $mappedCompanies = [];
-        foreach ($rawCompanies as $company) {
-            $mappedCompanies[] = $this->mapToFrontend($company);
-        }
-
-        return response()->json($mappedCompanies);
     }
 
     /**
@@ -43,7 +49,12 @@ class CompanyController extends Controller
      */
     public function show(Company $company): JsonResponse
     {
-        return response()->json($this->mapToFrontend($company));
+        try {
+            return response()->json($this->mapToFrontend($company));
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['error' => 'Entreprise non trouvée'], 404);
+        }
     }
 
     /**
@@ -127,14 +138,31 @@ class CompanyController extends Controller
     {
         $stats = [
             'total_companies' => Company::count(),
-            'active_contracts' => Company::where('is_active', true)->count(),
-            'total_employees' => Company::sum('nombre_employes') ?? 0,
-            'sectors' => Company::distinct('secteur_activite')
+        ];
+
+        if (Schema::hasColumn('entreprises', 'is_active')) {
+            $stats['active_contracts'] = Company::where('is_active', true)->count();
+        } else {
+            $stats['active_contracts'] = 0;
+        }
+
+        if (Schema::hasColumn('entreprises', 'nombre_employes')) {
+            $stats['total_employees'] = Company::sum('nombre_employes') ?? 0;
+        } else {
+            $stats['total_employees'] = 0;
+        }
+
+        $sectors = [];
+        if (Schema::hasColumn('entreprises', 'secteur_activite')) {
+            $sectors = Company::select('secteur_activite')
+                ->distinct()
                 ->pluck('secteur_activite')
                 ->filter()
                 ->values()
-                ->toArray(),
-        ];
+                ->toArray();
+        }
+
+        $stats['sectors'] = $sectors;
 
         return response()->json($stats);
     }
@@ -144,47 +172,68 @@ class CompanyController extends Controller
      */
     private function mapToFrontend(Company $company): array
     {
-        $location = trim(implode(', ', array_filter([
-            $company->adresse_facturation,
-            $company->code_postal,
-            $company->ville,
-            $company->pays,
-        ])));
+        try {
+            $location = trim(implode(', ', array_filter([
+                $company->adresse_facturation ?? null,
+                $company->code_postal ?? null,
+                $company->ville ?? null,
+                $company->pays ?? null,
+            ])));
 
-        return [
-            'id' => $company->id,
-            'name' => $company->name,
-            'domain' => $company->domain,
-            'sector' => $company->secteur_activite ?? 'Secteur non défini',
-            'location' => !empty($location) ? $location : 'Localisation non définie',
-            'email' => $company->email_contact ?? '',
-            'phone' => $company->telephone_contact ?? '',
-            'website' => $company->site_web ?? '',
-            'description' => $company->description ?? '',
-            'employees' => $company->nombre_employes ?? 0,
-            'status' => $company->is_active ? 'Actif' : 'Inactif',
-            'verified' => false,
-            'wellness_programs' => [],
-            'contract_value' => 0,
-            // Champs additionnels pour le backend
-            'siret' => $company->siret,
-            'numero_tva' => $company->numero_tva,
-            'forme_juridique' => $company->forme_juridique,
-            'contact_principal' => $company->contact_principal,
-            'date_premier_contact' => $company->date_premier_contact,
-            'source_lead' => $company->source_lead,
-            'adresse_facturation' => $company->adresse_facturation,
-            'code_postal' => $company->code_postal,
-            'ville' => $company->ville,
-            'pays' => $company->pays,
-            'secteur_activite' => $company->secteur_activite,
-            'site_web' => $company->site_web,
-            'email_contact' => $company->email_contact,
-            'telephone_contact' => $company->telephone_contact,
-            'nombre_employes' => $company->nombre_employes,
-            'is_active' => $company->is_active,
-            'created_at' => $company->created_at,
-            'updated_at' => $company->updated_at,
-        ];
+            return [
+                'id' => $company->id,
+                'name' => $company->name ?? 'Sans nom',
+                'domain' => $company->domain ?? '',
+                'sector' => $company->secteur_activite ?? 'Secteur non défini',
+                'location' => !empty($location) ? $location : 'Localisation non définie',
+                'email' => $company->email_contact ?? '',
+                'phone' => $company->telephone_contact ?? '',
+                'website' => $company->site_web ?? '',
+                'description' => $company->description ?? '',
+                'employees' => $company->nombre_employes ?? 0,
+                'status' => ($company->is_active ? 'Actif' : 'Inactif') ?? 'Inactif',
+                'verified' => false,
+                'wellness_programs' => [],
+                'contract_value' => 0,
+                // Champs additionnels pour le backend
+                'siret' => $company->siret ?? '',
+                'numero_tva' => $company->numero_tva ?? '',
+                'forme_juridique' => $company->forme_juridique ?? '',
+                'contact_principal' => $company->contact_principal ?? '',
+                'date_premier_contact' => $company->date_premier_contact ?? null,
+                'source_lead' => $company->source_lead ?? '',
+                'adresse_facturation' => $company->adresse_facturation ?? '',
+                'code_postal' => $company->code_postal ?? '',
+                'ville' => $company->ville ?? '',
+                'pays' => $company->pays ?? '',
+                'secteur_activite' => $company->secteur_activite ?? '',
+                'site_web' => $company->site_web ?? '',
+                'email_contact' => $company->email_contact ?? '',
+                'telephone_contact' => $company->telephone_contact ?? '',
+                'nombre_employes' => $company->nombre_employes ?? 0,
+                'is_active' => $company->is_active ?? false,
+                'created_at' => $company->created_at,
+                'updated_at' => $company->updated_at,
+            ];
+        } catch (\Throwable $e) {
+            report($e);
+            // Retourner un objet de secours en cas d'erreur
+            return [
+                'id' => $company->id ?? 0,
+                'name' => 'Données corrompues',
+                'domain' => '',
+                'sector' => '',
+                'location' => '',
+                'email' => '',
+                'phone' => '',
+                'website' => '',
+                'description' => '',
+                'employees' => 0,
+                'status' => 'Erreur',
+                'verified' => false,
+                'wellness_programs' => [],
+                'contract_value' => 0,
+            ];
+        }
     }
 }

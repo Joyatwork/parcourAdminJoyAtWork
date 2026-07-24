@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Compliance {
   id: number;
@@ -19,7 +20,7 @@ export default function CompliancePage() {
   }, [filter]);
 
   const fetchData = async () => {
-    let url = "http://localhost:8001/api/admin/compliance";
+    let url = `${API_BASE_URL}/admin/compliance`;
 
     if (filter) {
       url += `?data_type=${filter}`;
