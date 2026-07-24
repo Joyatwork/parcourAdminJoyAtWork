@@ -23,7 +23,11 @@ return [
         ])
     ))))),
 
-    'allowed_origins_patterns' => [],
+    // Autorise le domaine principal et les URLs de déploiement générées par
+    // Vercel uniquement pour ce projet (production et previews).
+    'allowed_origins_patterns' => [
+        '#^https://parcour-admin-joy-at-work(?:-m61u)?(?:-[a-z0-9-]+)?\.vercel\.app$#',
+    ],
 
     'allowed_headers' => ['*'],
 
